@@ -1,0 +1,46 @@
+{
+  "name": "s3gw-ui",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "build:prod": "ng build --configuration production --verbose",
+    "test": "jest --no-cache --watch",
+    "test:ci": "jest --no-cache",
+    "lint:prettier": "prettier --list-different \"src/**/*.{ts,scss}\"",
+    "lint": "run-p -cl --aggregate-output lint:*"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "~13.3.11",
+    "@angular/common": "~13.3.11",
+    "@angular/compiler": "~13.3.11",
+    "@angular/core": "~13.3.11",
+    "@angular/forms": "~13.3.11",
+    "@angular/platform-browser": "~13.3.11",
+    "@angular/platform-browser-dynamic": "~13.3.11",
+    "@angular/router": "~13.3.11",
+    "aws4": "^1.11.0",
+    "lodash": "^4.17.21",
+    "rxjs": "~7.5.5",
+    "tslib": "^2.4.0",
+    "zone.js": "~0.11.6"
+  },
+  "devDependencies": {
+    "@angular-builders/jest": "^13.0.4",
+    "@angular-devkit/build-angular": "~13.3.8",
+    "@angular/cli": "~13.3.8",
+    "@angular/compiler-cli": "~13.3.11",
+    "@types/aws4": "^1.11.2",
+    "@types/jest": "^27.5.2",
+    "@types/lodash": "^4.14.182",
+    "@types/node": "^12.20.55",
+    "jest": "^27.5.1",
+    "jest-canvas-mock": "^2.4.0",
+    "jest-preset-angular": "^11.1.2",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.7.1",
+    "typescript": "~4.6.4"
+  }
+}
