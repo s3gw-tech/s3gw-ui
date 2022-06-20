@@ -1,0 +1,36 @@
+<div *ngIf="config.title"
+     class="modal-header">
+  <div class="modal-title">
+    {{ config.title | transloco }}
+  </div>
+</div>
+<div class="modal-body">
+  <div fxLayout="row"
+       fxLayoutAlign="start center">
+    <i *ngIf="icon"
+       [class]="icon">
+    </i>
+    <div class="ml-2"
+         fxLayoutAlign="center center">
+      <span [innerHTML]="config.message | transloco"></span>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <div class="modal-actions">
+    <button *ngIf="button2Visible"
+            type="button"
+            class="btn"
+            [class]="button2Class"
+            (click)="onButtonClick(button2Result)">
+      {{ button2Text | transloco }}
+    </button>
+    <button *ngIf="button1Visible"
+            type="button"
+            class="btn"
+            [class]="button1Class"
+            (click)="onButtonClick(button1Result)">
+      {{ button1Text | transloco }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,36 @@
+<div class="s3gw-top-bar"
+     fxLayout="row"
+     fxLayoutAlign="start center">
+  <button class="btn btn-simple"
+          title="{{ 'Toggle navigation' | transloco }}"
+          (click)="onToggleNavigation()">
+    <i class="mdi mdi-menu"></i>
+  </button>
+  <s3gw-breadcrumbs></s3gw-breadcrumbs>
+  <span fxFlex></span>
+  <div ngbDropdown>
+    <button class="btn btn-simple"
+            title="{{ 'Help' | transloco }}"
+            ngbDropdownToggle>
+      <i class="mdi mdi-help-circle"></i>
+    </button>
+    <div ngbDropdownMenu>
+      <a ngbDropdownItem
+         href="https://github.com/aquarist-labs/"
+         target="_blank">
+        <div>
+          <i class="mdi mdi-web mr-1"></i>
+          <span translate>Website</span>
+        </div>
+      </a>
+      <a ngbDropdownItem
+         href="https://github.com/aquarist-labs/forum/discussions/"
+         target="_blank">
+        <div>
+          <i class="mdi mdi-forum mr-1"></i>
+          <span translate>Discussions</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+<li class="menu-item"
+    [ngbNavItem]="item.name"
+    [routerLink]="item.route"
+    [ngStyle]="{'padding-left': (depth * 1.5) + 'rem'}"
+    (click)="itemClicked(item)"
+    [routerLinkActiveOptions]="{exact: true}"
+    [ngClass]="{'has-subs': item.children && item.children.length}"
+    routerLinkActive="selected"
+    ngbNav>
+  <a class="menu-title"
+     ngbNavLink>
+    <div fxLayout="row">
+      <i [class]="item.icon"></i>
+      {{ item.name | transloco }}
+      <div fxFlex
+           *ngIf="item.children && item.children.length">
+        <div fxFlex></div>
+        <i class="mdi mdi-chevron-right"
+           [ngClass]="{'rotated': showSub}"></i>
+      </div>
+    </div>
+  </a>
+</li>
+<div *ngIf="showSub">
+  <s3gw-navigation-bar-item *ngFor="let child of item.children"
+                            [item]="child"
+                            [depth]="depth + 1">
+  </s3gw-navigation-bar-item>
+</div>

@@ -1,0 +1,12 @@
+@import 'styles.scss';
+
+.s3gw-dashboard-page {
+  margin: $s3gw-margin;
+
+  .row {
+    .widget {
+      @extend .flex-column;
+      @extend .mb-4;
+    }
+  }
+}

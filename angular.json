@@ -15,7 +15,7 @@
       },
       "root": "",
       "sourceRoot": "src",
-      "prefix": "app",
+      "prefix": "s3gw",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -31,8 +31,15 @@
               "src/assets"
             ],
             "styles": [
+              "node_modules/@fontsource/inter",
+              "node_modules/@fontsource/roboto-mono",
+              "node_modules/@mdi/font/scss/materialdesignicons.scss",
+              "node_modules/ngx-toastr/toastr.css",
               "src/styles.scss"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src"]
+            },
             "scripts": []
           },
           "configurations": {
@@ -98,6 +105,12 @@
               "src/styles.scss"
             ],
             "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }

@@ -1,0 +1,53 @@
+/*
+ * Copyright (C) 2021 SUSE, LLC.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+@forward '../vendor/colors';
+
+$s3gw-color-red-500: hsl(360, 84%, 47%);
+$s3gw-color-green-500: #00bb00;
+$s3gw-color-yellow-500: #ffc200;
+$s3gw-color-gray-50: #f2f2f2;
+$s3gw-color-gray-300: hsl(210, 40%, 96%);
+$s3gw-color-gray-500: hsl(210, 29%, 87%);
+$s3gw-color-transparent: transparent;
+$s3gw-color-transparent-black: hsla(235, 16%, 16%, 0.05);
+$s3gw-color-white: white;
+$s3gw-color-whitesmoke: whitesmoke;
+$s3gw-color-black: black;
+$s3gw-color-gunmetal: hsl(235, 16%, 16%);
+$s3gw-color-navy: hsl(237, 74%, 13%);
+$s3gw-color-blue: hsl(214, 82%, 51%);
+$s3gw-color-royal: hsl(237, 74%, 25%);
+$s3gw-color-success: $s3gw-color-green-500;
+$s3gw-color-info: $s3gw-color-blue;
+$s3gw-color-warning: $s3gw-color-yellow-500;
+$s3gw-color-danger: $s3gw-color-red-500;
+
+$s3gw-color-theme-primary: $s3gw-color-royal;
+$s3gw-color-theme-primary-complementary: $s3gw-color-white;
+$s3gw-color-theme-accent: $s3gw-color-red-500;
+$s3gw-color-theme-accent-complementary: $s3gw-color-white;
+$s3gw-color-body-background: $s3gw-color-white;
+$s3gw-color-card-background: $s3gw-color-gray-300;
+$s3gw-color-btn-submit: $s3gw-color-red-500;
+$s3gw-color-site-header-background: $s3gw-color-white;
+$s3gw-color-site-header-text: $s3gw-color-gunmetal;
+$s3gw-color-menu-background: $s3gw-color-gray-300;
+$s3gw-color-menu-item-hover: $s3gw-color-red-500;
+$s3gw-color-menu-item-text: $s3gw-color-black;
+$s3gw-color-menu-item-selected: $s3gw-color-red-500;
+$s3gw-color-menu-item-selected-text: $s3gw-color-white;
+$s3gw-color-submenu-item-selected: $s3gw-color-red-500;
+$s3gw-color-submenu-item-hover: $s3gw-color-red-500;
+$s3gw-color-submenu-item-text: $s3gw-color-gunmetal;
+$s3gw-color-table-accent-background: $s3gw-color-gray-300;

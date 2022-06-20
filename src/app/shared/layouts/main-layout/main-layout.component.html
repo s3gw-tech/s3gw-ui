@@ -1,0 +1,23 @@
+<block-ui>
+  <div class="s3gw-main-layout"
+       [ngClass]="{'navigation-collapsed': navigationCollapsed}">
+    <aside class="navigation">
+      <nav>
+        <header fxLayout="row"
+                fxLayoutAlign="start center">
+          <div class="logo"></div>
+          <div class="title"></div>
+        </header>
+        <s3gw-navigation-bar></s3gw-navigation-bar>
+      </nav>
+    </aside>
+    <div class="main">
+      <header>
+        <s3gw-top-bar (toggleNavigation)="navigationCollapsed = !navigationCollapsed"></s3gw-top-bar>
+      </header>
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
+</block-ui>

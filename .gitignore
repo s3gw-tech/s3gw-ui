@@ -14,6 +14,7 @@
 chrome-profiler-events*.json
 
 # IDEs and editors
+/.vscode
 /.idea
 .project
 .classpath
@@ -31,7 +32,7 @@ chrome-profiler-events*.json
 .history/*
 
 # misc
-/.angular/cache
+/.angular
 /.sass-cache
 /connect.lock
 /coverage
@@ -40,6 +41,7 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
+/src/assets/i18n/*.pot
 
 # System Files
 .DS_Store
