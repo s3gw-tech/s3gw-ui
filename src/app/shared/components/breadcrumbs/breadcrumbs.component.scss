@@ -1,0 +1,28 @@
+@import 'src/styles';
+
+.submenu {
+  a {
+    border-bottom: 3px solid;
+    border-color: transparent;
+    color: $s3gw-color-submenu-item-text;
+
+    &.selected {
+      color: $s3gw-color-submenu-item-selected;
+    }
+
+    &:hover {
+      cursor: pointer;
+      color: $s3gw-color-submenu-item-selected;
+      text-decoration: none;
+
+      &:not(.selected) {
+        border-color: $s3gw-color-submenu-item-hover;
+      }
+    }
+  }
+
+  .submenu-item {
+    display: inline-block;
+    padding: 12px 16px;
+  }
+}

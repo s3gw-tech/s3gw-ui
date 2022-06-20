@@ -1,0 +1,80 @@
+@import 'styles.scss';
+
+$navigation-width: 15rem;
+
+.s3gw-main-layout {
+  &.navigation-collapsed {
+    .navigation {
+      margin-left: -$navigation-width;
+    }
+
+    .main {
+      margin-left: 0;
+    }
+  }
+
+  .navigation {
+    background-color: $s3gw-color-menu-background;
+    height: 100%;
+    left: 0;
+    margin-left: 0;
+    max-width: $navigation-width;
+    min-width: $navigation-width;
+    position: fixed;
+    top: 0;
+    transition: all 0.3s;
+    z-index: 1000;
+
+    header {
+      color: $s3gw-color-site-header-text;
+      background-color: $s3gw-color-site-header-background;
+      border-bottom: 1px solid $s3gw-color-gray-500;
+      box-shadow: 0 0.0625rem 0.125rem $s3gw-color-transparent-black,
+        0 0.125rem 0.25rem $s3gw-color-transparent-black,
+        0 0.25rem 0.5rem $s3gw-color-transparent-black, 0 0.5rem 1rem $s3gw-color-transparent-black;
+      height: $s3gw-site-header-height;
+      padding-left: 1.5rem;
+
+      .logo {
+        background-image: url('/assets/images/ceph-logo-gray.svg');
+        background-position-y: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+        height: 100%;
+        width: 5rem;
+      }
+
+      .title {
+        font-family: $s3gw-font-family-headings;
+        font-size: 1.5rem;
+        font-weight: lighter;
+        padding-left: $s3gw-padding;
+
+        &::after {
+          content: 's3gw';
+        }
+      }
+    }
+  }
+
+  .main {
+    margin-left: $navigation-width;
+    transition: all 0.3s;
+
+    header {
+      overflow-x: clip;
+      position: sticky;
+      top: 0;
+      width: 100%;
+      z-index: 1030;
+
+      ::ng-deep .s3gw-top-bar {
+        border-bottom: 1px solid $s3gw-color-gray-500;
+        box-shadow: 0 0.0625rem 0.125rem $s3gw-color-transparent-black,
+          0 0.125rem 0.25rem $s3gw-color-transparent-black,
+          0 0.25rem 0.5rem $s3gw-color-transparent-black,
+          0 0.5rem 1rem $s3gw-color-transparent-black;
+      }
+    }
+  }
+}

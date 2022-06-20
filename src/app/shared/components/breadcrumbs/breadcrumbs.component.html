@@ -1,0 +1,10 @@
+<nav class="s3gw-breadcrumbs submenu"
+     fxLayout="row"
+     fxLayoutAlign="start center">
+  <a *ngFor="let breadcrumb of breadcrumbs; let last = last"
+     class="submenu-item"
+     [ngClass]="{'selected': last}"
+     [routerLink]="breadcrumb.path">
+    {{ breadcrumb.label }}
+  </a>
+</nav>

@@ -1,0 +1,16 @@
+@import 'styles.scss';
+
+.s3gw-top-bar {
+  background-color: $s3gw-color-site-header-background;
+  height: $s3gw-site-header-height;
+
+  ::ng-deep .btn {
+    color: $s3gw-color-submenu-item-text;
+  }
+
+  .vr {
+    align-self: center;
+    background-color: $s3gw-color-site-header-text;
+    height: 50%;
+  }
+}

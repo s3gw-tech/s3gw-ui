@@ -1,0 +1,27 @@
+@use './defaults/colors' as dc;
+
+.toast-container {
+  .ngx-toastr {
+    box-shadow: unset;
+
+    &:hover {
+      box-shadow: unset;
+    }
+  }
+}
+
+.toast-error {
+  background-color: dc.$s3gw-color-danger;
+}
+
+.toast-success {
+  background-color: dc.$s3gw-color-success;
+}
+
+.toast-info {
+  background-color: dc.$s3gw-color-info;
+}
+
+.toast-warning {
+  background-color: dc.$s3gw-color-warning;
+}

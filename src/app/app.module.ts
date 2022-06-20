@@ -1,18 +1,24 @@
+import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
+import { AppComponent } from '~/app/app.component';
+import { AppRoutingModule } from '~/app/app-routing.module';
+import { PagesModule } from '~/app/pages/pages.module';
+import { SharedModule } from '~/app/shared/shared.module';
+import { TranslocoRootModule } from '~/app/transloco-root.module';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
+  declarations: [AppComponent],
   imports: [
+    AppRoutingModule,
     BrowserModule,
-    AppRoutingModule
+    HttpClientModule,
+    PagesModule,
+    SharedModule,
+    TranslocoRootModule
   ],
   providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

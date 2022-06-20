@@ -1,1 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'src/scss/defaults';
+@import 'src/scss/blockui';
+@import 'src/scss/bootstrap';
+@import 'src/scss/ngx-toastr';
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: $s3gw-color-body-background;
+  color: $s3gw-color-gunmetal;
+  font-family: $s3gw-font-family-sans-serif;
+  margin: 0;
+}
