@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 
 import { BreadcrumbsComponent } from '~/app/shared/components/breadcrumbs/breadcrumbs.component';
 import { ComponentsModule } from '~/app/shared/components/components.module';
+import { TestingModule } from '~/app/testing.module';
 
 describe('BreadcrumbsComponent', () => {
   let component: BreadcrumbsComponent;
@@ -10,7 +10,7 @@ describe('BreadcrumbsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ComponentsModule, RouterTestingModule]
+      imports: [ComponentsModule, TestingModule]
     }).compileComponents();
   });
 

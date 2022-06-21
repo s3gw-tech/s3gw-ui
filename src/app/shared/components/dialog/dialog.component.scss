@@ -1,8 +1,8 @@
 @import 'styles.scss';
+@import '@mdi/font/scss/materialdesignicons.scss';
 
-.modal-body .mdi::before {
-  // See '.alert .mdi::before' in scss/bootstrap.scss
-  position: relative;
-  top: 4px;
-  margin-right: 2px;
+.modal-body .mdi {
+  @extend .mdi-36px;
+
+  margin-right: $s3gw-margin;
 }

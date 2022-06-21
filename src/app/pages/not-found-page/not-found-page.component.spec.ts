@@ -1,10 +1,8 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { TranslocoModule } from '@ngneat/transloco';
 
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
+import { TestingModule } from '~/app/testing.module';
 
 describe('NotFoundPageComponent', () => {
   let component: NotFoundPageComponent;
@@ -12,7 +10,7 @@ describe('NotFoundPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PagesModule, HttpClientTestingModule, RouterTestingModule, TranslocoModule]
+      imports: [PagesModule, TestingModule]
     }).compileComponents();
   });
 

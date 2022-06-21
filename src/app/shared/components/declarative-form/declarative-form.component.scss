@@ -1,0 +1,36 @@
+@import 'styles.scss';
+
+.s3gw-declarative-form {
+  .title {
+    @extend .h3;
+  }
+
+  .col {
+    @extend .mb-3;
+  }
+
+  .form-divider {
+    .title {
+      @extend .h4;
+    }
+
+    hr {
+      @extend .mt-1;
+      @extend .mb-1;
+
+      width: 100%;
+    }
+  }
+
+  .form-paragraph {
+    .text {
+      @extend .text-muted;
+      @extend .mb-2;
+    }
+  }
+
+  .form-label.required::after {
+    color: $s3gw-color-danger;
+    content: '*';
+  }
+}

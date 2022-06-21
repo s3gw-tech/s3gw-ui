@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
+import { AuthService } from '~/app/shared/services/api/auth.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
 @Component({
@@ -14,7 +14,7 @@ export class TopBarComponent {
   @Output()
   readonly toggleNavigation = new EventEmitter<any>();
 
-  constructor(private dialogService: DialogService, private router: Router) {}
+  constructor(private authService: AuthService, private dialogService: DialogService) {}
 
   onToggleNavigation(): void {
     this.toggleNavigation.emit();
@@ -24,7 +24,9 @@ export class TopBarComponent {
     this.dialogService.open(
       DialogComponent,
       (res: boolean) => {
-        // ToDo...
+        if (res) {
+          this.authService.logout().subscribe();
+        }
       },
       {
         type: 'yesNo',

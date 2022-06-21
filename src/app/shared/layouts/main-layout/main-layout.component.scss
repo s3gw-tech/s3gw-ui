@@ -3,16 +3,6 @@
 $navigation-width: 15rem;
 
 .s3gw-main-layout {
-  &.navigation-collapsed {
-    .navigation {
-      margin-left: -$navigation-width;
-    }
-
-    .main {
-      margin-left: 0;
-    }
-  }
-
   .navigation {
     background-color: $s3gw-color-menu-background;
     height: 100%;
@@ -26,20 +16,19 @@ $navigation-width: 15rem;
     z-index: 1000;
 
     header {
+      @extend .shadow;
+
       color: $s3gw-color-site-header-text;
       background-color: $s3gw-color-site-header-background;
-      border-bottom: 1px solid $s3gw-color-gray-500;
-      box-shadow: 0 0.0625rem 0.125rem $s3gw-color-transparent-black,
-        0 0.125rem 0.25rem $s3gw-color-transparent-black,
-        0 0.25rem 0.5rem $s3gw-color-transparent-black, 0 0.5rem 1rem $s3gw-color-transparent-black;
       height: $s3gw-site-header-height;
       padding-left: 1.5rem;
 
       .logo {
-        background-image: url('/assets/images/ceph-logo-gray.svg');
-        background-position-y: center;
-        background-repeat: no-repeat;
-        background-size: contain;
+        ///     ToDo...
+        //      background-image: url('/assets/images/xxxxx.svg');
+        //      background-position-y: center;
+        //      background-repeat: no-repeat;
+        //      background-size: contain;
         height: 100%;
         width: 5rem;
       }
@@ -69,12 +58,18 @@ $navigation-width: 15rem;
       z-index: 1030;
 
       ::ng-deep .s3gw-top-bar {
-        border-bottom: 1px solid $s3gw-color-gray-500;
-        box-shadow: 0 0.0625rem 0.125rem $s3gw-color-transparent-black,
-          0 0.125rem 0.25rem $s3gw-color-transparent-black,
-          0 0.25rem 0.5rem $s3gw-color-transparent-black,
-          0 0.5rem 1rem $s3gw-color-transparent-black;
+        @extend .shadow;
       }
+    }
+  }
+
+  &.navigation-collapsed {
+    .navigation {
+      margin-left: -$navigation-width;
+    }
+
+    .main {
+      margin-left: 0;
     }
   }
 }
