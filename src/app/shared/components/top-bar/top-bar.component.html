@@ -33,4 +33,20 @@
       </a>
     </div>
   </div>
+  <div ngbDropdown
+       display="dynamic"
+       placement="bottom-right">
+    <button class="btn btn-simple"
+            title="{{ 'Signed in user' | transloco }}"
+            ngbDropdownToggle>
+      <i class="mdi mdi-account-circle"></i>
+    </button>
+    <div ngbDropdownMenu>
+      <button ngbDropdownItem
+              (click)="onLogout()">
+        <i class="mdi mdi-logout mr-1"></i>
+        <span translate>Sign out</span>
+      </button>
+    </div>
+  </div>
 </div>

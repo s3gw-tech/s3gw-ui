@@ -6,13 +6,12 @@ import {
   TRANSLOCO_LOADER,
   translocoConfig,
   TranslocoLoader,
-  TranslocoModule,
-  TranslocoService
+  TranslocoModule
 } from '@ngneat/transloco';
 import * as _ from 'lodash';
 import { Observable } from 'rxjs';
 
-import { getCurrentLanguage, setTranslationService, supportedLanguages } from '~/app/i18n.helper';
+import { supportedLanguages } from '~/app/i18n.helper';
 import { environment } from '~/environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -32,7 +31,6 @@ export class TranslocoHttpLoader implements TranslocoLoader {
       useValue: translocoConfig({
         availableLangs: _.keys(supportedLanguages),
         defaultLang: 'en_US',
-        fallbackLang: 'en_US',
         reRenderOnLangChange: true,
         prodMode: environment.production,
         missingHandler: { allowEmpty: true, logMissingKey: false }
@@ -41,10 +39,4 @@ export class TranslocoHttpLoader implements TranslocoLoader {
     { provide: TRANSLOCO_LOADER, useClass: TranslocoHttpLoader }
   ]
 })
-export class TranslocoRootModule {
-  constructor(translocoService: TranslocoService) {
-    const language = getCurrentLanguage();
-    translocoService.setActiveLang(language);
-    setTranslationService(translocoService);
-  }
-}
+export class TranslocoRootModule {}

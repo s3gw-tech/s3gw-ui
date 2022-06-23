@@ -1,26 +1,28 @@
 @import 'styles.scss';
 
 .s3gw-not-found-page {
-  background-color: hsla(
-    hue($s3gw-color-navy),
-    saturation($s3gw-color-navy),
-    lightness($s3gw-color-navy),
-    0.6
-  );
-  background-image: url('/assets/images/mostafa-ashraf-mostafa-2n-NlDEAhtk-unsplash.jpg');
-  background-blend-mode: multiply;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center;
-  color: $s3gw-color-white;
+  // ToDo...
+  //  background-color: hsla(
+  //    hue($s3gw-color-navy),
+  //    saturation($s3gw-color-navy),
+  //    lightness($s3gw-color-navy),
+  //    0.6
+  //  );
+  //  background-image: url('/assets/images/xxxxx.jpg');
+  //  background-blend-mode: multiply;
+  //  background-size: cover;
+  //  background-repeat: no-repeat;
+  //  background-position: center center;
+  //  color: $s3gw-color-white;
 
   .logo {
-    background-image: url('/assets/images/ceph-logo-grey-reverse.svg');
-    background-repeat: no-repeat;
-    background-size: contain;
-    margin-bottom: 1rem;
-    height: 3rem;
-    width: 12rem;
+    // ToDo...
+    //    background-image: url('/assets/images/xxxxx.svg');
+    //    background-repeat: no-repeat;
+    //    background-size: contain;
+    //    margin-bottom: 1rem;
+    //    height: 3rem;
+    //    width: 12rem;
   }
 
   .text {

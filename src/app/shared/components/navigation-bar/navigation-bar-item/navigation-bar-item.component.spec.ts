@@ -1,12 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { TranslocoModule } from '@ngneat/transloco';
 
-import { CoreModule } from '~/app/core/core.module';
+import { ComponentsModule } from '~/app/shared/components/components.module';
 import {
   NavigationBarItemComponent,
   NavItem
-} from '~/app/core/navigation-bar/navigation-bar-item/navigation-bar-item.component';
+} from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
 import { TestingModule } from '~/app/testing.module';
 
 describe('NavigationBarItemComponent', () => {
@@ -27,7 +26,7 @@ describe('NavigationBarItemComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoreModule, TestingModule, TranslocoModule]
+      imports: [ComponentsModule, TestingModule]
     }).compileComponents();
   });
 

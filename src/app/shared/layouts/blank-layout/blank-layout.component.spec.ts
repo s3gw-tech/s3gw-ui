@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 
 import { BlankLayoutComponent } from '~/app/shared/layouts/blank-layout/blank-layout.component';
 import { SharedModule } from '~/app/shared/shared.module';
+import { TestingModule } from '~/app/testing.module';
 
 describe('BlankLayoutComponent', () => {
   let component: BlankLayoutComponent;
@@ -10,7 +10,7 @@ describe('BlankLayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SharedModule, RouterTestingModule]
+      imports: [SharedModule, TestingModule]
     }).compileComponents();
   });
 

@@ -1,0 +1,19 @@
+<ngb-alert *ngIf="!_noColor"
+           [dismissible]="false"
+           [type]="bsType">
+  <ng-container *ngTemplateOutlet="renderContent"></ng-container>
+</ngb-alert>
+<ng-container *ngIf="_noColor">
+  <ng-container *ngTemplateOutlet="renderContent"></ng-container>
+</ng-container>
+
+<ng-template #renderContent>
+  <div fxLayout="row"
+       fxLayoutAlign="start center">
+    <i [class]="icons[type]"></i>
+    <div class="ml-2"
+         fxLayoutAlign="center center">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</ng-template>
