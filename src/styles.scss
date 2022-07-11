@@ -14,3 +14,17 @@ body {
   font-family: $s3gw-font-family-sans-serif;
   margin: 0;
 }
+
+.s3gw-color-theme-danger {
+  color: $s3gw-color-white;
+  background-color: $s3gw-color-danger;
+}
+
+.s3gw-color-theme-success {
+  color: $s3gw-color-white;
+  background-color: $s3gw-color-success;
+}
+
+.s3gw-text-no-overflow {
+  overflow-x: hidden;
+}

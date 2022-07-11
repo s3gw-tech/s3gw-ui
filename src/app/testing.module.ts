@@ -9,6 +9,9 @@ import {
   TranslocoTestingModule
 } from '@ngneat/transloco';
 
+// @ts-ignore
+import en from '~/assets/i18n/en_US.json';
+
 export class TestingTranslocoMissingHandler implements TranslocoMissingHandler {
   handle(key: string, config: TranslocoConfig) {
     return key;
@@ -20,7 +23,10 @@ export class TestingTranslocoMissingHandler implements TranslocoMissingHandler {
     HttpClientTestingModule,
     NoopAnimationsModule,
     RouterTestingModule,
-    TranslocoTestingModule
+    TranslocoTestingModule.forRoot({
+      langs: { en },
+      translocoConfig: { availableLangs: ['en'], defaultLang: 'en' }
+    })
   ],
   exports: [RouterTestingModule],
   providers: [{ provide: TRANSLOCO_MISSING_HANDLER, useClass: TestingTranslocoMissingHandler }]

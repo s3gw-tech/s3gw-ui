@@ -1,0 +1,25 @@
+[{
+  "uid": "gateway-user",
+  "display_name": "Gateway User",
+  "email": "gateway-user@gmail.com",
+  "max_buckets": 1000,
+  "object_usage": 1000,
+  "size_usage": 1000,
+  "suspended": false
+},{
+  "uid": "user-two",
+  "display_name": "User Two",
+  "email": "user-two@gmail.com",
+  "max_buckets": 800,
+  "object_usage": 350,
+  "size_usage": 1000,
+  "suspended": true
+},{
+  "uid": "third-user",
+  "display_name": "Third User",
+  "email": "user-three@gmail.com",
+  "max_buckets": 650,
+  "object_usage": 175,
+  "size_usage": 800,
+  "suspended": false
+}]

@@ -15,7 +15,8 @@ export class AlertPanelComponent implements OnInit {
 
   public bsType = 'danger';
   public icons = Icon;
-  public _noColor = false;
+
+  private _noColor = false;
 
   @Input()
   get noColor(): boolean {

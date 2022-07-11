@@ -1,9 +1,9 @@
-<ngb-alert *ngIf="!_noColor"
+<ngb-alert *ngIf="!noColor"
            [dismissible]="false"
            [type]="bsType">
   <ng-container *ngTemplateOutlet="renderContent"></ng-container>
 </ngb-alert>
-<ng-container *ngIf="_noColor">
+<ng-container *ngIf="noColor">
   <ng-container *ngTemplateOutlet="renderContent"></ng-container>
 </ng-container>
 

@@ -5,6 +5,7 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
+import { UserDatatablePageComponent } from '~/app/pages/user/user-datatable-page/user-datatable-page.component';
 import { BlankLayoutComponent } from '~/app/shared/layouts/blank-layout/blank-layout.component';
 import { MainLayoutComponent } from '~/app/shared/layouts/main-layout/main-layout.component';
 import { AuthGuardService } from '~/app/shared/services/auth-guard.service';
@@ -21,6 +22,13 @@ const routes: Routes = [
         canActivate: [AuthGuardService],
         canActivateChild: [AuthGuardService],
         component: DashboardPageComponent
+      },
+      {
+        path: 'users',
+        data: { breadcrumb: TEXT('User Management') },
+        canActivate: [AuthGuardService],
+        canActivateChild: [AuthGuardService],
+        component: UserDatatablePageComponent
       }
     ]
   },
