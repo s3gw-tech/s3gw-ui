@@ -47,14 +47,14 @@
                        [autofocus]="field.autofocus"
                        (paste)="onPaste(field, $event)">
                 <button type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ passwordInput.type === 'password' ? 'Show' : 'Hide' | transloco }}"
                         (click)="passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password'">
                   <i class="mdi mdi-eye-outline"></i>
                 </button>
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ 'Copy to clipboard' | transloco }}"
                         (click)="onCopyToClipboard(field)">
                   <i class="mdi mdi-content-copy"></i>
@@ -109,7 +109,7 @@
                        (paste)="onPaste(field, $event)">
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ 'Copy to clipboard' | transloco }}"
                         (click)="onCopyToClipboard(field)">
                   <i class="mdi mdi-content-copy"></i>
@@ -169,7 +169,7 @@
                        (paste)="onPaste(field, $event)">
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ 'Copy to clipboard' | transloco }}"
                         (click)="onCopyToClipboard(field)">
                   <i class="mdi mdi-content-copy"></i>
@@ -317,7 +317,7 @@
                        [defaultUnit]="field.defaultUnit">
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ 'Copy to clipboard' | transloco }}"
                         (click)="onCopyToClipboard(field)">
                   <i class="mdi mdi-content-copy"></i>
@@ -384,7 +384,7 @@
         <ng-container [ngSwitch]="button.type">
           <ng-template [ngSwitchCase]="'default'">
             <button type="button"
-                    class="btn btn-outline-primary"
+                    class="btn btn-input-group"
                     [class]="button.class"
                     (click)="onButtonClick(button)">
               {{ button.text! | transloco }}

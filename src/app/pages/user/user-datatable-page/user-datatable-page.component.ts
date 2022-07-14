@@ -18,6 +18,7 @@ import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { User, UserService } from '~/app/shared/services/api/user.service';
 import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
+import { NotificationService } from '~/app/shared/services/notification.service';
 
 @Component({
   selector: 's3gw-user-datatable-page',
@@ -38,6 +39,7 @@ export class UserDatatablePageComponent {
   constructor(
     private authStorageService: AuthStorageService,
     private dialogService: DialogService,
+    private notificationService: NotificationService,
     private router: Router,
     private userService: UserService
   ) {
@@ -144,13 +146,14 @@ export class UserDatatablePageComponent {
                   .delete(user.user_id)
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
+                    this.notificationService.showSuccess(TEXT(`Deleted user ${user.user_id}.`));
                     this.loadData();
                   });
               }
             },
             {
               type: 'yesNo',
-              icon: 'question',
+              icon: 'danger',
               message: TEXT(`Do you really want to delete user <strong>${user.user_id}</strong>?`)
             }
           );

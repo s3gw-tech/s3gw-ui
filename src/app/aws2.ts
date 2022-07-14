@@ -4,11 +4,15 @@ import * as CryptoJS from 'crypto-js';
  * Code is based on https://github.com/egorFiNE/node-aws-sign
  * Author: Egor Egorov, me@egorfine.com
  * License: MIT
+ *
+ * Adapted for Ceph RGW Admin Ops API.
+ * Author: Volker Theile, vtheile@suse.com
+ *
+ * @see https://docs.aws.amazon.com/general/latest/gr/signature-version-2.html
+ * @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html
+ * @see https://github.com/ceph/ceph/blob/main/src/rgw/rgw_auth_s3.cc
+ * @see https://github.com/tax/python-requests-aws/blob/master/awsauth.py
  */
-// https://docs.aws.amazon.com/general/latest/gr/signature-version-2.html
-// https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html
-// https://github.com/ceph/ceph/blob/main/src/rgw/rgw_auth_s3.cc
-// https://github.com/tax/python-requests-aws/blob/master/awsauth.py
 class AWSRestSigner {
   static subResources: string[] = [
     'acl',
@@ -69,20 +73,20 @@ class AWSRestSigner {
   static extractSubResources(queryString: string) {
     const params = new URLSearchParams(queryString);
 
-    const subresources: Array<string> = [];
+    const subResources: Array<string> = [];
     for (const param of params.values()) {
       if (AWSRestSigner.subResources.indexOf(param) >= 0) {
-        subresources.push(param);
+        subResources.push(param);
       }
     }
 
-    if (subresources.length <= 0) {
+    if (subResources.length <= 0) {
       return '';
     }
 
-    subresources.sort();
+    subResources.sort();
 
-    const queryToSign = subresources.map((param) => {
+    const queryToSign = subResources.map((param) => {
       if (params.get(param) !== '') {
         return param + '=' + params.get(param);
       }

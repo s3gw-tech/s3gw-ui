@@ -8,6 +8,10 @@
       box-shadow: unset;
     }
   }
+
+  &.toast-bottom-center {
+    width: 100% !important;
+  }
 }
 
 .toast-error {

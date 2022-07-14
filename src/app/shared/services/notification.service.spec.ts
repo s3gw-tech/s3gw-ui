@@ -11,6 +11,7 @@ describe('NotificationService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      providers: [NotificationService],
       imports: [SharedModule, TestingModule, ToastrModule.forRoot()]
     });
     toastrService = TestBed.inject(ToastrService);
@@ -24,7 +25,7 @@ describe('NotificationService', () => {
   });
 
   it('should show notification [1]', fakeAsync(() => {
-    service.show('foo', { duration: 2000, type: 'info' });
+    service.show('foo', undefined, { duration: 2000, type: 'info' });
     tick(5);
     expect(toastrService.info).toHaveBeenCalledWith('foo', undefined, {
       timeOut: 2000
@@ -42,7 +43,7 @@ describe('NotificationService', () => {
   }));
 
   it('should show notification [3]', fakeAsync(() => {
-    service.show('baz', { type: 'error' });
+    service.show('baz', undefined, { type: 'error' });
     tick(5);
     expect(toastrService.error).toHaveBeenCalledWith('baz', undefined, {
       timeOut: 5000

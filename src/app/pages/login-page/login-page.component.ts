@@ -9,6 +9,7 @@ import { DeclarativeFormComponent } from '~/app/shared/components/declarative-fo
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { AuthService } from '~/app/shared/services/api/auth.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
+import { NotificationService, NotificationType } from '~/app/shared/services/notification.service';
 
 @Component({
   selector: 's3gw-login-page',
@@ -55,6 +56,7 @@ export class LoginPageComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private dialogService: DialogService,
+    private notificationService: NotificationService,
     private router: Router
   ) {}
 
@@ -70,8 +72,14 @@ export class LoginPageComponent implements OnInit {
     this.authService
       .login(values['accessKey'], values['secretKey'])
       .pipe(finalize(() => this.blockUI.stop()))
-      .subscribe(() => {
-        this.router.navigate(['/dashboard']);
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err) => {
+          err.preventDefault();
+          this.notificationService.showError(TEXT('Invalid credentials.'));
+        }
       });
   }
 }

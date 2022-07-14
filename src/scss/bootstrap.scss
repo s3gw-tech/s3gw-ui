@@ -57,7 +57,11 @@ $component-active-bg: dc.$s3gw-color-theme-primary;
 }
 
 .btn-submit {
-  @include button-variant(dc.$s3gw-color-btn-submit, dc.$s3gw-color-btn-submit);
+  @extend .btn-primary;
+}
+
+.btn-input-group {
+  @extend .btn-outline-secondary;
 }
 
 //////////////////////////////////////////////////////////////////////////////

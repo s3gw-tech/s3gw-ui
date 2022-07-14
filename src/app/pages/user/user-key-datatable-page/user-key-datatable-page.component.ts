@@ -146,7 +146,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
               if (res) {
                 this.blockUI.start(translate(TEXT('Please wait, deleting key ...')));
                 this.userService
-                  .deleteKey(this.uid, key.access_key)
+                  .deleteKey(this.uid, key.access_key!)
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
                     this.loadData();
@@ -155,7 +155,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
             },
             {
               type: 'yesNo',
-              icon: 'question',
+              icon: 'danger',
               message: TEXT(`Do you really want to delete key <strong>${key.user}</strong>?`)
             }
           );

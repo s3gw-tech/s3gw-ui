@@ -5,14 +5,11 @@
   </div>
 </div>
 <div class="modal-body">
-  <div fxLayout="row"
-       fxLayoutAlign="start center">
-    <i *ngIf="icon"
-       [class]="icon">
-    </i>
-    <div fxLayoutAlign="center center">
-      <span [innerHTML]="config.message | transloco"></span>
-    </div>
+  <i *ngIf="iconClass"
+     [class]="iconClass">
+  </i>
+  <div class="content">
+    <span [innerHTML]="config.message | transloco"></span>
   </div>
 </div>
 <div class="modal-footer">

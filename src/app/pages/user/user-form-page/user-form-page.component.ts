@@ -77,6 +77,7 @@ export class UserFormPageComponent implements OnInit {
           label: TEXT('Username'),
           value: '',
           readonly: editing,
+          autofocus: true,
           validators: {
             required: true
           }

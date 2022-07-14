@@ -1,8 +1,17 @@
 @import 'styles.scss';
 @import '@mdi/font/scss/materialdesignicons.scss';
 
-.modal-body .mdi {
-  @extend .mdi-36px;
+.modal-body {
+  @extend .d-flex;
+  @extend .justify-content-start;
+  @extend .align-items-center;
+  @extend .overflow-hidden;
 
-  margin-right: $s3gw-margin;
+  i.mdi::before {
+    @extend .mdi-48px;
+  }
+
+  .content {
+    @extend .ms-2;
+  }
 }

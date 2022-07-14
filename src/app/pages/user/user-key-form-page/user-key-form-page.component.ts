@@ -1,8 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import * as _ from 'lodash';
-import { finalize } from 'rxjs/operators';
 
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
@@ -40,89 +38,95 @@ export class UserKeyFormPageComponent implements OnInit {
       this.pageStatus = PageStatus.ready;
       this.uid = decodeURIComponent(value['uid']);
       this.user = decodeURIComponent(value['user']);
-      const creating = this.router.url.endsWith(`/key/create`);
-      this.createForm(creating);
-      if (!creating) {
-        this.loadData();
-      }
+      this.createForm();
     });
   }
 
-  loadData(): void {
-    this.pageStatus = PageStatus.loading;
-    this.userService.get(this.uid).subscribe({
-      next: (user: User) => {
-        const key: UserKey | undefined = _.find(user.keys, ['user', this.user]);
-        if (!_.isUndefined(key)) {
-          this.pageStatus = PageStatus.ready;
-          this.form.patchValues(key);
-        } else {
-          this.pageStatus = PageStatus.loadingError;
-        }
-      },
-      error: () => (this.pageStatus = PageStatus.loadingError)
-    });
-  }
-
-  private createForm(creating: boolean) {
-    const buttons: FormButtonConfig[] = [
-      {
-        type: 'default',
-        text: TEXT('Cancel'),
-        click: () => this.router.navigate([`/user/${this.uid}/key`])
-      }
-    ];
-    if (creating) {
-      buttons.push({
-        type: 'submit',
-        text: TEXT('Create'),
-        click: () => {
-          const key: UserKey = this.form.values as UserKey;
-          this.userService.createKey(this.uid, key).subscribe({
-            next: () => {
-              this.router.navigate([`/user/${this.uid}/key`]);
-            },
-            error: () => {
-              this.pageStatus = PageStatus.savingError;
-            }
-          });
-        }
-      });
-    }
+  private createForm() {
     this.config = {
-      buttons,
+      buttons: [
+        {
+          type: 'default',
+          text: TEXT('Cancel'),
+          click: () => this.router.navigate([`/user/${this.uid}/key`])
+        },
+        {
+          type: 'submit',
+          text: TEXT('Create'),
+          click: () => {
+            const key: UserKey = this.form.values as UserKey;
+            this.userService.createKey(this.uid, key).subscribe({
+              next: () => {
+                this.router.navigate([`/user/${this.uid}/key`]);
+              },
+              error: () => {
+                this.pageStatus = PageStatus.savingError;
+              }
+            });
+          }
+        }
+      ],
       fields: [
         {
           type: 'text',
-          name: 'user',
+          name: 'uid',
           label: TEXT('Username'),
           value: this.uid,
           readonly: true,
+          submitValue: false,
           validators: {
             required: true
           }
+        },
+        {
+          type: 'checkbox',
+          name: 'generate_key',
+          value: true,
+          label: TEXT('Auto-generate Keys')
         },
         {
           type: 'password',
           name: 'access_key',
           label: TEXT('Access Key'),
           value: '',
-          readonly: !creating,
           hasCopyToClipboardButton: true,
           validators: {
-            required: true
-          }
+            requiredIf: {
+              operator: 'falsy',
+              arg0: { prop: 'generate_key' }
+            }
+          },
+          modifiers: [
+            {
+              type: 'readonly',
+              constraint: {
+                operator: 'truthy',
+                arg0: { prop: 'generate_key' }
+              }
+            }
+          ]
         },
         {
           type: 'password',
           name: 'secret_key',
           label: TEXT('Secret Key'),
           value: '',
-          readonly: !creating,
           hasCopyToClipboardButton: true,
           validators: {
-            required: true
-          }
+            requiredIf: {
+              operator: 'falsy',
+              arg0: { prop: 'generate_key' }
+            }
+          },
+          modifiers: [
+            {
+              type: 'readonly',
+              constraint: {
+                operator: 'truthy',
+                arg0: { prop: 'generate_key' }
+              }
+            }
+          ]
         }
       ]
     };

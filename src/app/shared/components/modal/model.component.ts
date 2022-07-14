@@ -29,7 +29,7 @@ export class ModelComponent implements OnInit {
   public button2Result?: any;
   public button2Class?: string;
   public button2Visible = false;
-  public icon?: string;
+  public iconClass?: string;
 
   private icons = Icon;
 
@@ -68,18 +68,18 @@ export class ModelComponent implements OnInit {
     }
     switch (this.config.icon) {
       case 'info':
-        this.icon = this.icons.info;
+        this.iconClass = `${this.icons.info} s3gw-color-info`;
         break;
       case 'warning':
-        this.icon = this.icons.warning;
+        this.iconClass = `${this.icons.warning} s3gw-color-warning`;
         this.button1Class = _.replace(this.button1Class, 'btn-submit', 'btn-warning');
         break;
       case 'danger':
-        this.icon = this.icons.danger;
+        this.iconClass = `${this.icons.danger} s3gw-color-danger`;
         this.button1Class = _.replace(this.button1Class, 'btn-submit', 'btn-danger');
         break;
       case 'question':
-        this.icon = this.icons.question;
+        this.iconClass = `${this.icons.question} s3gw-color-info`;
     }
   }
 

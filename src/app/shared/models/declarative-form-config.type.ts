@@ -35,6 +35,7 @@ export type FormFieldConfig = {
   autofocus?: boolean;
   hint?: string;
   groupClass?: string;
+  submitValue?: boolean;
   // Modify the form field when the specified constraint is truthy.
   modifiers?: FormFieldModifier[];
   validators?: {

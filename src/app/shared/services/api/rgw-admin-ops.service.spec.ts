@@ -1,17 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 
-import { AuthGuardService } from '~/app/shared/services/auth-guard.service';
+import { RgwAdminOpsService } from '~/app/shared/services/api/rgw-admin-ops.service';
 import { TestingModule } from '~/app/testing.module';
 
-describe('AuthGuardService', () => {
-  let service: AuthGuardService;
+describe('RgwAdminOpsService', () => {
+  let service: RgwAdminOpsService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [AuthGuardService],
+      providers: [RgwAdminOpsService],
       imports: [TestingModule]
     });
-    service = TestBed.inject(AuthGuardService);
+    service = TestBed.inject(RgwAdminOpsService);
   });
 
   it('should be created', () => {

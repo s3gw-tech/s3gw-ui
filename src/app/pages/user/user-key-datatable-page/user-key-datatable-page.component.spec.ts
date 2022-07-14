@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ToastrModule } from 'ngx-toastr';
 
 import { PagesModule } from '~/app/pages/pages.module';
 import { UserKeyDatatablePageComponent } from '~/app/pages/user/user-key-datatable-page/user-key-datatable-page.component';
@@ -10,7 +11,7 @@ describe('UserKeyDatatablePageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PagesModule, TestingModule]
+      imports: [PagesModule, TestingModule, ToastrModule.forRoot()]
     }).compileComponents();
   });
 

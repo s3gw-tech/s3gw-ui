@@ -1,7 +1,9 @@
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { AuthService } from '~/app/shared/services/api/auth.service';
+import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { TestingModule } from '~/app/testing.module';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -9,7 +11,8 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule]
+      providers: [AuthService],
+      imports: [TestingModule]
     });
     service = TestBed.inject(AuthService);
     httpTesting = TestBed.inject(HttpTestingController);
@@ -20,16 +23,19 @@ describe('AuthService', () => {
   });
 
   it('should call login', () => {
-    service.login('test', '01234').subscribe();
-    // ToDo...
-    // const req = httpTesting.expectOne('api/auth/login');
-    // expect(req.request.method).toBe('POST');
+    const authStorageService = TestBed.inject(AuthStorageService);
+    jest.spyOn(authStorageService, 'set').mockImplementation();
+    service.login('foo', 'bar').subscribe();
+    const req = httpTesting.expectOne('admin/user?access-key=foo');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+    expect(authStorageService.set).toBeCalledWith('foo', 'bar');
   });
 
   it('should call logout', () => {
+    const authStorageService = TestBed.inject(AuthStorageService);
+    jest.spyOn(authStorageService, 'revoke').mockImplementation();
     service.logout().subscribe();
-    // ToDo...
-    // const req = httpTesting.expectOne('api/auth/logout');
-    // expect(req.request.method).toBe('POST');
+    expect(authStorageService.revoke).toBeCalled();
   });
 });

@@ -2,18 +2,23 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { UserService } from '~/app/shared/services/api/user.service';
+import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { TestingModule } from '~/app/testing.module';
 
 describe('UserService', () => {
   let service: UserService;
   let httpTesting: HttpTestingController;
+  let authStorageService: AuthStorageService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      providers: [AuthStorageService, UserService],
       imports: [TestingModule]
     });
     service = TestBed.inject(UserService);
     httpTesting = TestBed.inject(HttpTestingController);
+    authStorageService = TestBed.inject(AuthStorageService);
+    authStorageService.set('xyz', '123');
   });
 
   it('should be created', () => {
@@ -36,34 +41,31 @@ describe('UserService', () => {
         max_buckets: 1000,
         object_usage: 1000,
         size_usage: 1000,
-        suspended: true
+        suspended: true,
+        keys: []
       })
       .subscribe();
-    const req = httpTesting.expectOne('api/user/create');
-    expect(req.request.method).toBe('POST');
+    const req = httpTesting.expectOne(
+      'admin/user?uid=foo&display-name=foo%20bar&email=foobar@gmail.com&max-buckets=1000&suspended=true'
+    );
+    expect(req.request.method).toBe('PUT');
   });
 
   it('should call delete', () => {
     service.delete('foo').subscribe();
-    const req = httpTesting.expectOne('api/user/foo');
+    const req = httpTesting.expectOne('admin/user?uid=foo');
     expect(req.request.method).toBe('DELETE');
   });
 
   it('should call update', () => {
     service.update({ user_id: 'baz', display_name: 'baz bar' }).subscribe();
-    const req = httpTesting.expectOne('api/user/baz');
-    expect(req.request.method).toBe('PATCH');
+    const req = httpTesting.expectOne('admin/user?uid=baz&display-name=baz%20bar');
+    expect(req.request.method).toBe('POST');
   });
 
   it('should call get', () => {
     service.get('foo').subscribe();
-    const req = httpTesting.expectOne('api/user/foo');
-    expect(req.request.method).toBe('GET');
-  });
-
-  it('should call exists', () => {
-    service.exists('foo').subscribe();
-    const req = httpTesting.expectOne('api/user/foo');
+    const req = httpTesting.expectOne('admin/user?uid=foo');
     expect(req.request.method).toBe('GET');
   });
 });

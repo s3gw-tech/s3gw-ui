@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ToastrModule } from 'ngx-toastr';
 
-import { UserKeyFormPageComponent } from './user-key-form-page.component';
+import { PagesModule } from '~/app/pages/pages.module';
+import { UserKeyFormPageComponent } from '~/app/pages/user/user-key-form-page/user-key-form-page.component';
+import { TestingModule } from '~/app/testing.module';
 
 describe('UserKeyFormPageComponent', () => {
   let component: UserKeyFormPageComponent;
@@ -8,7 +11,7 @@ describe('UserKeyFormPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [UserKeyFormPageComponent]
+      imports: [PagesModule, TestingModule, ToastrModule.forRoot()]
     }).compileComponents();
   });
 
