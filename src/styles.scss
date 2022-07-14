@@ -28,3 +28,20 @@ body {
 .s3gw-text-no-overflow {
   overflow-x: hidden;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Page actions.
+.s3gw-page-actions {
+  @extend .d-flex;
+  @extend .justify-content-end;
+  @extend .mb-3;
+
+  // Place margin between action elements.
+  > * {
+    @extend .m-1;
+  }
+
+  button:not(.btn-primary):not(.btn-outline-primary) {
+    @extend .btn-light;
+  }
+}

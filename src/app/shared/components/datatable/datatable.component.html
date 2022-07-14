@@ -1,4 +1,4 @@
-<table class="table table-striped">
+<table class="table table-striped table-hover">
   <thead>
     <tr class="d-flex">
       <th *ngFor="let column of columns"
@@ -34,7 +34,7 @@
     </tr>
   </tbody>
 </table>
-<div class="d-flex float-right">
+<div class="d-flex justify-content-end">
   <div *ngIf="!hidePageSize"
        ngbDropdown>
     <button class="btn btn-outline-default mr-2"

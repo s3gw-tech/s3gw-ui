@@ -7,7 +7,11 @@
                     type="danger">
     {{ loadingErrorText! | transloco }}
   </s3gw-alert-panel>
-  <div *ngIf="[1, 3].includes(pageStatus)">
+  <s3gw-alert-panel *ngIf="pageStatus === 5"
+                    type="danger">
+    {{ savingErrorText! | transloco }}
+  </s3gw-alert-panel>
+  <div *ngIf="[1, 3, 5].includes(pageStatus)">
     <ng-content></ng-content>
   </div>
 </div>

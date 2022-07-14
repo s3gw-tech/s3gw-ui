@@ -9,14 +9,14 @@
     <div class="vr"></div>
     <button type="button"
             class="btn btn-outline-primary"
-            (click)="onCreate()">
+            (click)="onAdd()">
       <i [class]="icons.plus"></i>
-      {{ "Create User" | transloco }}
+      {{ "Add Key" | transloco }}
     </button>
   </div>
-  <s3gw-datatable [data]="users"
+  <s3gw-datatable [data]="keys"
                   [columns]="columns"
-                  [autoReload]="30000"
+                  [autoReload]="false"
                   (loadData)="loadData()">
   </s3gw-datatable>
 </s3gw-page-status>

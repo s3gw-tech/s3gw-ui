@@ -14,8 +14,12 @@ export type NavItem = {
   styleUrls: ['./navigation-bar-item.component.scss']
 })
 export class NavigationBarItemComponent implements OnInit {
-  @Input() item!: NavItem;
-  @Input() depth = 0;
+  @Input()
+  item!: NavItem;
+
+  @Input()
+  depth = 0;
+
   showSub = false;
 
   constructor(private router: Router) {}

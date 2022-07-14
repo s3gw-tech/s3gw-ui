@@ -50,11 +50,22 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
   ) {}
 
   get values(): DeclarativeFormValues {
-    const values = this.formGroup?.getRawValue() ?? {};
+    const values: Record<string, any> = this.formGroup?.getRawValue() ?? {};
     _.forEach(this.getFields(), (field: FormFieldConfig) => {
       const value = values[field.name!];
       if (value) {
         values[field.name!] = this.convertToRaw(value, field);
+      }
+    });
+    return values;
+  }
+
+  get modifiedValues(): DeclarativeFormValues {
+    const values: Record<string, any> = {};
+    _.forEach(this.getFields(), (field: FormFieldConfig) => {
+      const control = this.getControl(field.name!);
+      if (control?.touched) {
+        values[field.name!] = this.convertToRaw(control.value, field);
       }
     });
     return values;
@@ -91,8 +102,14 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
       }
       if (_.isString(field.validators.patternType)) {
         switch (field.validators.patternType) {
+          case 'email':
+            validators.push(Validators.email);
+            break;
           case 'hostAddress':
             validators.push(S3gwValidators.hostAddress());
+            break;
+          case 'numeric':
+            validators.push(Validators.pattern(/^[-]?\d+$/));
             break;
         }
       }
@@ -173,7 +190,7 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
               })
             );
           });
-          // Finally apply the modifier to the form field.
+          // Finally, apply the modifier to the form field.
           this.applyModifier(field, modifier);
         });
       }

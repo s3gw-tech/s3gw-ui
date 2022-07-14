@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 
-import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
+import { ModelComponent } from '~/app/shared/components/modal/model.component';
 import { AuthService } from '~/app/shared/services/api/auth.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
@@ -22,7 +22,7 @@ export class TopBarComponent {
 
   onLogout(): void {
     this.dialogService.open(
-      DialogComponent,
+      ModelComponent,
       (res: boolean) => {
         if (res) {
           this.authService.logout().subscribe();

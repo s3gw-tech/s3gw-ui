@@ -45,7 +45,7 @@ export type FormFieldConfig = {
     required?: boolean;
     requiredIf?: Constraint;
     pattern?: string | RegExp;
-    patternType?: 'hostAddress';
+    patternType?: 'email' | 'hostAddress' | 'numeric';
     constraint?: {
       constraint: Constraint;
       errorMessage: string;
@@ -111,6 +111,6 @@ export type DeclarativeFormConfig = {
   title?: string;
   subtitle?: string;
   fields: FormFieldConfig[];
-  buttons?: Array<FormButtonConfig>;
-  buttonAlign?: 'start' | 'center' | 'end';
+  buttons?: FormButtonConfig[];
+  buttonAlign?: 'start' | 'center' | 'end'; // Defaults to 'end'.
 };

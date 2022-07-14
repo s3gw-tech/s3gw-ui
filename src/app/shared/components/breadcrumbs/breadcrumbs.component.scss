@@ -5,6 +5,7 @@
     border-bottom: 3px solid;
     border-color: transparent;
     color: $s3gw-color-submenu-item-text;
+    text-decoration: none;
 
     &.selected {
       color: $s3gw-color-submenu-item-selected;
@@ -12,7 +13,7 @@
 
     &:hover {
       cursor: pointer;
-      color: $s3gw-color-submenu-item-selected;
+      color: $s3gw-color-submenu-item-hover;
       text-decoration: none;
 
       &:not(.selected) {
