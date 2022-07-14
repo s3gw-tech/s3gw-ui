@@ -1,0 +1,171 @@
+<table class="table table-striped">
+  <thead>
+    <tr class="d-flex">
+      <th *ngFor="let column of columns"
+          scope="col"
+          [class]="setHeaderClasses(column)"
+          [hidden]="column.hidden"
+          (click)="updateSorting(column)">
+        <span *ngIf="column.name">{{ column.name | transloco }}
+        </span>
+        <i *ngIf="sortHeader === column.prop"
+           aria-hidden="true"
+           [class]="getHeaderIconCss()"></i>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let row of filteredData"
+        class="d-flex">
+      <td *ngFor="let column of columns"
+          [class]="column.css"
+          [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}"
+          [hidden]="column.hidden">
+        <ng-template *ngIf="!(column.cellTemplateName || column.cellTemplate)"
+                     [ngTemplateOutlet]="defaultTpl"
+                     [ngTemplateOutletContext]="{ value: renderCellValue(row, column) }">
+        </ng-template>
+        <ng-template *ngIf="column.cellTemplate"
+                     [ngTemplateOutlet]="column.cellTemplate"
+                     [ngTemplateOutletContext]="{ row: row, column: column, value: column.prop ? renderCellValue(row, column) : undefined,
+                     disabled: column.prop ? renderCellDisabled(row, column) : false }">
+        </ng-template>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<div class="d-flex float-right">
+  <div *ngIf="!hidePageSize"
+       ngbDropdown>
+    <button class="btn btn-outline-default mr-2"
+            ngbDropdownToggle>
+      {{ pageSize + ' ' + ('items per page' | transloco) }}
+    </button>
+    <div ngbDropdownMenu>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(5)">
+        {{ "5 items per page" | transloco }}
+      </button>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(10)">
+        {{ "10 items per page" | transloco }}
+      </button>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(25)">
+        {{ "25 items per page" | transloco }}
+      </button>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(50)">
+        {{ "50 items per page" | transloco }}
+      </button>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(100)">
+        {{ "100 items per page" | transloco }}
+      </button>
+    </div>
+  </div>
+  <ngb-pagination [collectionSize]="data.length"
+                  [(page)]="page"
+                  [pageSize]="pageSize"
+                  (pageChange)="reloadData()">
+  </ngb-pagination>
+</div>
+
+<ng-template #defaultTpl
+             let-value="value">
+  <span [title]="value">{{ value }}</span>
+</ng-template>
+
+<ng-template #rowSelectTpl
+             let-value="value"
+             let-row="row"
+             let-disabled="disabled">
+  <input type="checkbox"
+         [checked]="value"
+         [disabled]="disabled"
+         (change)="onSelectionChange($event, row)">
+</ng-template>
+
+<ng-template #yesNoIconTpl
+             let-value="value">
+  <i *ngIf="value"
+     [class]="icons.check">
+  </i>
+  <i *ngIf="!value"
+     [class]="icons.minus">
+  </i>
+</ng-template>
+
+<ng-template #checkIconTpl
+             let-value="value">
+  <i *ngIf="value"
+     [class]="icons.check">
+  </i>
+</ng-template>
+
+<ng-template #mapTpl
+             let-value="value"
+             let-column="column">
+  <span>{{ value | map:column.cellTemplateConfig }}</span>
+</ng-template>
+
+<ng-template #iconTpl
+             let-column="column">
+  <i [ngClass]="column.cellTemplateConfig?.class"
+     [class]="column.cellTemplateConfig.name">
+  </i>
+</ng-template>
+
+<ng-template #actionMenuTpl
+             let-column="column"
+             let-row="row">
+  <ng-template [ngTemplateOutlet]="renderActionButton"
+               [ngTemplateOutletContext]="{ row: row, items: column.cellTemplateConfig(row) }">
+  </ng-template>
+</ng-template>
+
+<ng-template #renderActionButton
+             let-items="items"
+             let-row="row">
+  <div ngbDropdown>
+    <button *ngIf="items.length"
+            class="btn"
+            title="{{ 'Actions' | transloco }}"
+            ngbDropdownToggle>
+      <i class="mdi mdi-dots-vertical"></i>
+    </button>
+    <div ngbDropdownMenu>
+      <ng-container *ngFor="let item of items">
+        <button *ngIf="item.type !== 'divider'"
+                ngbDropdownItem
+                [disabled]="item.disabled"
+                (click)="item.callback(row)">
+          <div class="row">
+            <div class="col-1">
+              <i *ngIf="item.icon"
+                 [class]="item.icon">
+              </i>
+            </div>
+            <div class="col-1">{{ item.title | transloco }}</div>
+          </div>
+        </button>
+        <div *ngIf="item.type === 'divider'"
+             class="dropdown-divider">
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #badgeTpl
+             let-value="value"
+             let-column="column">
+  <span *ngFor="let item of (value | array); last as last">
+    <span class="badge"
+          [ngClass]="(column?.cellTemplateConfig?.map && column?.cellTemplateConfig?.map[item]?.class) ? column.cellTemplateConfig.map[item].class : (column?.cellTemplateConfig?.class ? column.cellTemplateConfig.class : 's3gw-color-theme-gunmetal')"
+          *ngIf="(column?.cellTemplateConfig?.map && column?.cellTemplateConfig?.map[item]?.value) ? column.cellTemplateConfig.map[item].value : column?.cellTemplateConfig?.prefix ? column.cellTemplateConfig.prefix + item : item">
+      {{ (column?.cellTemplateConfig?.map && column?.cellTemplateConfig?.map[item]?.value) ? column.cellTemplateConfig.map[item].value : column?.cellTemplateConfig?.prefix ? column.cellTemplateConfig.prefix + item : item }}
+    </span>
+    <span *ngIf="!last">&nbsp;</span>
+  </span>
+</ng-template>

@@ -8,10 +8,16 @@ import { TranslocoModule } from '@ngneat/transloco';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
+import { UserDatatablePageComponent } from '~/app/pages/user/user-datatable-page/user-datatable-page.component';
 import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
-  declarations: [DashboardPageComponent, LoginPageComponent, NotFoundPageComponent],
+  declarations: [
+    DashboardPageComponent,
+    LoginPageComponent,
+    NotFoundPageComponent,
+    UserDatatablePageComponent
+  ],
   imports: [CommonModule, FlexLayoutModule, NgbModule, RouterModule, SharedModule, TranslocoModule]
 })
 export class PagesModule {}

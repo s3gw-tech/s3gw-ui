@@ -1,0 +1,18 @@
+<s3gw-page-status [pageStatus]="pageStatus"
+                  fxLayout="column">
+  <div class="page-actions"
+       fxLayout="row"
+       fxLayoutAlign="end center">
+    <button type="button"
+            class="btn btn-primary"
+            (click)="onAdd()">
+      <i [class]="icons.plus"></i>
+      {{ "Create User" | transloco }}
+    </button>
+  </div>
+  <s3gw-datatable [data]="users"
+                  [columns]="columns"
+                  [autoReload]="15000"
+                  (loadData)="loadData()">
+  </s3gw-datatable>
+</s3gw-page-status>

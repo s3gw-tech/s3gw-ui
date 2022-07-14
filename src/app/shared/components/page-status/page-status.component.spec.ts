@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AlertPanelComponent } from '~/app/shared/components/alert-panel/alert-panel.component';
 import { ComponentsModule } from '~/app/shared/components/components.module';
+import { PageStatusComponent } from '~/app/shared/components/page-status/page-status.component';
 import { TestingModule } from '~/app/testing.module';
 
-describe('AlertPanelComponent', () => {
-  let component: AlertPanelComponent;
-  let fixture: ComponentFixture<AlertPanelComponent>;
+describe('PageStatusComponent', () => {
+  let component: PageStatusComponent;
+  let fixture: ComponentFixture<PageStatusComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -15,7 +15,7 @@ describe('AlertPanelComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AlertPanelComponent);
+    fixture = TestBed.createComponent(PageStatusComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

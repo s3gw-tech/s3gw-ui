@@ -20,6 +20,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
+            "allowedCommonJsDependencies": ["lodash", "validator"],
             "outputPath": "dist/s3gw-ui",
             "index": "src/index.html",
             "main": "src/main.ts",

@@ -24,20 +24,19 @@ $navigation-width: 15rem;
       padding-left: 1.5rem;
 
       .logo {
-        ///     ToDo...
-        //      background-image: url('/assets/images/xxxxx.svg');
-        //      background-position-y: center;
-        //      background-repeat: no-repeat;
-        //      background-size: contain;
-        height: 100%;
-        width: 5rem;
+        // ToDo...
+        // background-image: url('/assets/images/xxxxx.svg');
+        // background-position-y: center;
+        // background-repeat: no-repeat;
+        // background-size: contain;
+        // height: 100%;
+        // width: 5rem;
       }
 
       .title {
         font-family: $s3gw-font-family-headings;
         font-size: 1.5rem;
         font-weight: lighter;
-        padding-left: $s3gw-padding;
 
         &::after {
           content: 's3gw';
