@@ -15,6 +15,18 @@ body {
   margin: 0;
 }
 
+.s3gw-color-danger {
+  color: $s3gw-color-danger;
+}
+
+.s3gw-color-warning {
+  color: $s3gw-color-warning;
+}
+
+.s3gw-color-info {
+  color: $s3gw-color-info;
+}
+
 .s3gw-color-theme-danger {
   color: $s3gw-color-white;
   background-color: $s3gw-color-danger;
@@ -27,4 +39,21 @@ body {
 
 .s3gw-text-no-overflow {
   overflow-x: hidden;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Page actions.
+.s3gw-page-actions {
+  @extend .d-flex;
+  @extend .justify-content-end;
+  @extend .mb-3;
+
+  // Place margin between action elements.
+  > * {
+    @extend .m-1;
+  }
+
+  button:not(.btn-primary):not(.btn-outline-primary) {
+    @extend .btn-light;
+  }
 }

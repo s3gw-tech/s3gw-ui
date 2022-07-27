@@ -4,9 +4,9 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import _ from 'lodash';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
-import { CB_DIALOG_DATA } from '~/app/shared/services/dialog.service';
+import { S3GW_MODAL_DATA } from '~/app/shared/services/dialog.service';
 
-export type DialogConfig = {
+export type ModalConfig = {
   type: 'ok' | 'okCancel' | 'yesNo';
   icon?: 'info' | 'warning' | 'danger' | 'question';
   title?: string;
@@ -14,12 +14,12 @@ export type DialogConfig = {
 };
 
 @Component({
-  selector: 's3gw-dialog',
-  templateUrl: './dialog.component.html',
-  styleUrls: ['./dialog.component.scss']
+  selector: 's3gw-model',
+  templateUrl: './model.component.html',
+  styleUrls: ['./model.component.scss']
 })
-export class DialogComponent implements OnInit {
-  public config!: DialogConfig;
+export class ModelComponent implements OnInit {
+  public config!: ModalConfig;
 
   public button1Text!: string;
   public button1Result?: any;
@@ -29,17 +29,17 @@ export class DialogComponent implements OnInit {
   public button2Result?: any;
   public button2Class?: string;
   public button2Visible = false;
-  public icon?: string;
+  public iconClass?: string;
 
   private icons = Icon;
 
-  constructor(public ngbActiveModal: NgbActiveModal, @Inject(CB_DIALOG_DATA) config: DialogConfig) {
+  constructor(public ngbActiveModal: NgbActiveModal, @Inject(S3GW_MODAL_DATA) config: ModalConfig) {
     this.config = config;
   }
 
   ngOnInit(): void {
-    this.button1Class = 'btn-outline-default';
-    this.button2Class = 'btn-outline-default';
+    this.button1Class = 'btn-outline-primary';
+    this.button2Class = 'btn-outline-primary';
     switch (this.config.type) {
       case 'ok':
         this.button1Text = TEXT('OK');
@@ -68,18 +68,18 @@ export class DialogComponent implements OnInit {
     }
     switch (this.config.icon) {
       case 'info':
-        this.icon = this.icons.info;
+        this.iconClass = `${this.icons.info} s3gw-color-info`;
         break;
       case 'warning':
-        this.icon = this.icons.warning;
+        this.iconClass = `${this.icons.warning} s3gw-color-warning`;
         this.button1Class = _.replace(this.button1Class, 'btn-submit', 'btn-warning');
         break;
       case 'danger':
-        this.icon = this.icons.danger;
+        this.iconClass = `${this.icons.danger} s3gw-color-danger`;
         this.button1Class = _.replace(this.button1Class, 'btn-submit', 'btn-danger');
         break;
       case 'question':
-        this.icon = this.icons.question;
+        this.iconClass = `${this.icons.question} s3gw-color-info`;
     }
   }
 

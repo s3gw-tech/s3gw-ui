@@ -1,4 +1,17 @@
-i::before {
-  font-size: 3rem;
-  vertical-align: text-top;
+@import 'styles.scss';
+@import '@mdi/font/scss/materialdesignicons.scss';
+
+.content-wrapper {
+  @extend .d-flex;
+  @extend .justify-content-start;
+  @extend .align-items-center;
+  @extend .overflow-hidden;
+
+  i.mdi::before {
+    @extend .mdi-48px;
+  }
+
+  .content {
+    @extend .ms-2;
+  }
 }

@@ -35,6 +35,7 @@ export type FormFieldConfig = {
   autofocus?: boolean;
   hint?: string;
   groupClass?: string;
+  submitValue?: boolean;
   // Modify the form field when the specified constraint is truthy.
   modifiers?: FormFieldModifier[];
   validators?: {
@@ -45,7 +46,7 @@ export type FormFieldConfig = {
     required?: boolean;
     requiredIf?: Constraint;
     pattern?: string | RegExp;
-    patternType?: 'hostAddress';
+    patternType?: 'email' | 'hostAddress' | 'numeric';
     constraint?: {
       constraint: Constraint;
       errorMessage: string;
@@ -111,6 +112,6 @@ export type DeclarativeFormConfig = {
   title?: string;
   subtitle?: string;
   fields: FormFieldConfig[];
-  buttons?: Array<FormButtonConfig>;
-  buttonAlign?: 'start' | 'center' | 'end';
+  buttons?: FormButtonConfig[];
+  buttonAlign?: 'start' | 'center' | 'end'; // Defaults to 'end'.
 };

@@ -5,7 +5,9 @@ export enum PageStatus {
   none = 0,
   ready = 1,
   loading = 2,
-  loadingError = 3
+  loadingError = 3,
+  saving = 4,
+  savingError = 5
 }
 
 @Component({
@@ -19,4 +21,7 @@ export class PageStatusComponent {
 
   @Input()
   loadingErrorText? = TEXT('Failed to load data.');
+
+  @Input()
+  savingErrorText? = TEXT('Failed to save data.');
 }

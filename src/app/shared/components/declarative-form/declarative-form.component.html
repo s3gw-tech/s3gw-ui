@@ -47,14 +47,14 @@
                        [autofocus]="field.autofocus"
                        (paste)="onPaste(field, $event)">
                 <button type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ passwordInput.type === 'password' ? 'Show' : 'Hide' | transloco }}"
                         (click)="passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password'">
                   <i class="mdi mdi-eye-outline"></i>
                 </button>
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ 'Copy to clipboard' | transloco }}"
                         (click)="onCopyToClipboard(field)">
                   <i class="mdi mdi-content-copy"></i>
@@ -109,7 +109,7 @@
                        (paste)="onPaste(field, $event)">
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ 'Copy to clipboard' | transloco }}"
                         (click)="onCopyToClipboard(field)">
                   <i class="mdi mdi-content-copy"></i>
@@ -169,7 +169,7 @@
                        (paste)="onPaste(field, $event)">
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ 'Copy to clipboard' | transloco }}"
                         (click)="onCopyToClipboard(field)">
                   <i class="mdi mdi-content-copy"></i>
@@ -194,6 +194,10 @@
               <span *ngIf="showError(field.name, frm, 'custom')"
                     class="invalid-feedback">
                 {{ formGroup.getError('custom', field.name) | transloco }}
+              </span>
+              <span *ngIf="showError(field.name, frm, 'pattern')"
+                    class="invalid-feedback"
+                    transloco="The value is invalid.">
               </span>
             </div>
           </ng-template>
@@ -313,7 +317,7 @@
                        [defaultUnit]="field.defaultUnit">
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
-                        class="btn btn-outline-primary"
+                        class="btn btn-input-group"
                         title="{{ 'Copy to clipboard' | transloco }}"
                         (click)="onCopyToClipboard(field)">
                   <i class="mdi mdi-content-copy"></i>
@@ -374,29 +378,27 @@
       </ng-template>
     </ng-container>
 
-    <div class="row row-cols-auto form-actions"
+    <div class="form-footer"
          [ngClass]="{'justify-content-start': config.buttonAlign === 'start', 'justify-content-center': config.buttonAlign === 'center', 'justify-content-end': config.buttonAlign === 'end'}">
       <ng-container *ngFor="let button of config.buttons">
-        <div class="col-auto">
-          <ng-container [ngSwitch]="button.type">
-            <ng-template [ngSwitchCase]="'default'">
-              <button type="button"
-                      class="btn btn-outline-primary"
-                      [class]="button.class"
-                      (click)="onButtonClick(button)">
-                {{ button.text! | transloco }}
-              </button>
-            </ng-template>
+        <ng-container [ngSwitch]="button.type">
+          <ng-template [ngSwitchCase]="'default'">
+            <button type="button"
+                    class="btn btn-input-group"
+                    [class]="button.class"
+                    (click)="onButtonClick(button)">
+              {{ button.text! | transloco }}
+            </button>
+          </ng-template>
 
-            <ng-template [ngSwitchCase]="'submit'">
-              <s3gw-submit-button [form]="formGroup"
-                                  [formId]="config.id"
-                                  (buttonClick)="onButtonClick(button)">
-                {{ button.text! | transloco }}
-              </s3gw-submit-button>
-            </ng-template>
-          </ng-container>
-        </div>
+          <ng-template [ngSwitchCase]="'submit'">
+            <s3gw-submit-button [form]="formGroup"
+                                [formId]="config.id"
+                                (buttonClick)="onButtonClick(button)">
+              {{ button.text! | transloco }}
+            </s3gw-submit-button>
+          </ng-template>
+        </ng-container>
       </ng-container>
     </div>
   </form>

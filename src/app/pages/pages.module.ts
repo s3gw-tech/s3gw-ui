@@ -9,6 +9,9 @@ import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-pag
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { UserDatatablePageComponent } from '~/app/pages/user/user-datatable-page/user-datatable-page.component';
+import { UserFormPageComponent } from '~/app/pages/user/user-form-page/user-form-page.component';
+import { UserKeyDatatablePageComponent } from '~/app/pages/user/user-key-datatable-page/user-key-datatable-page.component';
+import { UserKeyFormPageComponent } from '~/app/pages/user/user-key-form-page/user-key-form-page.component';
 import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
@@ -16,7 +19,10 @@ import { SharedModule } from '~/app/shared/shared.module';
     DashboardPageComponent,
     LoginPageComponent,
     NotFoundPageComponent,
-    UserDatatablePageComponent
+    UserDatatablePageComponent,
+    UserKeyDatatablePageComponent,
+    UserFormPageComponent,
+    UserKeyFormPageComponent
   ],
   imports: [CommonModule, FlexLayoutModule, NgbModule, RouterModule, SharedModule, TranslocoModule]
 })

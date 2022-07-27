@@ -13,33 +13,40 @@
  */
 @forward '../vendor/colors';
 
+// Colors taken from https://xd.adobe.com/view/42d92d64-1ff0-42d3-bb9d-81427240a986-178a/
 $s3gw-color-red-500: #dc3545;
+$s3gw-color-amour: #ef5a53;
 $s3gw-color-green-500: #30ba78;
+$s3gw-color-sago-garden: #96bd7f;
 $s3gw-color-yellow-500: #ffc107;
+$s3gw-color-seed-pod: #dac342;
+$s3gw-color-dandelion-whisper: #ffecb5;
 $s3gw-color-gray-50: #f2f2f2;
+$s3gw-color-gray-50: #dac;
 $s3gw-color-gray-300: #b6b4b4;
 $s3gw-color-gray-600: #6c757d;
+$s3gw-color-dolphin: #6c6c76;
 $s3gw-color-cerulean-900: #008acf;
 $s3gw-color-cerulean-500: #00b2e2;
+$s3gw-color-magical-merlin: #3d98d3;
 $s3gw-color-transparent: transparent;
 $s3gw-color-transparent-black: rgba(0, 0, 0, 0.54);
 $s3gw-color-white: white;
 $s3gw-color-whitesmoke: whitesmoke;
 $s3gw-color-black: black;
-$s3gw-color-success: $s3gw-color-green-500;
-$s3gw-color-info: $s3gw-color-cerulean-500;
-$s3gw-color-warning: $s3gw-color-yellow-500;
-$s3gw-color-danger: $s3gw-color-red-500;
+$s3gw-color-success: $s3gw-color-sago-garden;
+$s3gw-color-info: $s3gw-color-magical-merlin;
+$s3gw-color-warning: $s3gw-color-seed-pod;
+$s3gw-color-danger: $s3gw-color-amour;
 $s3gw-color-gunmetal: #00303d; // https://coolors.co/00303d
 $s3gw-color-navy: hsl(237, 74%, 13%);
 
-$s3gw-color-theme-primary: $s3gw-color-cerulean-500;
+$s3gw-color-theme-primary: $s3gw-color-magical-merlin;
 $s3gw-color-theme-primary-complementary: $s3gw-color-white;
-$s3gw-color-theme-accent: $s3gw-color-green-500;
+$s3gw-color-theme-accent: $s3gw-color-dolphin;
 $s3gw-color-theme-accent-complementary: $s3gw-color-white;
 $s3gw-color-body-background: $s3gw-color-white;
 $s3gw-color-card-background: $s3gw-color-gray-50;
-$s3gw-color-btn-submit: $s3gw-color-yellow-500;
 $s3gw-color-site-header-background: $s3gw-color-gunmetal;
 $s3gw-color-site-header-text: $s3gw-color-white;
 $s3gw-color-menu-background: $s3gw-color-whitesmoke;
@@ -48,6 +55,6 @@ $s3gw-color-menu-item-text: $s3gw-color-black;
 $s3gw-color-menu-item-selected: $s3gw-color-theme-primary;
 $s3gw-color-menu-item-selected-text: $s3gw-color-black;
 $s3gw-color-submenu-item-selected: $s3gw-color-theme-primary;
-$s3gw-color-submenu-item-hover: $s3gw-color-gray-300;
+$s3gw-color-submenu-item-hover: $s3gw-color-theme-accent;
 $s3gw-color-submenu-item-text: $s3gw-color-white;
 $s3gw-color-table-accent-background: $s3gw-color-whitesmoke;

@@ -1,6 +1,7 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslocoService } from '@ngneat/transloco';
 import { ToastrModule } from 'ngx-toastr';
 
@@ -8,6 +9,7 @@ import { AppComponent } from '~/app/app.component';
 import { AppRoutingModule } from '~/app/app-routing.module';
 import { getCurrentLanguage, setTranslationService } from '~/app/i18n.helper';
 import { PagesModule } from '~/app/pages/pages.module';
+import { HttpErrorInterceptorService } from '~/app/shared/services/http-error-interceptor.service';
 import { SharedModule } from '~/app/shared/shared.module';
 import { TranslocoRootModule } from '~/app/transloco-root.module';
 
@@ -16,16 +18,24 @@ import { TranslocoRootModule } from '~/app/transloco-root.module';
   imports: [
     AppRoutingModule,
     BrowserModule,
+    BrowserAnimationsModule,
     HttpClientModule,
     PagesModule,
     SharedModule,
     ToastrModule.forRoot({
       positionClass: 'toast-bottom-center',
-      preventDuplicates: true
+      preventDuplicates: true,
+      enableHtml: true
     }),
     TranslocoRootModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpErrorInterceptorService,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {

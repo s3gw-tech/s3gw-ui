@@ -1,15 +1,10 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { finalize, tap } from 'rxjs/operators';
 
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
-
-export type LoginReply = {
-  accessKey: string;
-  secretKey: string;
-};
+import { RgwAdminOpsService } from '~/app/shared/services/api/rgw-admin-ops.service';
+import { User } from '~/app/shared/services/api/user.service';
+import { AuthStorageService, Credentials } from '~/app/shared/services/auth-storage.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,28 +12,23 @@ export type LoginReply = {
 export class AuthService {
   private url = 'api/auth';
 
-  constructor(private http: HttpClient, private authStorageService: AuthStorageService) {}
+  constructor(
+    private authStorageService: AuthStorageService,
+    private rgwAdminOpsService: RgwAdminOpsService
+  ) {}
 
-  public login(accessKey: string, secretKey: string): Observable<LoginReply> {
-    // ToDo...
-    // const body = new HttpParams().set('accessKey', accessKey).set('secretKey', secretKey);
-    // const headers = new HttpHeaders({});
-    // return this.http.post<LoginReply>(`${this.url}/login`, body, { headers }).pipe(
-    return of({ accessKey, secretKey }).pipe(
-      tap((resp: LoginReply) => {
+  public login(accessKey: string, secretKey: string): Observable<User> {
+    const credentials: Credentials = { accessKey, secretKey };
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const params = { 'access-key': accessKey };
+    return this.rgwAdminOpsService.get<User>('admin/user', { params, credentials }).pipe(
+      tap(() => {
         this.authStorageService.set(accessKey, secretKey);
       })
     );
   }
 
   logout(): Observable<void> {
-    // ToDo...
-    // return this.http.post<void>(`${this.url}/logout`, null).pipe(
-    //   finalize(() => {
-    //     this.authStorageService.revoke();
-    //     document.location.replace('');
-    //   })
-    // );
     return of().pipe(
       finalize(() => {
         this.authStorageService.revoke();

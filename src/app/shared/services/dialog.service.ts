@@ -3,7 +3,7 @@ import { Injectable, InjectionToken, Injector } from '@angular/core';
 import { NgbModal, NgbModalOptions, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import * as _ from 'lodash';
 
-export const CB_DIALOG_DATA: InjectionToken<any> = new InjectionToken<any>('CbDialogData');
+export const S3GW_MODAL_DATA: InjectionToken<any> = new InjectionToken<any>('S3gwDialogData');
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +18,7 @@ export class DialogService {
     options?: NgbModalOptions
   ): NgbModalRef {
     const injector: Injector = Injector.create({
-      providers: [{ provide: CB_DIALOG_DATA, useValue: data }]
+      providers: [{ provide: S3GW_MODAL_DATA, useValue: data }]
     });
     options = _.defaultTo(options, {});
     _.defaultsDeep(options, { backdrop: 'static', centered: true, injector });

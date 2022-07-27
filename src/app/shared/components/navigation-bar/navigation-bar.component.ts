@@ -18,7 +18,7 @@ export class NavigationBarComponent {
     {
       name: TEXT('User Management'),
       icon: 'mdi mdi-account-multiple',
-      route: '/users'
+      route: '/user'
     }
   ];
 

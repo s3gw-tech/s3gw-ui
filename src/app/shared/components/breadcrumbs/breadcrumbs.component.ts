@@ -1,7 +1,13 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
+
+type Breadcrumb = {
+  label: string;
+  path: string | null;
+};
 
 @Component({
   selector: 's3gw-breadcrumbs',
@@ -9,7 +15,7 @@ import { distinctUntilChanged, filter } from 'rxjs/operators';
   styleUrls: ['./breadcrumbs.component.scss']
 })
 export class BreadcrumbsComponent implements OnDestroy {
-  breadcrumbs: IBreadcrumb[] = [];
+  breadcrumbs: Breadcrumb[] = [];
   subscription: Subscription;
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute) {
@@ -31,12 +37,12 @@ export class BreadcrumbsComponent implements OnDestroy {
   private buildBreadCrumb(
     route: ActivatedRoute,
     url: string = '',
-    breadcrumbs: IBreadcrumb[] = []
-  ): IBreadcrumb[] {
+    breadcrumbs: Breadcrumb[] = []
+  ): Breadcrumb[] {
     let label = route.routeConfig?.data?.['breadcrumb'] || '';
     let path: string = route.routeConfig?.data ? (route.routeConfig.path as string) : '';
 
-    // If the route is dynamic route such as ':id', remove it
+    // If the route is dynamic route such as 'user/edit/:id', remove it.
     const lastRoutePart = path.split('/').pop() || '';
     if (lastRoutePart.startsWith(':') && !!route.snapshot) {
       const paramName = lastRoutePart.split(':')[1];
@@ -44,8 +50,19 @@ export class BreadcrumbsComponent implements OnDestroy {
       label = route.snapshot.params[paramName];
     }
 
+    // If path still contains tokens, e.g. ':uid/key', then replace them.
+    if (!!route.snapshot) {
+      const paramNames = _.keys(route.snapshot.params);
+      const replaceTokens = _.some(paramNames, (name: string) => path.includes(`:${name}`));
+      if (replaceTokens) {
+        _.forEach(paramNames, (name: string) => {
+          path = path.replace(`:${name}`, route.snapshot.params[name]);
+        });
+      }
+    }
+
     const nextUrl = path ? `${url}/${path}` : url;
-    const breadcrumb: IBreadcrumb = {
+    const breadcrumb: Breadcrumb = {
       label,
       path: nextUrl
     };
@@ -55,9 +72,4 @@ export class BreadcrumbsComponent implements OnDestroy {
     }
     return newBreadcrumbs;
   }
-}
-
-interface IBreadcrumb {
-  label: string;
-  path: string | null;
 }

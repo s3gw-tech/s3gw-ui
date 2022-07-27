@@ -1,8 +1,0 @@
-@import 'styles.scss';
-@import '@mdi/font/scss/materialdesignicons.scss';
-
-.modal-body .mdi {
-  @extend .mdi-36px;
-
-  margin-right: $s3gw-margin;
-}

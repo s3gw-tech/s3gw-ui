@@ -8,11 +8,9 @@
 </ng-container>
 
 <ng-template #renderContent>
-  <div fxLayout="row"
-       fxLayoutAlign="start center">
+  <div class="content-wrapper">
     <i [class]="icons[type]"></i>
-    <div class="ml-2"
-         fxLayoutAlign="center center">
+    <div class="content">
       <ng-content></ng-content>
     </div>
   </div>

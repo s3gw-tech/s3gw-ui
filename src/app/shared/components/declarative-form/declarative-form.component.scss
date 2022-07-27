@@ -6,7 +6,17 @@
   }
 
   .col {
-    @extend .mb-3;
+    @extend .mb-2;
+  }
+
+  .form-footer {
+    @extend .mt-3;
+    @extend .d-flex;
+
+    // Place margin between footer elements.
+    > * {
+      @extend .m-1;
+    }
   }
 
   .form-divider {

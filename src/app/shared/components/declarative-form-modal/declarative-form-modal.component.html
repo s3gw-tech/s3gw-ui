@@ -1,0 +1,24 @@
+<div *ngIf="config.title"
+     class="modal-header">
+  <div class="modal-title">{{ config.title }}</div>
+</div>
+<div class="modal-body">
+  <s3gw-declarative-form [config]="config.formConfig"></s3gw-declarative-form>
+</div>
+<div class="modal-footer">
+  <div class="modal-actions">
+    <button *ngIf="config.cancelButtonVisible"
+            type="button"
+            class="btn btn-outline-primary"
+            [class]="config.cancelButtonClass"
+            (click)="onCancel()">
+      {{ config.cancelButtonText! | transloco }}
+    </button>
+    <s3gw-submit-button *ngIf="config.submitButtonVisible"
+                        [form]="form?.formGroup"
+                        [formId]="config.formConfig.id"
+                        (buttonClick)="onSubmit()">
+      {{ config.submitButtonText! | transloco }}
+    </s3gw-submit-button>
+  </div>
+</div>

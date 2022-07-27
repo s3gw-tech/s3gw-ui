@@ -50,11 +50,28 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
   ) {}
 
   get values(): DeclarativeFormValues {
-    const values = this.formGroup?.getRawValue() ?? {};
+    let values: Record<string, any> = this.formGroup?.getRawValue() ?? {};
     _.forEach(this.getFields(), (field: FormFieldConfig) => {
-      const value = values[field.name!];
-      if (value) {
-        values[field.name!] = this.convertToRaw(value, field);
+      if (field.submitValue === false) {
+        values = _.omit(values, [field.name!]);
+      } else {
+        const value = values[field.name!];
+        if (value) {
+          values[field.name!] = this.convertToRaw(value, field);
+        }
+      }
+    });
+    return values;
+  }
+
+  get modifiedValues(): DeclarativeFormValues {
+    const values: Record<string, any> = {};
+    _.forEach(this.getFields(), (field: FormFieldConfig) => {
+      if (field.submitValue !== false) {
+        const control = this.getControl(field.name!);
+        if (control?.touched) {
+          values[field.name!] = this.convertToRaw(control.value, field);
+        }
       }
     });
     return values;
@@ -91,8 +108,14 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
       }
       if (_.isString(field.validators.patternType)) {
         switch (field.validators.patternType) {
+          case 'email':
+            validators.push(Validators.email);
+            break;
           case 'hostAddress':
             validators.push(S3gwValidators.hostAddress());
+            break;
+          case 'numeric':
+            validators.push(Validators.pattern(/^[-]?\d+$/));
             break;
         }
       }
@@ -173,7 +196,7 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
               })
             );
           });
-          // Finally apply the modifier to the form field.
+          // Finally, apply the modifier to the form field.
           this.applyModifier(field, modifier);
         });
       }
@@ -198,14 +221,12 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
 
   onCopyToClipboard(field: FormFieldConfig): void {
     const text = this.formGroup?.get(field.name!)?.value;
-    const messages = {
-      success: TEXT('Copied text to the clipboard successfully.'),
-      error: TEXT('Failed to copy text to the clipboard.')
-    };
     const success = this.clipboard.copy(text);
-    this.notificationService.show(messages[success ? 'success' : 'error'], {
-      type: success ? 'info' : 'error'
-    });
+    if (success) {
+      this.notificationService.showSuccess(TEXT('Copied text to the clipboard successfully.'));
+    } else {
+      this.notificationService.showError(TEXT('Failed to copy text to the clipboard.'));
+    }
   }
 
   onPaste(field: FormFieldConfig, event: ClipboardEvent): void {
