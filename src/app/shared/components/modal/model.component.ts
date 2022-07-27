@@ -38,8 +38,8 @@ export class ModelComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.button1Class = 'btn-outline-primary';
-    this.button2Class = 'btn-outline-primary';
+    this.button1Class = 'btn-outline-secondary';
+    this.button2Class = 'btn-outline-secondary';
     switch (this.config.type) {
       case 'ok':
         this.button1Text = TEXT('OK');
