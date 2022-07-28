@@ -26,11 +26,12 @@ export class AuthStorageService {
   }
 
   getUserId(): string | null {
-    return localStorage.getItem('accessKey');
+    return localStorage.getItem('userId');
   }
 
   revoke(): void {
     localStorage.removeItem('userId');
+    localStorage.removeItem('accessKey');
     localStorage.removeItem('secretKey');
   }
 
