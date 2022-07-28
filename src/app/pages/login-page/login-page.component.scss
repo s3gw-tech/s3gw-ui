@@ -1,47 +1,28 @@
 @import 'styles.scss';
 
 .s3gw-login-page {
+  background-color: $s3gw-color-whitesmoke;
+
   .sidebar {
-    background-color: $s3gw-color-gunmetal;
-    // ToDo...
-    // background-image: url('/assets/images/xxxxx.jpg');
-    // background-blend-mode: multiply;
-    // background-size: cover;
-    // background-repeat: no-repeat;
-    // background-position: center center;
+    background-color: $s3gw-color-dark-liver;
     color: $s3gw-color-white;
     max-width: 20rem;
     min-width: 20rem;
-    padding: $s3gw-padding;
 
     .header {
-      .logo {
-        // ToDo...
-        // background-image: url('/assets/images/xxxxx.svg');
-        // background-position-y: center;
-        // background-repeat: no-repeat;
-        // background-size: contain;
-        // height: 32px;
-        // width: 80px;
-      }
+      @extend .mb-auto;
 
       .title {
         font-family: $s3gw-font-family-headings;
         font-size: 2.5rem;
         font-weight: lighter;
-
-        &::after {
-          content: 's3gw';
-        }
       }
     }
 
     .footer {
-      font-size: 0.75rem;
+      @extend .mb-3;
 
-      &::after {
-        content: '@2022 SUSE, LLC.';
-      }
+      font-size: 0.75rem;
     }
   }
 
