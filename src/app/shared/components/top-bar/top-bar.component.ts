@@ -3,6 +3,7 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 
 import { ModelComponent } from '~/app/shared/components/modal/model.component';
 import { AuthService } from '~/app/shared/services/api/auth.service';
+import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
 @Component({
@@ -14,7 +15,15 @@ export class TopBarComponent {
   @Output()
   readonly toggleNavigation = new EventEmitter<any>();
 
-  constructor(private authService: AuthService, private dialogService: DialogService) {}
+  userId: string | null;
+
+  constructor(
+    private authService: AuthService,
+    private authStorageService: AuthStorageService,
+    private dialogService: DialogService
+  ) {
+    this.userId = this.authStorageService.getUserId();
+  }
 
   onToggleNavigation(): void {
     this.toggleNavigation.emit();
