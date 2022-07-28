@@ -7,7 +7,8 @@ export enum PageStatus {
   loading = 2,
   loadingError = 3,
   saving = 4,
-  savingError = 5
+  savingError = 5,
+  reloading = 6
 }
 
 @Component({
