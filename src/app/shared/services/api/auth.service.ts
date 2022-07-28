@@ -22,8 +22,8 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params = { 'access-key': accessKey };
     return this.rgwAdminOpsService.get<User>('admin/user', { params, credentials }).pipe(
-      tap(() => {
-        this.authStorageService.set(accessKey, secretKey);
+      tap((user: User) => {
+        this.authStorageService.set(user.user_id, accessKey, secretKey);
       })
     );
   }

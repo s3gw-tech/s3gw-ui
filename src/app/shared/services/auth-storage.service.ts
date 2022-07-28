@@ -12,7 +12,8 @@ export type Credentials = {
 export class AuthStorageService {
   constructor() {}
 
-  set(accessKey: string, secretKey: string): void {
+  set(userId: string, accessKey: string, secretKey: string): void {
+    localStorage.setItem('userId', userId);
     localStorage.setItem('accessKey', accessKey);
     localStorage.setItem('secretKey', secretKey);
   }
@@ -24,8 +25,12 @@ export class AuthStorageService {
     };
   }
 
+  getUserId(): string | null {
+    return localStorage.getItem('accessKey');
+  }
+
   revoke(): void {
-    localStorage.removeItem('accessKey');
+    localStorage.removeItem('userId');
     localStorage.removeItem('secretKey');
   }
 
