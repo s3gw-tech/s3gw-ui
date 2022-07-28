@@ -1,34 +1,21 @@
-<div class="s3gw-login-page"
-     fxFlexFill
-     fxLayout="row"
-     fxLayoutAlign="start stretch">
-  <div class="sidebar"
-       fxLayout="column">
-    <div class="header"
-         fxLayout="column"
-         fxLayoutAlign="start start">
-      <div class="logo"></div>
-      <div class="title"></div>
+<div class="s3gw-login-page container-fluid h-100">
+  <div class="row h-100">
+
+    <div class="col d-flex flex-column sidebar">
+      <div class="header">
+        <div class="title">s3gw</div>
+      </div>
+      <div class="footer">@2022 SUSE, LLC.</div>
     </div>
-    <div fxFlex></div>
-    <div class="footer"></div>
-  </div>
-  <div class="main"
-       fxFlex
-       fxLayout="column"
-       fxLayoutAlign="start stretch">
-    <div class="header"
-         fxLayout="row"
-         fxLayoutAlign="start center">
-      <div fxFlex></div>
-      <s3gw-language-button></s3gw-language-button>
+
+    <div class="col main">
+      <div class="d-flex justify-content-end fixed-top header">
+        <s3gw-language-button class=""></s3gw-language-button>
+      </div>
+      <div class="d-flex flex-column justify-content-center align-items-center w-100 h-100 content">
+        <s3gw-declarative-form [config]="config"></s3gw-declarative-form>
+      </div>
     </div>
-    <div class="content"
-         fxFlex
-         fxLayout="column"
-         fxLayoutAlign="center center">
-      <s3gw-declarative-form [config]="config"></s3gw-declarative-form>
-    </div>
-    <div class="footer"></div>
+
   </div>
 </div>
