@@ -90,6 +90,11 @@ export class UserKeyDatatablePageComponent implements OnInit {
       });
   }
 
+  onReload(): void {
+    this.pageStatus = PageStatus.reloading;
+    this.loadData();
+  }
+
   onAdd(): void {
     this.router.navigate([`/user/${this.uid}/key/create`]);
   }

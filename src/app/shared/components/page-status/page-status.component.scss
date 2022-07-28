@@ -1,4 +1,8 @@
 .progress {
   border-radius: unset;
   height: 0.25rem;
+
+  &.hidden {
+    visibility: hidden;
+  }
 }

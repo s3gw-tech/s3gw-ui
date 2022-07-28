@@ -105,6 +105,11 @@ export class UserDatatablePageComponent {
       });
   }
 
+  onReload(): void {
+    this.pageStatus = PageStatus.reloading;
+    this.loadData();
+  }
+
   onCreate(): void {
     this.router.navigate(['/user/create/']);
   }
