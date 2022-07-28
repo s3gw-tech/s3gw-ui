@@ -32,7 +32,7 @@
     "@angular/platform-browser": "~13.3.11",
     "@angular/platform-browser-dynamic": "~13.3.11",
     "@angular/router": "~13.3.11",
-    "@fontsource/inter": "^4.5.11",
+    "@fontsource/lato": "^4.5.8",
     "@fontsource/roboto-mono": "^4.5.7",
     "@mdi/font": "6.9.96",
     "@ng-bootstrap/ng-bootstrap": "^12.1.2",
