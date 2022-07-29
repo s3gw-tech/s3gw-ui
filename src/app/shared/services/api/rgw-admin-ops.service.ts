@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { sign } from '~/app/aws2';
 import { Credentials } from '~/app/shared/services/auth-storage.service';
+import { environment } from '~/environments/environment';
 
 export type RgwAdminOpsRequestOptions = {
   credentials: Credentials;
@@ -14,28 +15,34 @@ export type RgwAdminOpsRequestOptions = {
   providedIn: 'root'
 })
 export class RgwAdminOpsService {
-  private host = '127.0.0.1:7480';
+  private port = 7480;
 
   constructor(private http: HttpClient) {}
 
   get<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
     const headers = this.buildHeaders(url, 'GET', options.credentials);
-    return this.http.get<T>(url, { headers, params: options.params });
+    return this.http.get<T>(this.buildUrl(url), { headers, params: options.params });
   }
 
   put<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
     const headers = this.buildHeaders(url, 'PUT', options.credentials);
-    return this.http.put<T>(url, null, { headers, params: options.params });
+    return this.http.put<T>(this.buildUrl(url), null, { headers, params: options.params });
   }
 
   post<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
     const headers = this.buildHeaders(url, 'POST', options.credentials);
-    return this.http.post<T>(url, null, { headers, params: options.params });
+    return this.http.post<T>(this.buildUrl(url), null, { headers, params: options.params });
   }
 
   delete<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
     const headers = this.buildHeaders(url, 'DELETE', options.credentials);
-    return this.http.delete<T>(url, { headers, params: options.params });
+    return this.http.delete<T>(this.buildUrl(url), { headers, params: options.params });
+  }
+
+  private buildUrl(url: string) {
+    return environment.production
+      ? `${location.protocol}//${location.hostname}:${this.port}/${url}`
+      : url;
   }
 
   private buildHeaders(url: string, method: string, credentials: Credentials) {
