@@ -15,6 +15,8 @@ export type RgwAdminOpsRequestOptions = {
   providedIn: 'root'
 })
 export class RgwAdminOpsService {
+  private protocol = location.protocol;
+  private hostname = location.hostname;
   private port = 7480;
 
   constructor(private http: HttpClient) {}
@@ -41,7 +43,7 @@ export class RgwAdminOpsService {
 
   private buildUrl(url: string) {
     return environment.production
-      ? `${location.protocol}//${location.hostname}:${this.port}/${url}`
+      ? `${this.protocol}//${this.hostname}:${this.port}/${url}`
       : url;
   }
 
