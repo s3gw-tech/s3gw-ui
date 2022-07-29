@@ -10,8 +10,6 @@ import { AuthStorageService, Credentials } from '~/app/shared/services/auth-stor
   providedIn: 'root'
 })
 export class AuthService {
-  private url = 'api/auth';
-
   constructor(
     private authStorageService: AuthStorageService,
     private rgwAdminOpsService: RgwAdminOpsService
