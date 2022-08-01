@@ -3,4 +3,4 @@
 ## What's new
 
 - Add the ability to configure the RGW AdminOps API at runtime via the
-  configuration /assets/rgw_admin_ops.config.json. 
+  file `/assets/rgw_admin_ops.config.json`. 
