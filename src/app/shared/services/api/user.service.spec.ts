@@ -18,7 +18,7 @@ describe('UserService', () => {
     service = TestBed.inject(UserService);
     httpTesting = TestBed.inject(HttpTestingController);
     authStorageService = TestBed.inject(AuthStorageService);
-    authStorageService.set('xyz', '123');
+    authStorageService.set('foo', 'xyz', '123');
   });
 
   it('should be created', () => {
