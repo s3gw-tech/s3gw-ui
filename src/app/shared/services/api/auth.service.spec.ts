@@ -28,8 +28,9 @@ describe('AuthService', () => {
     service.login('foo', 'bar').subscribe();
     const req = httpTesting.expectOne('admin/user?access-key=foo');
     expect(req.request.method).toBe('GET');
-    req.flush([]);
-    expect(authStorageService.set).toBeCalledWith('foo', 'bar');
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    req.flush({ user_id: 'baz' });
+    expect(authStorageService.set).toBeCalledWith('baz', 'foo', 'bar');
   });
 
   it('should call logout', () => {
