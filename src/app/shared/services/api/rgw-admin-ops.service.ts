@@ -4,7 +4,10 @@ import { Observable } from 'rxjs';
 
 import { sign } from '~/app/aws2';
 import { Credentials } from '~/app/shared/services/auth-storage.service';
-import { environment } from '~/environments/environment';
+
+type RgwAdminOpsConfig = {
+  host: string;
+};
 
 export type RgwAdminOpsRequestOptions = {
   credentials: Credentials;
@@ -15,9 +18,22 @@ export type RgwAdminOpsRequestOptions = {
   providedIn: 'root'
 })
 export class RgwAdminOpsService {
-  private port = 7480;
+  private host = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Try to load the configuration file containing the information to
+    // access the RGW AdminOps API.
+    this.http.get<RgwAdminOpsConfig>('/assets/rgw_admin_ops.config.json').subscribe({
+      next: (config: RgwAdminOpsConfig) => {
+        if (config.host !== '$S3GW_RGW_ADMINOPS_HOST') {
+          this.host = config.host;
+        }
+      },
+      error: (err) => {
+        err.preventDefault();
+      }
+    });
+  }
 
   get<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
     const headers = this.buildHeaders(url, 'GET', options.credentials);
@@ -40,9 +56,7 @@ export class RgwAdminOpsService {
   }
 
   private buildUrl(url: string) {
-    return environment.production
-      ? `${location.protocol}//${location.hostname}:${this.port}/${url}`
-      : url;
+    return `${this.host}/${url}`;
   }
 
   private buildHeaders(url: string, method: string, credentials: Credentials) {
