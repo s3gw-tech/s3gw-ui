@@ -6,7 +6,7 @@ import { sign } from '~/app/aws2';
 import { Credentials } from '~/app/shared/services/auth-storage.service';
 
 type RgwAdminOpsConfig = {
-  host: string;
+  url: string;
 };
 
 export type RgwAdminOpsRequestOptions = {
@@ -18,21 +18,29 @@ export type RgwAdminOpsRequestOptions = {
   providedIn: 'root'
 })
 export class RgwAdminOpsService {
-  private host = '';
+  private url = '';
 
   constructor(private http: HttpClient) {
     // Try to load the configuration file containing the information to
     // access the RGW AdminOps API.
-    this.http.get<RgwAdminOpsConfig>('/assets/rgw_admin_ops.config.json').subscribe({
-      next: (config: RgwAdminOpsConfig) => {
-        if (config.host !== '$S3GW_RGW_ADMINOPS_HOST') {
-          this.host = config.host;
+    this.http
+      .get<RgwAdminOpsConfig>('/assets/rgw_admin_ops.config.json', {
+        headers: {
+          /* eslint-disable @typescript-eslint/naming-convention */
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache'
         }
-      },
-      error: (err) => {
-        err.preventDefault();
-      }
-    });
+      })
+      .subscribe({
+        next: (config: RgwAdminOpsConfig) => {
+          if (config.url !== '$RGW_SERVICE_URL') {
+            this.url = config.url;
+          }
+        },
+        error: (err) => {
+          err.preventDefault();
+        }
+      });
   }
 
   get<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
@@ -56,7 +64,7 @@ export class RgwAdminOpsService {
   }
 
   private buildUrl(url: string) {
-    return `${this.host}/${url}`;
+    return `${this.url}/${url}`;
   }
 
   private buildHeaders(url: string, method: string, credentials: Credentials) {
@@ -65,6 +73,8 @@ export class RgwAdminOpsService {
       url,
       headers: {
         /* eslint-disable @typescript-eslint/naming-convention */
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
         'x-amz-date': new Date().toUTCString()
       }
     };

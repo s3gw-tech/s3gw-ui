@@ -1,3 +1,3 @@
 {
-  "host": "$S3GW_RGW_ADMINOPS_HOST"
+  "url": "$RGW_SERVICE_URL"
 }
