@@ -27,7 +27,7 @@ describe('UserService', () => {
 
   it('should call list', () => {
     service.list().subscribe();
-    const req = httpTesting.expectOne('admin/user?list');
+    const req = httpTesting.expectOne('/admin/user?list');
     expect(req.request.method).toBe('GET');
   });
 
@@ -46,26 +46,26 @@ describe('UserService', () => {
       })
       .subscribe();
     const req = httpTesting.expectOne(
-      'admin/user?uid=foo&display-name=foo%20bar&email=foobar@gmail.com&max-buckets=1000&suspended=true'
+      '/admin/user?uid=foo&display-name=foo%20bar&email=foobar@gmail.com&max-buckets=1000&suspended=true'
     );
     expect(req.request.method).toBe('PUT');
   });
 
   it('should call delete', () => {
     service.delete('foo').subscribe();
-    const req = httpTesting.expectOne('admin/user?uid=foo');
+    const req = httpTesting.expectOne('/admin/user?uid=foo');
     expect(req.request.method).toBe('DELETE');
   });
 
   it('should call update', () => {
     service.update({ user_id: 'baz', display_name: 'baz bar' }).subscribe();
-    const req = httpTesting.expectOne('admin/user?uid=baz&display-name=baz%20bar');
+    const req = httpTesting.expectOne('/admin/user?uid=baz&display-name=baz%20bar');
     expect(req.request.method).toBe('POST');
   });
 
   it('should call get', () => {
     service.get('foo').subscribe();
-    const req = httpTesting.expectOne('admin/user?uid=foo');
+    const req = httpTesting.expectOne('/admin/user?uid=foo');
     expect(req.request.method).toBe('GET');
   });
 });
