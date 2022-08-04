@@ -1,13 +1,10 @@
-<div class="s3gw-top-bar"
-     fxLayout="row"
-     fxLayoutAlign="start center">
+<div class="s3gw-top-bar d-flex flex-row justify-content-start align-items-center">
   <button class="btn btn-simple"
           title="{{ 'Toggle navigation' | transloco }}"
           (click)="onToggleNavigation()">
     <i class="mdi mdi-menu"></i>
   </button>
-  <s3gw-breadcrumbs></s3gw-breadcrumbs>
-  <span fxFlex></span>
+  <div class="flex-fill"></div>
   <div ngbDropdown>
     <button class="btn btn-simple"
             title="{{ 'Help' | transloco }}"

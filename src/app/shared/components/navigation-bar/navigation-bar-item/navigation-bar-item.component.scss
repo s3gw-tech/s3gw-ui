@@ -4,18 +4,21 @@ li {
   border-left: 5px solid transparent;
   cursor: pointer;
 
-  a {
+  a,
+  a:hover {
     color: $s3gw-color-menu-item-text;
   }
 
   &:hover {
-    border-left: 5px solid $s3gw-color-menu-item-hover;
+    background-color: $s3gw-color-menu-item-hover-background;
+    border-left: 5px solid $s3gw-color-menu-item-hover-border;
   }
 
   &.selected {
-    background-color: $s3gw-color-menu-item-selected;
+    background-color: $s3gw-color-menu-item-selected-background;
 
-    a {
+    a,
+    a:hover {
       color: $s3gw-color-menu-item-selected-text;
     }
   }
@@ -24,7 +27,7 @@ li {
     border-left: 5px solid transparent !important;
 
     &:hover {
-      border-left: 5px solid $s3gw-color-menu-item-hover !important;
+      border-left: 5px solid $s3gw-color-menu-item-hover-border !important;
     }
   }
 }

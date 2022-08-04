@@ -21,7 +21,7 @@ $success: dc.$s3gw-color-success !default;
 $info: dc.$s3gw-color-info !default;
 $warning: dc.$s3gw-color-warning !default;
 $danger: dc.$s3gw-color-danger !default;
-$card-bg: dc.$s3gw-color-gray-50;
+$card-bg: dc.$s3gw-color-cultured;
 
 $h1-font-size: 2em !default;
 $h2-font-size: 1.75em !default;
@@ -35,6 +35,7 @@ $font-family-monospace: df.$s3gw-font-family-monospace !default;
 $headings-font-family: df.$s3gw-font-family-headings !default;
 $component-active-color: dc.$s3gw-color-theme-primary-complementary;
 $component-active-bg: dc.$s3gw-color-theme-primary;
+$breadcrumb-divider: quote('>');
 
 @import '~bootstrap/scss/bootstrap';
 
@@ -156,7 +157,7 @@ li {
 .navbar .navbar-toggle .mdi::before {
   position: relative;
   top: 4px;
-  color: #ffffff;
+  color: dc.$s3gw-color-white;
 }
 
 .breadcrumb .mdi::before {

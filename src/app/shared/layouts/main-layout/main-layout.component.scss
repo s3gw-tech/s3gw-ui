@@ -16,21 +16,12 @@ $navigation-width: 15rem;
     z-index: 1000;
 
     header {
-      @extend .shadow;
-
       color: $s3gw-color-site-header-text;
       background-color: $s3gw-color-site-header-background;
       height: $s3gw-site-header-height;
       padding-left: 1.5rem;
 
       .logo {
-        // ToDo...
-        // background-image: url('/assets/images/xxxxx.svg');
-        // background-position-y: center;
-        // background-repeat: no-repeat;
-        // background-size: contain;
-        // height: 100%;
-        // width: 5rem;
       }
 
       .title {
@@ -55,10 +46,6 @@ $navigation-width: 15rem;
       top: 0;
       width: 100%;
       z-index: 1030;
-
-      ::ng-deep .s3gw-top-bar {
-        @extend .shadow;
-      }
     }
   }
 

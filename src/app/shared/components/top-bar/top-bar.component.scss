@@ -1,4 +1,5 @@
-@import 'styles.scss';
+@import 'src/scss/defaults/colors';
+@import 'src/scss/defaults/variables';
 
 .s3gw-top-bar {
   background-color: $s3gw-color-site-header-background;
