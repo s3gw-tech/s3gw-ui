@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import * as _ from 'lodash';
 import { Observable } from 'rxjs';
 
 import { sign } from '~/app/aws2';
@@ -64,7 +65,7 @@ export class RgwAdminOpsService {
   }
 
   private buildUrl(url: string) {
-    return `${this.url}/${url}`;
+    return `${_.trimEnd(this.url, '/')}/${_.trimStart(url, '/')}`;
   }
 
   private buildHeaders(url: string, method: string, credentials: Credentials) {
