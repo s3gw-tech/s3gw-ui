@@ -1,4 +1,4 @@
-# S3gwUi
+# s3gw UI
 
 User interface for the `s3gw`.
 
