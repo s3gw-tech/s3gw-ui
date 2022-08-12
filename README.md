@@ -1,8 +1,13 @@
-# S3gwUi
+# s3gw UI
 
 User interface for the `s3gw`.
 
+## Documentation
+
+You can access our documentation [here][1].
+
 ## Installation
+
 Run `npm ci` to install the necessary node modules.
 
 ## Development server
@@ -21,3 +26,5 @@ Run `ng build` to build the project. The build artifacts will be stored in the `
 ## Running unit tests
 
 Run `ng test:ci` to execute the unit tests.
+
+[1]: https://s3gw-docs.readthedocs.io/en/latest/
