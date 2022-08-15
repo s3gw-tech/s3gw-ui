@@ -1,11 +1,11 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
-import { forkJoin, Observable, of } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { forkJoin, iif, Observable, of } from 'rxjs';
+import { map, mergeMap } from 'rxjs/operators';
 
-import { RgwAdminOpsService } from '~/app/shared/services/api/rgw-admin-ops.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { RgwService } from '~/app/shared/services/api/rgw.service';
+import { AuthStorageService, Credentials } from '~/app/shared/services/auth-storage.service';
 
 export type User = {
   /* eslint-disable @typescript-eslint/naming-convention */
@@ -27,33 +27,28 @@ export type UserKey = {
   generate_key?: boolean;
 };
 
-export type UserList = {
-  count: number;
-  keys: string[];
-  truncated: boolean;
-  marker?: number;
-};
-
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private url = 'admin/user';
+  constructor(private authStorageService: AuthStorageService, private rgwService: RgwService) {}
 
-  constructor(
-    private authStorageService: AuthStorageService,
-    private rgwAdminOpsService: RgwAdminOpsService
-  ) {}
+  /**
+   * Get a list of user IDs.
+   */
+  public listIds(): Observable<string[]> {
+    const credentials: Credentials = this.authStorageService.getCredentials();
+    return this.rgwService.get<string[]>('admin/metadata/user', { credentials });
+  }
 
+  /**
+   * Get a list of users.
+   */
   public list(): Observable<User[]> {
-    const credentials = this.authStorageService.getCredentials();
-    return this.rgwAdminOpsService.get<UserList>(`${this.url}?list`, { credentials }).pipe(
-      mergeMap((userList: UserList) => {
-        if (userList.keys.length > 0) {
-          return forkJoin(userList.keys.map((uid: string) => this.get(uid)));
-        }
-        return of([]);
-      })
+    return this.listIds().pipe(
+      mergeMap((uids: string[]) =>
+        iif(() => uids.length > 0, forkJoin(uids.map((uid: string) => this.get(uid))), of([]))
+      )
     );
   }
 
@@ -61,56 +56,63 @@ export class UserService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#create-user
    */
   public create(user: User): Observable<void> {
-    const credentials = this.authStorageService.getCredentials();
-    const params = this.user2Params(user);
-    return this.rgwAdminOpsService.put<void>(this.url, { credentials, params });
+    const credentials: Credentials = this.authStorageService.getCredentials();
+    const params: Record<string, any> = this.user2Params(user);
+    return this.rgwService.put<void>('admin/user', { credentials, params });
   }
 
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-user
    */
   public delete(uid: string): Observable<void> {
-    const credentials = this.authStorageService.getCredentials();
-    const params = { uid };
-    return this.rgwAdminOpsService.delete<void>(this.url, { credentials, params });
+    const credentials: Credentials = this.authStorageService.getCredentials();
+    const params: Record<string, any> = { uid };
+    return this.rgwService.delete<void>('admin/user', { credentials, params });
   }
 
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#modify-user
    */
   public update(user: Partial<User>): Observable<User> {
-    const credentials = this.authStorageService.getCredentials();
-    const params = this.user2Params(user);
-    return this.rgwAdminOpsService.post<User>(this.url, { credentials, params });
+    const credentials: Credentials = this.authStorageService.getCredentials();
+    const params: Record<string, any> = this.user2Params(user);
+    return this.rgwService.post<User>('admin/user', { credentials, params });
   }
 
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#get-user-info
    */
   public get(uid: string): Observable<User> {
-    const credentials = this.authStorageService.getCredentials();
-    const params = { uid };
-    return this.rgwAdminOpsService.get<User>(this.url, { credentials, params });
+    const credentials: Credentials = this.authStorageService.getCredentials();
+    const params: Record<string, any> = { uid };
+    return this.rgwService.get<User>('admin/user', { credentials, params });
   }
 
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#create-key
    */
   public createKey(uid: string, key: UserKey): Observable<void> {
-    const credentials = this.authStorageService.getCredentials();
-    const params = this.key2Params(uid, key);
-    return this.rgwAdminOpsService.put<void>(`${this.url}?key`, { credentials, params });
+    const credentials: Credentials = this.authStorageService.getCredentials();
+    const params: Record<string, any> = this.key2Params(uid, key);
+    return this.rgwService.put<void>('admin/user?key', { credentials, params });
   }
 
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-key
    */
   public deleteKey(uid: string, accessKey: string): Observable<void> {
-    const credentials = this.authStorageService.getCredentials();
-    const params = new HttpParams({
+    const credentials: Credentials = this.authStorageService.getCredentials();
+    const params: Record<string, any> = new HttpParams({
       fromObject: { uid, 'access-key': accessKey }
     });
-    return this.rgwAdminOpsService.delete<void>(`${this.url}?key`, { credentials, params });
+    return this.rgwService.delete<void>('admin/user?key', { credentials, params });
+  }
+
+  /**
+   * Check if the specified user exists.
+   */
+  public exists(uid: string): Observable<boolean> {
+    return this.listIds().pipe(map((uids: string[]) => uids.includes(uid)));
   }
 
   private user2Params(user: Partial<User>): HttpParams {

@@ -42,7 +42,7 @@ yarn-error.log
 testem.log
 /typings
 /src/assets/i18n/*.pot
-/src/assets/rgw_admin_ops.config.json
+/src/assets/rgw_service.config.json
 
 # System Files
 .DS_Store

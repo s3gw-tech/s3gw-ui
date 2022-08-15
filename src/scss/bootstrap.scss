@@ -46,6 +46,11 @@ $breadcrumb-divider: quote('>');
   display: block;
 }
 
+.form-control[readonly] {
+  background-color: $input-disabled-bg;
+  opacity: 1;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Button
 .btn-simple {

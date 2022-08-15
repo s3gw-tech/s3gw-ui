@@ -2,6 +2,8 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 
+import { BucketDatatablePageComponent } from '~/app/pages/bucket/bucket-datatable-page/bucket-datatable-page.component';
+import { BucketFormPageComponent } from '~/app/pages/bucket/bucket-form-page/bucket-form-page.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
@@ -27,8 +29,30 @@ const routes: Routes = [
         component: DashboardPageComponent
       },
       {
+        path: 'bucket',
+        data: { breadcrumb: TEXT('Buckets') },
+        canActivate: [AuthGuardService],
+        canActivateChild: [AuthGuardService],
+        children: [
+          {
+            path: '',
+            component: BucketDatatablePageComponent
+          },
+          {
+            path: 'create',
+            data: { breadcrumb: TEXT('Create') },
+            component: BucketFormPageComponent
+          },
+          {
+            path: 'edit/:bid',
+            data: { breadcrumb: TEXT('Edit') },
+            component: BucketFormPageComponent
+          }
+        ]
+      },
+      {
         path: 'user',
-        data: { breadcrumb: TEXT('User Management') },
+        data: { breadcrumb: TEXT('Users') },
         canActivate: [AuthGuardService],
         canActivateChild: [AuthGuardService],
         children: [

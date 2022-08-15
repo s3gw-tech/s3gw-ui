@@ -169,3 +169,8 @@
     <span *ngIf="!last">&nbsp;</span>
   </span>
 </ng-template>
+
+<ng-template #localeDateTimeTpl
+             let-value="value">
+  <span>{{ value | localeDate:'datetime' }}</span>
+</ng-template>

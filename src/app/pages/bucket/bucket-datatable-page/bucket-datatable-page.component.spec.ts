@@ -1,23 +1,23 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ToastrModule } from 'ngx-toastr';
 
+import { BucketDatatablePageComponent } from '~/app/pages/bucket/bucket-datatable-page/bucket-datatable-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
-import { UserDatatablePageComponent } from '~/app/pages/user/user-datatable-page/user-datatable-page.component';
 import { TestingModule } from '~/app/testing.module';
 
-describe('UserDatatablePageComponent', () => {
-  let component: UserDatatablePageComponent;
-  let fixture: ComponentFixture<UserDatatablePageComponent>;
+describe('BucketDatatablePageComponent', () => {
+  let component: BucketDatatablePageComponent;
+  let fixture: ComponentFixture<BucketDatatablePageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [UserDatatablePageComponent],
+      declarations: [BucketDatatablePageComponent],
       imports: [PagesModule, TestingModule, ToastrModule.forRoot()]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(UserDatatablePageComponent);
+    fixture = TestBed.createComponent(BucketDatatablePageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

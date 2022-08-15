@@ -69,7 +69,7 @@ export type FormFieldConfig = {
   // --- text | password ---
   hasCopyToClipboardButton?: boolean;
 
-  // --- dropdown ---
+  // --- select ---
   options?: Record<any, string>;
 
   // --- container ---

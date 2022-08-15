@@ -36,7 +36,10 @@ export enum DatatableCellTemplateName {
   //     }
   //   }
   // }
-  badge = 'badge'
+  badge = 'badge',
+  // Convert the specified date/time appropriate to the host/browser
+  // environment's current locale.
+  localeDateTime = 'localeDateTime'
 }
 
 export type DatatableColumn = {

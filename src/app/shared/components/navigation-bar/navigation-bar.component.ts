@@ -16,11 +16,14 @@ export class NavigationBarComponent {
       route: '/dashboard'
     },
     {
-      name: TEXT('User Management'),
+      name: TEXT('Users'),
       icon: 'mdi mdi-account-multiple',
       route: '/user'
+    },
+    {
+      name: TEXT('Buckets'),
+      icon: 'mdi mdi-bucket',
+      route: '/bucket'
     }
   ];
-
-  constructor() {}
 }
