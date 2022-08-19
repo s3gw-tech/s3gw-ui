@@ -49,29 +49,55 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
     private notificationService: NotificationService
   ) {}
 
-  get values(): DeclarativeFormValues {
-    let values: Record<string, any> = this.formGroup?.getRawValue() ?? {};
+  /**
+   * Get all form values, including those with `submitValue=false`.
+   */
+  get allValues(): DeclarativeFormValues {
+    const values: DeclarativeFormValues = this.formGroup?.getRawValue() ?? {};
     _.forEach(this.getFields(), (field: FormFieldConfig) => {
-      if (field.submitValue === false) {
-        values = _.omit(values, [field.name!]);
-      } else {
-        const value = values[field.name!];
-        if (value) {
-          values[field.name!] = this.convertToRaw(value, field);
-        }
+      const value = values[field.name!];
+      if (value) {
+        values[field.name!] = this.convertToRaw(value, field);
       }
     });
     return values;
   }
 
-  get modifiedValues(): DeclarativeFormValues {
-    const values: Record<string, any> = {};
+  /**
+   * Get all form values, except those with `submitValue=false`.
+   */
+  get values(): DeclarativeFormValues {
+    let values: DeclarativeFormValues = this.allValues;
     _.forEach(this.getFields(), (field: FormFieldConfig) => {
-      if (field.submitValue !== false) {
-        const control = this.getControl(field.name!);
-        if (control?.touched) {
-          values[field.name!] = this.convertToRaw(control.value, field);
-        }
+      if (field.submitValue === false) {
+        values = _.omit(values, [field.name!]);
+      }
+    });
+    return values;
+  }
+
+  /**
+   * Get all form values, including those with `submitValue=false`.
+   */
+  get allModifiedValues(): DeclarativeFormValues {
+    const values: DeclarativeFormValues = {};
+    _.forEach(this.getFields(), (field: FormFieldConfig) => {
+      const control = this.getControl(field.name!);
+      if (control?.touched) {
+        values[field.name!] = this.convertToRaw(control.value, field);
+      }
+    });
+    return values;
+  }
+
+  /**
+   * Get all form values, except those with `submitValue=false`.
+   */
+  get modifiedValues(): DeclarativeFormValues {
+    let values: DeclarativeFormValues = this.allModifiedValues;
+    _.forEach(this.getFields(), (field: FormFieldConfig) => {
+      if (field.submitValue === false) {
+        values = _.omit(values, [field.name!]);
       }
     });
     return values;
@@ -284,6 +310,16 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
     return flatten(this.config?.fields || []);
   }
 
+  /**
+   * Helper function to convert a value from it's displayed to the real
+   * internal representation, e.g. '1 MiB' will become 1048576 for a
+   * 'binary' form field.
+   *
+   * @param value The 'displayed' value.
+   * @param field The form field.
+   * @private
+   * @return Returns the real value.
+   */
   private convertToRaw(value: any, field: FormFieldConfig): any {
     switch (field.type) {
       case 'binary':
@@ -294,9 +330,11 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
   }
 
   private applyModifier(field: FormFieldConfig, modifier: FormFieldModifier) {
-    const successful = ConstraintService.test(modifier.constraint, this.values);
+    const successful = ConstraintService.test(modifier.constraint, this.allValues);
     const opposite = _.defaultTo(modifier?.opposite, true);
     const control: AbstractControl | null = this.getControl(field.name!);
+    const nativeElement: HTMLElement = _.get(control, 'nativeElement');
+    const formFieldElement = nativeElement && nativeElement.closest('.form-field');
     switch (modifier.type) {
       case 'readonly':
         if (successful) {
@@ -309,6 +347,26 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
       case 'value':
         if (successful) {
           control?.setValue(modifier.data);
+        }
+        break;
+      case 'visible':
+        if (!_.isUndefined(formFieldElement)) {
+          if (successful) {
+            (formFieldElement as HTMLElement).classList.remove('d-none');
+          }
+          if (!successful && opposite) {
+            (formFieldElement as HTMLElement).classList.add('d-none');
+          }
+        }
+        break;
+      case 'hidden':
+        if (!_.isUndefined(formFieldElement)) {
+          if (successful) {
+            (formFieldElement as HTMLElement).classList.add('d-none');
+          }
+          if (!successful && opposite) {
+            (formFieldElement as HTMLElement).classList.remove('d-none');
+          }
         }
         break;
     }

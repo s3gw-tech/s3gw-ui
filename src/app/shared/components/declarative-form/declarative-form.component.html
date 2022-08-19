@@ -24,7 +24,7 @@
                    let-field>
         <ng-container [ngSwitch]="field.type">
           <ng-template [ngSwitchCase]="'password'">
-            <div class="col"
+            <div class="col form-field"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"
@@ -88,7 +88,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'text'">
-            <div class="col"
+            <div class="col form-field"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"
@@ -147,7 +147,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'number'">
-            <div class="col"
+            <div class="col form-field"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"
@@ -203,7 +203,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'checkbox'">
-            <div class="col"
+            <div class="col form-field"
                  [class]="field.groupClass">
               <div class="form-check">
                 <input class="form-check-input"
@@ -235,7 +235,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'radio'">
-            <div class="col"
+            <div class="col form-field"
                  [class]="field.groupClass">
               <div class="form-check">
                 <input class="form-check-input"
@@ -258,7 +258,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'select'">
-            <div class="col"
+            <div class="col form-field"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"
@@ -294,7 +294,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'binary'">
-            <div class="col"
+            <div class="col form-field"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"

@@ -8,7 +8,10 @@ import { map, switchMap } from 'rxjs/operators';
 
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
-import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
+import {
+  DeclarativeFormConfig,
+  DeclarativeFormValues
+} from '~/app/shared/models/declarative-form-config.type';
 import { User, UserService } from '~/app/shared/services/api/user.service';
 
 @Component({
@@ -44,6 +47,7 @@ export class UserFormPageComponent implements OnInit {
       this.userService.get(uid).subscribe({
         next: (user: User) => {
           this.pageStatus = PageStatus.ready;
+          this.patchMaxBuckets(user, true);
           this.form.patchValues(user);
         },
         error: () => {
@@ -106,13 +110,42 @@ export class UserFormPageComponent implements OnInit {
           }
         },
         {
+          type: 'select',
+          name: 'max_buckets_mode',
+          label: TEXT('Max. Buckets'),
+          value: 'custom',
+          submitValue: false,
+          options: {
+            disabled: TEXT('Disabled'),
+            unlimited: TEXT('Unlimited'),
+            custom: TEXT('Custom')
+          },
+          validators: {
+            required: true
+          }
+        },
+        {
           type: 'number',
           name: 'max_buckets',
-          label: TEXT('Max. Buckets'),
           value: 1000,
+          modifiers: [
+            {
+              type: 'hidden',
+              constraint: {
+                operator: 'ne',
+                arg0: { prop: 'max_buckets_mode' },
+                arg1: 'custom'
+              }
+            }
+          ],
           validators: {
             min: 1,
-            patternType: 'numeric'
+            patternType: 'numeric',
+            requiredIf: {
+              operator: 'eq',
+              arg0: { prop: 'max_buckets_mode' },
+              arg1: 'custom'
+            }
           }
         },
         {
@@ -127,6 +160,7 @@ export class UserFormPageComponent implements OnInit {
 
   private createUser(): void {
     const user: User = this.form.values as User;
+    this.patchMaxBuckets(user);
     this.userService.create(user).subscribe({
       next: () => {
         this.router.navigate(['/user']);
@@ -139,7 +173,8 @@ export class UserFormPageComponent implements OnInit {
 
   private updateUser(): void {
     const user: Partial<User> = this.form.modifiedValues;
-    user.user_id = this.form.values['user_id'];
+    this.patchUserId(user);
+    this.patchMaxBuckets(user);
     this.userService.update(user).subscribe({
       next: () => {
         this.router.navigate(['/user']);
@@ -148,6 +183,43 @@ export class UserFormPageComponent implements OnInit {
         this.pageStatus = PageStatus.savingError;
       }
     });
+  }
+
+  private patchUserId(user: Partial<User>): void {
+    const values: DeclarativeFormValues = this.form.values;
+    user.user_id = values['user_id'];
+  }
+
+  private patchMaxBuckets(user: DeclarativeFormValues, loading: boolean = false): void {
+    if (loading) {
+      switch (user['max_buckets']) {
+        case -1:
+          user['max_buckets_mode'] = 'disabled';
+          // Set default value to display a valid value when the user
+          // switches back to 'custom ' mode.
+          user['max_buckets'] = 1000;
+          break;
+        case 0:
+          user['max_buckets_mode'] = 'unlimited';
+          // Set default value to display a valid value when the user
+          // switches back to 'custom ' mode.
+          user['max_buckets'] = 1000;
+          break;
+        default:
+          user['max_buckets_mode'] = 'custom';
+          break;
+      }
+    } else {
+      const values = this.form.allValues;
+      switch (values['max_buckets_mode']) {
+        case 'disabled':
+          user['max_buckets'] = -1;
+          break;
+        case 'unlimited':
+          user['max_buckets'] = 0;
+          break;
+      }
+    }
   }
 
   private userIdValidator(): AsyncValidatorFn {
