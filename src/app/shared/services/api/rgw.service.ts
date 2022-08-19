@@ -6,11 +6,11 @@ import { Observable } from 'rxjs';
 import { sign } from '~/app/aws2';
 import { Credentials } from '~/app/shared/services/auth-storage.service';
 
-type RgwAdminOpsConfig = {
+type RgwServiceConfig = {
   url: string;
 };
 
-export type RgwAdminOpsRequestOptions = {
+export type RgwServiceRequestOptions = {
   credentials: Credentials;
   params?: HttpParams | { [param: string]: string | number | boolean };
 };
@@ -18,14 +18,14 @@ export type RgwAdminOpsRequestOptions = {
 @Injectable({
   providedIn: 'root'
 })
-export class RgwAdminOpsService {
+export class RgwService {
   private url = '';
 
   constructor(private http: HttpClient) {
-    // Try to load the configuration file containing the information to
-    // access the RGW AdminOps API.
+    // Try to load the configuration file containing the information
+    // to access the RGW.
     this.http
-      .get<RgwAdminOpsConfig>('/assets/rgw_admin_ops.config.json', {
+      .get<RgwServiceConfig>('/assets/rgw_service.config.json', {
         headers: {
           /* eslint-disable @typescript-eslint/naming-convention */
           'Cache-Control': 'no-cache',
@@ -33,7 +33,7 @@ export class RgwAdminOpsService {
         }
       })
       .subscribe({
-        next: (config: RgwAdminOpsConfig) => {
+        next: (config: RgwServiceConfig) => {
           if (config.url !== '$RGW_SERVICE_URL') {
             this.url = config.url;
           }
@@ -44,22 +44,22 @@ export class RgwAdminOpsService {
       });
   }
 
-  get<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
+  get<T>(url: string, options: RgwServiceRequestOptions): Observable<T> {
     const headers = this.buildHeaders(url, 'GET', options.credentials);
     return this.http.get<T>(this.buildUrl(url), { headers, params: options.params });
   }
 
-  put<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
+  put<T>(url: string, options: RgwServiceRequestOptions): Observable<T> {
     const headers = this.buildHeaders(url, 'PUT', options.credentials);
     return this.http.put<T>(this.buildUrl(url), null, { headers, params: options.params });
   }
 
-  post<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
+  post<T>(url: string, options: RgwServiceRequestOptions): Observable<T> {
     const headers = this.buildHeaders(url, 'POST', options.credentials);
     return this.http.post<T>(this.buildUrl(url), null, { headers, params: options.params });
   }
 
-  delete<T>(url: string, options: RgwAdminOpsRequestOptions): Observable<T> {
+  delete<T>(url: string, options: RgwServiceRequestOptions): Observable<T> {
     const headers = this.buildHeaders(url, 'DELETE', options.credentials);
     return this.http.delete<T>(this.buildUrl(url), { headers, params: options.params });
   }

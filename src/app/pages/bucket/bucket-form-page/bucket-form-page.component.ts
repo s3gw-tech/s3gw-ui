@@ -9,14 +9,15 @@ import { map, switchMap } from 'rxjs/operators';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
-import { User, UserService } from '~/app/shared/services/api/user.service';
+import { Bucket, BucketService } from '~/app/shared/services/api/bucket.service';
+import { UserService } from '~/app/shared/services/api/user.service';
 
 @Component({
-  selector: 's3gw-user-form-page',
-  templateUrl: './user-form-page.component.html',
-  styleUrls: ['./user-form-page.component.scss']
+  selector: 's3gw-bucket-form-page',
+  templateUrl: './bucket-form-page.component.html',
+  styleUrls: ['./bucket-form-page.component.scss']
 })
-export class UserFormPageComponent implements OnInit {
+export class BucketFormPageComponent implements OnInit {
   @ViewChild(DeclarativeFormComponent, { static: false })
   form!: DeclarativeFormComponent;
 
@@ -25,26 +26,45 @@ export class UserFormPageComponent implements OnInit {
     fields: []
   };
 
+  private ownerOptions: Record<any, string> = {};
+
   constructor(
     private route: ActivatedRoute,
+    private bucketService: BucketService,
     private router: Router,
     private userService: UserService
   ) {
-    this.createForm(this.router.url.startsWith(`/user/edit`));
+    this.createForm(this.router.url.startsWith(`/bucket/edit`));
+    this.userService.listIds().subscribe({
+      next: (users: string[]) => {
+        // Update the options of the 'owner' field.
+        const field = _.find(this.config.fields, ['name', 'owner']);
+        if (!_.isUndefined(field)) {
+          field.options = _.reduce(
+            users,
+            (result, user: string) => {
+              _.set(result, user, user);
+              return result;
+            },
+            {}
+          );
+        }
+      }
+    });
   }
 
   ngOnInit(): void {
     this.route.params.subscribe((value: Params) => {
-      if (!_.has(value, 'uid')) {
+      if (!_.has(value, 'bid')) {
         this.pageStatus = PageStatus.ready;
         return;
       }
-      const uid = decodeURIComponent(value['uid']);
+      const bid = decodeURIComponent(value['bid']);
       this.pageStatus = PageStatus.loading;
-      this.userService.get(uid).subscribe({
-        next: (user: User) => {
+      this.bucketService.get(bid).subscribe({
+        next: (bucket: Bucket) => {
           this.pageStatus = PageStatus.ready;
-          this.form.patchValues(user);
+          this.form.patchValues(bucket);
         },
         error: () => {
           this.pageStatus = PageStatus.loadingError;
@@ -59,16 +79,16 @@ export class UserFormPageComponent implements OnInit {
         {
           type: 'default',
           text: TEXT('Cancel'),
-          click: () => this.router.navigate(['/user'])
+          click: () => this.router.navigate(['/bucket'])
         },
         {
           type: 'submit',
           text: editing ? TEXT('Update') : TEXT('Create'),
           click: () => {
             if (editing) {
-              this.updateUser();
+              this.updateBucket();
             } else {
-              this.createUser();
+              this.createBucket();
             }
           }
         }
@@ -76,60 +96,47 @@ export class UserFormPageComponent implements OnInit {
       fields: [
         {
           type: 'text',
-          name: 'user_id',
-          label: TEXT('User ID'),
+          name: 'id',
+          label: TEXT('ID'),
+          value: '',
+          readonly: true,
+          groupClass: editing ? '' : 'd-none',
+          hasCopyToClipboardButton: true
+        },
+        {
+          type: 'text',
+          name: 'bucket',
+          label: TEXT('Name'),
+          hint: TEXT('The name of the bucket.'),
           value: '',
           readonly: editing,
           autofocus: !editing,
           validators: {
             required: true,
-            asyncCustom: this.userIdValidator()
+            asyncCustom: this.bucketNameValidator()
           }
         },
         {
-          type: 'text',
-          name: 'display_name',
-          label: TEXT('Full Name'),
+          type: 'select',
+          name: 'owner',
+          label: TEXT('Owner'),
+          hint: TEXT('The owner of the bucket.'),
           value: '',
           autofocus: editing,
+          options: this.ownerOptions,
           validators: {
             required: true
           }
-        },
-        {
-          type: 'text',
-          name: 'email',
-          label: TEXT('Email'),
-          value: '',
-          validators: {
-            patternType: 'email'
-          }
-        },
-        {
-          type: 'number',
-          name: 'max_buckets',
-          label: TEXT('Max. Buckets'),
-          value: 1000,
-          validators: {
-            min: 1,
-            patternType: 'numeric'
-          }
-        },
-        {
-          type: 'checkbox',
-          name: 'suspended',
-          label: TEXT('Suspended'),
-          value: false
         }
       ]
     };
   }
 
-  private createUser(): void {
-    const user: User = this.form.values as User;
-    this.userService.create(user).subscribe({
+  private createBucket(): void {
+    const bucket: Bucket = this.form.values as Bucket;
+    this.bucketService.create(bucket).subscribe({
       next: () => {
-        this.router.navigate(['/user']);
+        this.router.navigate(['/bucket']);
       },
       error: () => {
         this.pageStatus = PageStatus.savingError;
@@ -137,12 +144,11 @@ export class UserFormPageComponent implements OnInit {
     });
   }
 
-  private updateUser(): void {
-    const user: Partial<User> = this.form.modifiedValues;
-    user.user_id = this.form.values['user_id'];
-    this.userService.update(user).subscribe({
+  private updateBucket(): void {
+    const user: Partial<Bucket> = this.form.values;
+    this.bucketService.update(user).subscribe({
       next: () => {
-        this.router.navigate(['/user']);
+        this.router.navigate(['/bucket']);
       },
       error: () => {
         this.pageStatus = PageStatus.savingError;
@@ -150,18 +156,18 @@ export class UserFormPageComponent implements OnInit {
     });
   }
 
-  private userIdValidator(): AsyncValidatorFn {
+  private bucketNameValidator(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
       if (control.pristine || _.isEmpty(control.value)) {
         return of(null);
       }
       return timer(200).pipe(
-        switchMap(() => this.userService.exists(control.value)),
+        switchMap(() => this.bucketService.exists(control.value)),
         map((resp: boolean) => {
           if (!resp) {
             return null;
           } else {
-            return { custom: TEXT('The user ID already exists.') };
+            return { custom: TEXT('The name already exists.') };
           }
         })
       );

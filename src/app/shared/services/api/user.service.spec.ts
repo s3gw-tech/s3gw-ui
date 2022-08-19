@@ -25,9 +25,15 @@ describe('UserService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('should call listIds', () => {
+    service.listIds().subscribe();
+    const req = httpTesting.expectOne('/admin/metadata/user');
+    expect(req.request.method).toBe('GET');
+  });
+
   it('should call list', () => {
     service.list().subscribe();
-    const req = httpTesting.expectOne('/admin/user?list');
+    const req = httpTesting.expectOne('/admin/metadata/user');
     expect(req.request.method).toBe('GET');
   });
 
@@ -66,6 +72,26 @@ describe('UserService', () => {
   it('should call get', () => {
     service.get('foo').subscribe();
     const req = httpTesting.expectOne('/admin/user?uid=foo');
+    expect(req.request.method).toBe('GET');
+  });
+
+  it('should call exists (1)', (done) => {
+    service.exists('foo').subscribe((exists: boolean) => {
+      expect(exists).toBe(false);
+      done();
+    });
+    const req = httpTesting.expectOne('/admin/metadata/user');
+    req.flush(['bar', 'baz']);
+    expect(req.request.method).toBe('GET');
+  });
+
+  it('should call exists (2)', (done) => {
+    service.exists('foo').subscribe((exists: boolean) => {
+      expect(exists).toBe(true);
+      done();
+    });
+    const req = httpTesting.expectOne('/admin/metadata/user');
+    req.flush(['foo', 'xyz']);
     expect(req.request.method).toBe('GET');
   });
 });

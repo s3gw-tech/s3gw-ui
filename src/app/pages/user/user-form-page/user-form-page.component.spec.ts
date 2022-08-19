@@ -11,6 +11,7 @@ describe('UserFormPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      declarations: [UserFormPageComponent],
       imports: [PagesModule, TestingModule, ToastrModule.forRoot()]
     }).compileComponents();
   });

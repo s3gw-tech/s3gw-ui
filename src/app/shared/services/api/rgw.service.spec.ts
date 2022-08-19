@@ -1,19 +1,19 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { RgwAdminOpsService } from '~/app/shared/services/api/rgw-admin-ops.service';
+import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { TestingModule } from '~/app/testing.module';
 
-describe('RgwAdminOpsService', () => {
-  let service: RgwAdminOpsService;
+describe('RgwService', () => {
+  let service: RgwService;
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [RgwAdminOpsService],
+      providers: [RgwService],
       imports: [TestingModule]
     });
-    service = TestBed.inject(RgwAdminOpsService);
+    service = TestBed.inject(RgwService);
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
@@ -22,12 +22,12 @@ describe('RgwAdminOpsService', () => {
   });
 
   it('should load config', () => {
-    const req = httpTesting.expectOne('/assets/rgw_admin_ops.config.json');
+    const req = httpTesting.expectOne('/assets/rgw_service.config.json');
     expect(req.request.method).toBe('GET');
   });
 
   it('should build valid URL', () => {
-    const req = httpTesting.expectOne('/assets/rgw_admin_ops.config.json');
+    const req = httpTesting.expectOne('/assets/rgw_service.config.json');
     req.flush({ url: 'api/' });
     // @ts-ignore
     expect(service.buildUrl('/foo/bar/')).toBe('api/foo/bar/');

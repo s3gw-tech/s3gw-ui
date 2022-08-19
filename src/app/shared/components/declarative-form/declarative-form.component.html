@@ -29,7 +29,7 @@
               <label *ngIf="field.label"
                      class="form-label"
                      [for]="field.name"
-                     [ngClass]="{'required': field.validators?.required!}">
+                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
                 {{ field.label | transloco }}
               </label>
               <div class="input-group">
@@ -93,7 +93,7 @@
               <label *ngIf="field.label"
                      class="form-label"
                      [for]="field.name"
-                     [ngClass]="{'required': field.validators?.required!}">
+                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
                 {{ field.label | transloco }}
               </label>
               <div class="input-group">
@@ -152,7 +152,7 @@
               <label *ngIf="field.label"
                      class="form-label"
                      [for]="field.name"
-                     [ngClass]="{'required': field.validators?.required!}">
+                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
                 {{ field.label | transloco }}
               </label>
               <div class="input-group">
@@ -214,7 +214,7 @@
                        [checked]="field.value"
                        [required]="field.validators?.required!">
                 <label class="form-check-label"
-                       [ngClass]="{'required': field.validators?.required!}"
+                       [ngClass]="{'required': !field.readonly && field.validators?.required!}"
                        [for]="field.id">
                   {{ field.label! | transloco }}
                 </label>
@@ -263,13 +263,14 @@
               <label *ngIf="field.label"
                      class="form-label"
                      [for]="field.name"
-                     [ngClass]="{'required': field.validators?.required!}">
+                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
                 {{ field.label | transloco }}
               </label>
               <select class="form-control"
                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
                       [id]="field.name"
                       [formControlName]="field.name"
+                      [autofocus]="field.autofocus"
                       [required]="field.validators?.required!">
                 <option *ngFor="let option of field.options | keyvalue"
                         [value]="option.key"
@@ -298,7 +299,7 @@
               <label *ngIf="field.label"
                      class="form-label"
                      [for]="field.name"
-                     [ngClass]="{'required': field.validators?.required!}">
+                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
                 {{ field.label | transloco }}
               </label>
               <div class="input-group">
