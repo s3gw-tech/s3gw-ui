@@ -52,7 +52,7 @@ describe('NavigationBarItemComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/itemroute']);
   });
 
-  it('shouldn\'t navigate and show subs if defined', () => {
+  it('should not navigate and show subs if defined', () => {
     component.itemClicked(itemSubs);
     expect(router.navigate).not.toHaveBeenCalled();
     expect(component.showSub).toBe(true);

@@ -3,7 +3,7 @@ import { AbstractControl, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
 import { Constraint } from '~/app/shared/models/constraint.type';
 
 export type FormFieldModifier = {
-  type: 'readonly' | 'value';
+  type: 'readonly' | 'value' | 'visible' | 'hidden';
   constraint: Constraint;
   // Apply the opposite type, e.g. `editable` for `readonly`,
   // if the constraint is falsy. Defaults to `true`.

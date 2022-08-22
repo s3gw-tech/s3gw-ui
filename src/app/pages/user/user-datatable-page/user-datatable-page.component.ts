@@ -59,7 +59,12 @@ export class UserDatatablePageComponent {
       },
       {
         name: TEXT('Max. Buckets'),
-        prop: 'max_buckets'
+        prop: 'max_buckets',
+        cellTemplateName: DatatableCellTemplateName.map,
+        cellTemplateConfig: {
+          ['-1']: TEXT('Disabled'),
+          ['0']: TEXT('Unlimited')
+        }
       },
       {
         name: TEXT('Status'),
