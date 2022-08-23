@@ -26,10 +26,17 @@ describe('RgwService', () => {
     expect(req.request.method).toBe('GET');
   });
 
-  it('should build valid URL', () => {
+  it('should build valid URL [1]', () => {
     const req = httpTesting.expectOne('/assets/rgw_service.config.json');
     req.flush({ url: 'api/' });
     // @ts-ignore
     expect(service.buildUrl('/foo/bar/')).toBe('api/foo/bar/');
+  });
+
+  it('should build valid URL [2]', () => {
+    const req = httpTesting.expectOne('/assets/rgw_service.config.json');
+    req.flush({ url: 'https://xyz/abc' });
+    // @ts-ignore
+    expect(service.buildUrl('/foo/bar/')).toBe('https://xyz/abc/foo/bar/');
   });
 });
