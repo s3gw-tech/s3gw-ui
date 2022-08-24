@@ -16,7 +16,7 @@ import {
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
-import { User, UserKey, UserService } from '~/app/shared/services/api/user.service';
+import { Key, User, UserService } from '~/app/shared/services/api/user.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
 @Component({
@@ -30,7 +30,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
 
   public icons = Icon;
   public pageStatus: PageStatus = PageStatus.none;
-  public keys: UserKey[] = [];
+  public keys: Key[] = [];
   public columns: DatatableColumn[];
 
   private uid = '';
@@ -99,7 +99,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
     this.router.navigate([`/user/${this.uid}/key/create`]);
   }
 
-  onActionMenu(key: UserKey): DatatableActionItem[] {
+  onActionMenu(key: Key): DatatableActionItem[] {
     const result: DatatableActionItem[] = [
       {
         title: TEXT('Show Key'),

@@ -8,7 +8,7 @@ import {
   DeclarativeFormConfig,
   FormButtonConfig
 } from '~/app/shared/models/declarative-form-config.type';
-import { User, UserKey, UserService } from '~/app/shared/services/api/user.service';
+import { Key, User, UserService } from '~/app/shared/services/api/user.service';
 
 @Component({
   selector: 's3gw-user-key-form-page',
@@ -54,7 +54,7 @@ export class UserKeyFormPageComponent implements OnInit {
           type: 'submit',
           text: TEXT('Create'),
           click: () => {
-            const key: UserKey = this.form.values as UserKey;
+            const key: Key = this.form.values as Key;
             this.userService.createKey(this.uid, key).subscribe({
               next: () => {
                 this.router.navigate([`/user/${this.uid}/key`]);

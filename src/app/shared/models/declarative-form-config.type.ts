@@ -46,7 +46,7 @@ export type FormFieldConfig = {
     required?: boolean;
     requiredIf?: Constraint;
     pattern?: string | RegExp;
-    patternType?: 'email' | 'hostAddress' | 'numeric';
+    patternType?: 'email' | 'hostAddress' | 'numeric' | 'binaryUnit';
     constraint?: {
       constraint: Constraint;
       errorMessage: string;

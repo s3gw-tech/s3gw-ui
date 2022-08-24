@@ -1,5 +1,5 @@
 import { Clipboard } from '@angular/cdk/clipboard';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -34,7 +34,7 @@ let nextUniqueId = 0;
   templateUrl: './declarative-form.component.html',
   styleUrls: ['./declarative-form.component.scss']
 })
-export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDestroy {
+export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm, OnInit, OnDestroy {
   @Input()
   config?: DeclarativeFormConfig;
 
@@ -143,6 +143,9 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
           case 'numeric':
             validators.push(Validators.pattern(/^[-]?\d+$/));
             break;
+          case 'binaryUnit':
+            validators.push(Validators.pattern(/^\d+(.\d+)?\s?(b|[kmgtpezy]ib)$/i));
+            break;
         }
       }
       if (_.isPlainObject(field.validators.constraint)) {
@@ -229,7 +232,31 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
     );
   }
 
-  ngOnDestroy() {
+  ngAfterViewInit(): void {
+    // Note, all form fields with a 'visible' or 'hidden' modifier must be
+    // triggered manually after the form has been rendered because the
+    // control does not exist during 'ngOnInit', thus their class list can
+    // not be updated according to the evaluated constraint.
+    const fields: Array<FormFieldConfig> = this.getFields();
+    const fieldsToUpdate: string[] = [];
+    _.forEach(
+      _.filter(fields, (field) => !_.isEmpty(field.modifiers)),
+      (field: FormFieldConfig) => {
+        _.forEach(field.modifiers, (modifier: FormFieldModifier) => {
+          if (['visible', 'hidden'].includes(modifier.type)) {
+            const props = ConstraintService.getProps(modifier.constraint);
+            fieldsToUpdate.push(...props);
+          }
+        });
+      }
+    );
+    _.forEach(_.uniq(fieldsToUpdate), (path) => {
+      const control = this.getControl(path);
+      control?.updateValueAndValidity({ onlySelf: true, emitEvent: true });
+    });
+  }
+
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 

@@ -126,7 +126,7 @@ export class BucketDatatablePageComponent {
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
                     this.notificationService.showSuccess(TEXT(`Deleted bucket ${bucket.bucket}.`));
-                    this.loadData();
+                    this.onReload();
                   });
               }
             },

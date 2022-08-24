@@ -344,6 +344,10 @@
                     class="invalid-feedback">
                 {{ formGroup.getError('custom', field.name) | transloco }}
               </span>
+              <span *ngIf="showError(field.name, frm, 'pattern')"
+                    class="invalid-feedback"
+                    transloco="The value is invalid.">
+              </span>
             </div>
           </ng-template>
 

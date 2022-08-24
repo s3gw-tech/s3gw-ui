@@ -20,6 +20,8 @@
   }
 
   .form-divider {
+    @extend .mt-4;
+
     .title {
       @extend .h4;
     }
