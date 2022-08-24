@@ -69,9 +69,15 @@ describe('UserService', () => {
     expect(req.request.method).toBe('POST');
   });
 
-  it('should call get', () => {
+  it('should call get (1)', () => {
     service.get('foo').subscribe();
-    const req = httpTesting.expectOne('/admin/user?uid=foo');
+    const req = httpTesting.expectOne('/admin/user?uid=foo&stats=false');
+    expect(req.request.method).toBe('GET');
+  });
+
+  it('should call get (2)', () => {
+    service.get('foo', true).subscribe();
+    const req = httpTesting.expectOne('/admin/user?uid=foo&stats=true');
     expect(req.request.method).toBe('GET');
   });
 
@@ -93,5 +99,21 @@ describe('UserService', () => {
     const req = httpTesting.expectOne('/admin/metadata/user');
     req.flush(['foo', 'xyz']);
     expect(req.request.method).toBe('GET');
+  });
+
+  it('should call updateQuota (1)', () => {
+    service
+      .updateQuota('foo', { type: 'user', enabled: true, max_size: -1, max_objects: 400 })
+      .subscribe();
+    const req = httpTesting.expectOne(
+      '/admin/user?quota&uid=foo&quota-type=user&enabled=true&max-size=-1&max-objects=400'
+    );
+    expect(req.request.method).toBe('PUT');
+  });
+
+  it('should call updateQuota (2)', () => {
+    service.updateQuota('bar', { type: 'bucket', enabled: false }).subscribe();
+    const req = httpTesting.expectOne('/admin/user?quota&uid=bar&quota-type=bucket&enabled=false');
+    expect(req.request.method).toBe('PUT');
   });
 });

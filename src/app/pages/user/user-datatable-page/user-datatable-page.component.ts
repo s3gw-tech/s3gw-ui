@@ -31,7 +31,7 @@ export class UserDatatablePageComponent {
 
   public icons = Icon;
   public pageStatus: PageStatus = PageStatus.none;
-  public users: User[] = [];
+  public users: Record<string, any>[] = [];
   public columns: DatatableColumn[];
 
   private firstLoadComplete = false;
@@ -79,6 +79,14 @@ export class UserDatatablePageComponent {
         }
       },
       {
+        name: TEXT('Size Limit'),
+        prop: 'size_limit'
+      },
+      {
+        name: TEXT('Object Limit'),
+        prop: 'object_limit'
+      },
+      {
         name: '',
         prop: '',
         cellTemplateName: DatatableCellTemplateName.actionMenu,
@@ -92,14 +100,35 @@ export class UserDatatablePageComponent {
       this.pageStatus = PageStatus.loading;
     }
     this.userService
-      .list()
+      .list(true)
       .pipe(
         finalize(() => {
           this.firstLoadComplete = true;
         })
       )
       .subscribe({
-        next: (users: User[]) => {
+        next: (users: Record<string, any>[]) => {
+          _.forEach(users, (record) => {
+            const user: User = record as User;
+
+            record['size_limit'] = TEXT('Unlimited');
+            record['object_limit'] = TEXT('Unlimited');
+
+            if (user.user_quota!.max_size > 0 && user.user_quota!.enabled) {
+              const percentage =
+                user.user_quota!.max_size > 0
+                  ? (user.stats!.size_actual / user.user_quota!.max_size) * 100
+                  : 0;
+              record['size_limit'] = `${percentage} %`;
+            }
+            if (user.user_quota!.max_objects > 0 && user.user_quota!.enabled) {
+              const percentage =
+                user.user_quota!.max_objects > 0
+                  ? (user.stats!.num_objects / user.user_quota!.max_objects) * 100
+                  : 0;
+              record['object_limit'] = `${percentage} %`;
+            }
+          });
           this.users = users;
           this.pageStatus = PageStatus.ready;
         },
@@ -157,7 +186,7 @@ export class UserDatatablePageComponent {
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
                     this.notificationService.showSuccess(TEXT(`Deleted user ${user.user_id}.`));
-                    this.loadData();
+                    this.onReload();
                   });
               }
             },

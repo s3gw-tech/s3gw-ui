@@ -16,15 +16,46 @@ export type User = {
   object_usage: number;
   size_usage: number;
   suspended: boolean;
-  keys: UserKey[];
+  keys: Key[];
+  bucket_quota?: {
+    enabled: boolean;
+    check_on_raw: boolean;
+    max_size: number;
+    max_size_kb: number;
+    max_objects: number;
+  };
+  user_quota?: {
+    enabled: boolean;
+    check_on_raw: boolean;
+    max_size: number;
+    max_size_kb: number;
+    max_objects: number;
+  };
+  stats?: {
+    size: number;
+    size_actual: number;
+    size_utilized: number;
+    size_kb: number;
+    size_kb_actual: number;
+    size_kb_utilized: number;
+    num_objects: number;
+  };
 };
 
-export type UserKey = {
+export type Key = {
   /* eslint-disable @typescript-eslint/naming-convention */
   access_key?: string;
   secret_key?: string;
   user?: string;
   generate_key?: boolean;
+};
+
+export type Quota = {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  type: 'user' | 'bucket';
+  enabled?: boolean;
+  max_size?: number;
+  max_objects?: number;
 };
 
 @Injectable({
@@ -44,10 +75,14 @@ export class UserService {
   /**
    * Get a list of users.
    */
-  public list(): Observable<User[]> {
+  public list(stats: boolean = false): Observable<User[]> {
     return this.listIds().pipe(
       mergeMap((uids: string[]) =>
-        iif(() => uids.length > 0, forkJoin(uids.map((uid: string) => this.get(uid))), of([]))
+        iif(
+          () => uids.length > 0,
+          forkJoin(uids.map((uid: string) => this.get(uid, stats))),
+          of([])
+        )
       )
     );
   }
@@ -82,16 +117,23 @@ export class UserService {
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#get-user-info
    */
-  public get(uid: string): Observable<User> {
+  public get(uid: string, stats: boolean = false): Observable<User> {
     const credentials: Credentials = this.authStorageService.getCredentials();
-    const params: Record<string, any> = { uid };
+    const params: Record<string, any> = { uid, stats };
     return this.rgwService.get<User>('admin/user', { credentials, params });
+  }
+
+  /**
+   * Check if the specified user exists.
+   */
+  public exists(uid: string): Observable<boolean> {
+    return this.listIds().pipe(map((uids: string[]) => uids.includes(uid)));
   }
 
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#create-key
    */
-  public createKey(uid: string, key: UserKey): Observable<void> {
+  public createKey(uid: string, key: Key): Observable<void> {
     const credentials: Credentials = this.authStorageService.getCredentials();
     const params: Record<string, any> = this.key2Params(uid, key);
     return this.rgwService.put<void>('admin/user?key', { credentials, params });
@@ -109,10 +151,12 @@ export class UserService {
   }
 
   /**
-   * Check if the specified user exists.
+   * https://docs.ceph.com/en/latest/radosgw/adminops/#quotas
    */
-  public exists(uid: string): Observable<boolean> {
-    return this.listIds().pipe(map((uids: string[]) => uids.includes(uid)));
+  updateQuota(uid: string, quota: Quota) {
+    const credentials: Credentials = this.authStorageService.getCredentials();
+    const params: Record<string, any> = this.quota2Params(uid, quota);
+    return this.rgwService.put('admin/user?quota', { credentials, params });
   }
 
   private user2Params(user: Partial<User>): HttpParams {
@@ -135,7 +179,7 @@ export class UserService {
     return new HttpParams({ fromObject: params });
   }
 
-  private key2Params(uid: string, key: UserKey): HttpParams {
+  private key2Params(uid: string, key: Key): HttpParams {
     let params: Record<string, any> = { uid };
     if (_.isString(key.access_key) && !_.isEmpty(key.access_key)) {
       _.set(params, 'access-key', key.access_key);
@@ -149,6 +193,23 @@ export class UserService {
     if (_.isBoolean(key.generate_key)) {
       _.set(params, 'generate-key', key.generate_key);
       params = _.omit(params, ['access-key', 'secret-key']);
+    }
+    return new HttpParams({ fromObject: params });
+  }
+
+  private quota2Params(uid: string, quota: Quota) {
+    const params: Record<string, any> = { uid };
+    if (_.isString(quota.type)) {
+      _.set(params, 'quota-type', quota.type);
+    }
+    if (_.isBoolean(quota.enabled)) {
+      _.set(params, 'enabled', quota.enabled);
+    }
+    if (_.isNumber(quota.max_size)) {
+      _.set(params, 'max-size', quota.max_size);
+    }
+    if (_.isNumber(quota.max_objects)) {
+      _.set(params, 'max-objects', quota.max_objects);
     }
     return new HttpParams({ fromObject: params });
   }
