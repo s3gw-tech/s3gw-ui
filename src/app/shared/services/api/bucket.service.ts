@@ -73,7 +73,7 @@ export class BucketService {
   public list(stats: boolean = false, uid: string = ''): Observable<Bucket[]> {
     const credentials: Credentials = this.authStorageService.getCredentials();
     const params: Record<string, any> = {
-      stats: stats.toString()
+      stats
     };
     if (!_.isEmpty(uid)) {
       _.set(params, 'uid', uid);
@@ -99,7 +99,7 @@ export class BucketService {
 
   public delete(bid: string, purgeObjects: boolean = true): Observable<void> {
     const credentials: Credentials = this.authStorageService.getCredentials();
-    const params: Record<string, any> = { bucket: bid, 'purge-objects': purgeObjects.toString() };
+    const params: Record<string, any> = { bucket: bid, 'purge-objects': purgeObjects };
     return this.rgwService.delete<void>('admin/bucket', { credentials, params });
   }
 
@@ -110,7 +110,7 @@ export class BucketService {
       'bucket-id': bucket.id,
       uid: bucket.owner
     };
-    // Link bucket to (new) user.
+    // Link the bucket to (new) user.
     // https://docs.ceph.com/en/latest/radosgw/adminops/#link-bucket
     return this.rgwService.put<void>('admin/bucket', { credentials, params });
   }

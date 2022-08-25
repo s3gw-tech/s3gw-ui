@@ -44,7 +44,7 @@ describe('BucketService', () => {
     expect(req.request.method).toBe('GET');
   });
 
-  it('should call exists (1)', (done) => {
+  it('should call exists [1]', (done) => {
     jest.spyOn(service, 'get').mockReturnValue(throwError(() => new Error()));
     service.exists('foo').subscribe((exists: boolean) => {
       expect(exists).toBe(false);
@@ -52,11 +52,23 @@ describe('BucketService', () => {
     });
   });
 
-  it('should call exists (2)', (done) => {
+  it('should call exists [2]', (done) => {
     jest.spyOn(service, 'get').mockReturnValue(of({ id: '1234', bucket: 'test' } as Bucket));
     service.exists('foo').subscribe((exists: boolean) => {
       expect(exists).toBe(true);
       done();
     });
+  });
+
+  it('should call delete [1]', () => {
+    service.delete('bar').subscribe();
+    const req = httpTesting.expectOne('/admin/bucket?bucket=bar&purge-objects=true');
+    expect(req.request.method).toBe('DELETE');
+  });
+
+  it('should call delete [2]', () => {
+    service.delete('bar', false).subscribe();
+    const req = httpTesting.expectOne('/admin/bucket?bucket=bar&purge-objects=false');
+    expect(req.request.method).toBe('DELETE');
   });
 });
