@@ -100,6 +100,7 @@ export class BucketFormPageComponent implements OnInit {
           label: TEXT('ID'),
           value: '',
           readonly: true,
+          submitValue: editing,
           groupClass: editing ? '' : 'd-none',
           hasCopyToClipboardButton: true
         },

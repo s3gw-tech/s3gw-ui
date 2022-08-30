@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 
 import { RgwService } from '~/app/shared/services/api/rgw.service';
+import { Key, UserService } from '~/app/shared/services/api/user.service';
 import { AuthStorageService, Credentials } from '~/app/shared/services/auth-storage.service';
 
 type CreateBucketResponse = {
@@ -65,7 +66,11 @@ export type Bucket = {
   providedIn: 'root'
 })
 export class BucketService {
-  constructor(private authStorageService: AuthStorageService, private rgwService: RgwService) {}
+  constructor(
+    private authStorageService: AuthStorageService,
+    private rgwService: RgwService,
+    private userService: UserService
+  ) {}
 
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#get-bucket-info
@@ -81,22 +86,25 @@ export class BucketService {
     return this.rgwService.get<Bucket[]>('admin/bucket', { credentials, params });
   }
 
-  public create(bucket: Bucket): Observable<void> {
+  public create(bucket: Bucket): Observable<CreateBucketResponse> {
     // To create a new bucket the following steps are necessary:
-    // 1. Create the bucket. The owner is the current admin user.
-    // 2. Link the bucket to the specified user.
-    const credentials: Credentials = this.authStorageService.getCredentials();
-    return this.rgwService.put<CreateBucketResponse>(bucket.bucket, { credentials }).pipe(
-      mergeMap((res: CreateBucketResponse) =>
-        this.update({
-          id: res.bucket_info.bucket.bucket_id,
-          bucket: res.bucket_info.bucket.name,
-          owner: bucket.owner
+    // 1. Get the credentials of the specified bucket owner.
+    // 2. Create the bucket using these credentials.
+    return this.userService.getKey(bucket.owner).pipe(
+      mergeMap((key: Key) =>
+        this.rgwService.put<CreateBucketResponse>(bucket.bucket, {
+          credentials: {
+            accessKey: key.access_key!,
+            secretKey: key.secret_key!
+          }
         })
       )
     );
   }
 
+  /**
+   * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-bucket
+   */
   public delete(bid: string, purgeObjects: boolean = true): Observable<void> {
     const credentials: Credentials = this.authStorageService.getCredentials();
     const params: Record<string, any> = { bucket: bid, 'purge-objects': purgeObjects };

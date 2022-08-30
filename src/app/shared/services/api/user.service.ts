@@ -139,6 +139,10 @@ export class UserService {
     return this.rgwService.put<void>('admin/user?key', { credentials, params });
   }
 
+  public getKey(uid: string): Observable<Key> {
+    return this.get(uid).pipe(map((user: User) => user.keys[0]));
+  }
+
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-key
    */
