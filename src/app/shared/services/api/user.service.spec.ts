@@ -2,7 +2,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { UserService } from '~/app/shared/services/api/user.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { AuthStorageService, Credentials } from '~/app/shared/services/auth-storage.service';
 import { TestingModule } from '~/app/testing.module';
 
 describe('UserService', () => {
@@ -115,5 +115,21 @@ describe('UserService', () => {
     service.updateQuota('bar', { type: 'bucket', enabled: false }).subscribe();
     const req = httpTesting.expectOne('/admin/user?quota&uid=bar&quota-type=bucket&enabled=false');
     expect(req.request.method).toBe('PUT');
+  });
+
+  it('should call getCredentials', (done) => {
+    service.getCredentials('foo').subscribe((credentials: Credentials) => {
+      expect(credentials).toStrictEqual({ accessKey: 'a1', secretKey: 's1' });
+      done();
+    });
+    const req = httpTesting.expectOne('/admin/user?uid=foo&stats=false');
+    req.flush({
+      used_id: 'foo',
+      keys: [
+        { access_key: 'a1', secret_key: 's1', user: 'foo' },
+        { access_key: 'a2', secret_key: 's2', user: 'foo' }
+      ]
+    });
+    expect(req.request.method).toBe('GET');
   });
 });

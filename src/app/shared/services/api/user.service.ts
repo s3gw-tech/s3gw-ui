@@ -159,6 +159,18 @@ export class UserService {
     return this.rgwService.put('admin/user?quota', { credentials, params });
   }
 
+  /**
+   * Get the credentials of the specified user.
+   */
+  public getCredentials(uid: string): Observable<Credentials> {
+    return this.get(uid).pipe(
+      map((user: User) => {
+        const key = user.keys[0];
+        return { accessKey: key.access_key!, secretKey: key.secret_key! };
+      })
+    );
+  }
+
   private user2Params(user: Partial<User>): HttpParams {
     const params: Record<string, any> = {};
     if (_.isString(user.user_id) && !_.isEmpty(user.user_id)) {
