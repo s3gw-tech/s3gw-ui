@@ -27,7 +27,12 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico", "src/assets"],
+            "assets": [
+              "src/favicon.ico",
+              "src/favicon.svg",
+              "src/favicon_180x180.png",
+              "src/assets"
+            ],
             "styles": [
               "node_modules/@fontsource/lato",
               "node_modules/@fontsource/roboto-mono",
@@ -99,7 +104,12 @@
           "builder": "@angular-builders/jest:run",
           "options": {
             "tsConfig": "tsconfig.spec.json",
-            "assets": ["src/favicon.ico", "src/assets"],
+            "assets": [
+              "src/favicon.ico",
+              "src/favicon.svg",
+              "src/favicon_180x180.png",
+              "src/assets"
+            ],
             "styles": ["src/styles.scss"],
             "scripts": []
           }

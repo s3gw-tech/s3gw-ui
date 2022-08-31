@@ -11,7 +11,16 @@
     max-width: 20rem;
     min-width: 20rem;
 
-    .header {
+    header {
+      .logo {
+        background-image: url('/assets/images/logo.svg');
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
+        height: 3rem;
+        width: 3rem;
+      }
+
       .title {
         font-family: $s3gw-font-family-headings;
         font-size: 2.5rem;
