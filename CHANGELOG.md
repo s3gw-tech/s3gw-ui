@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ability to configure none/unlimited buckets per user.
 - Add user/bucket quota configuration per user.
 - Add basic bucket management support.
+- Improve project branding.
 
 ### Changed
 

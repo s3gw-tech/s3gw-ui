@@ -19,19 +19,21 @@ $navigation-width: 15rem;
       color: $s3gw-color-site-header-text;
       background-color: $s3gw-color-site-header-background;
       height: $s3gw-site-header-height;
-      padding-left: 1.5rem;
 
       .logo {
+        background-image: url('/assets/images/logo.svg');
+        background-position-y: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
+        height: 2rem;
+        width: 2rem;
       }
 
       .title {
         font-family: $s3gw-font-family-headings;
         font-size: 1.5rem;
         font-weight: lighter;
-
-        &::after {
-          content: 's3gw';
-        }
       }
     }
   }
