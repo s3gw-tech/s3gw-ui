@@ -1,0 +1,58 @@
+---
+name: Build S3GW UI
+on:
+
+  push:
+    branches:
+      - 'main'
+
+  workflow_call:
+    inputs:
+      tag:
+        description: "A tag to use for the container image."
+        required: false
+        default: "latest"
+        type: string
+      ref:
+        description: "The git ref to checkout and build."
+        required: false
+        default: "main"
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Dockerhub Login
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set Container Image Tag
+        id: tag
+        run: |
+          if [ -z "${{ inputs.tag }}" ]; then
+            echo ::set-ouput name=tag::"latest"
+          else
+            echo ::set-ouput name=tag::"${{ inputs.tag }}"
+          fi
+
+      - name: Build and Push Container
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/s3gw-ui:${{ steps.tag.outputs.tag }}
