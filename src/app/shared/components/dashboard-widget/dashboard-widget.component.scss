@@ -1,0 +1,15 @@
+@import 'styles.scss';
+
+.card {
+  border-width: 0px;
+  break-inside: avoid;
+
+  .progress {
+    height: 0.25rem;
+  }
+
+  &.error {
+    color: $s3gw-color-white;
+    background-color: $s3gw-color-error;
+  }
+}

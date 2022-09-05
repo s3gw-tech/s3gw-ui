@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslocoModule } from '@ngneat/transloco';
 
+import { DashboardModule } from '~/app/dashboard/dashboard.module';
 import { BucketDatatablePageComponent } from '~/app/pages/bucket/bucket-datatable-page/bucket-datatable-page.component';
 import { BucketFormPageComponent } from '~/app/pages/bucket/bucket-form-page/bucket-form-page.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
@@ -28,6 +29,14 @@ import { SharedModule } from '~/app/shared/shared.module';
     BucketDatatablePageComponent,
     BucketFormPageComponent
   ],
-  imports: [CommonModule, FlexLayoutModule, NgbModule, RouterModule, SharedModule, TranslocoModule]
+  imports: [
+    CommonModule,
+    DashboardModule,
+    FlexLayoutModule,
+    NgbModule,
+    RouterModule,
+    SharedModule,
+    TranslocoModule
+  ]
 })
 export class PagesModule {}
