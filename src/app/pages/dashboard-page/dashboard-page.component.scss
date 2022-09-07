@@ -1,12 +1,22 @@
-@import 'styles.scss';
+.content {
+  column-count: 1;
+  column-gap: 1rem;
+}
 
-.s3gw-dashboard-page {
-  margin: $s3gw-margin;
+@media only screen and (min-width: 600px) {
+  .content {
+    column-count: 2;
+  }
+}
 
-  .row {
-    .widget {
-      @extend .flex-column;
-      @extend .mb-4;
-    }
+@media only screen and (min-width: 1280px) {
+  .content {
+    column-count: 3;
+  }
+}
+
+@media only screen and (min-width: 1920px) {
+  .content {
+    column-count: 4;
   }
 }

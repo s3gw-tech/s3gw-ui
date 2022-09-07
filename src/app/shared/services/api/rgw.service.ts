@@ -68,7 +68,7 @@ export class RgwService {
     return `${_.trimEnd(this.url, '/')}/${_.trimStart(url, '/')}`;
   }
 
-  private buildHeaders(url: string, method: string, credentials: Credentials) {
+  private buildHeaders(url: string, method: string, credentials: Credentials): Record<string, any> {
     const opts: Record<string, any> = {
       method,
       url,

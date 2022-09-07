@@ -8,6 +8,7 @@ import { TranslocoModule } from '@ngneat/transloco';
 
 import { AlertPanelComponent } from '~/app/shared/components/alert-panel/alert-panel.component';
 import { BreadcrumbsComponent } from '~/app/shared/components/breadcrumbs/breadcrumbs.component';
+import { DashboardWidgetComponent } from '~/app/shared/components/dashboard-widget/dashboard-widget.component';
 import { DatatableComponent } from '~/app/shared/components/datatable/datatable.component';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
@@ -34,7 +35,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     NavigationBarItemComponent,
     PageStatusComponent,
     SubmitButtonComponent,
-    TopBarComponent
+    TopBarComponent,
+    DashboardWidgetComponent
   ],
   exports: [
     AlertPanelComponent,
@@ -47,7 +49,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     NavigationBarComponent,
     PageStatusComponent,
     SubmitButtonComponent,
-    TopBarComponent
+    TopBarComponent,
+    DashboardWidgetComponent
   ],
   imports: [
     CommonModule,

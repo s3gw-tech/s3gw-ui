@@ -124,6 +124,10 @@ li {
 //////////////////////////////////////////////////////////////////////////////
 // Material Design Icons - https://materialdesignicons.com/bootstrap
 /* stylelint-disable no-descending-specificity */
+.mdi.mdi-vertical-center::before {
+  vertical-align: middle;
+}
+
 .mdi::before {
   font-size: 24px;
   line-height: 14px;
