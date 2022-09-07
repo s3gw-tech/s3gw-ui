@@ -14,11 +14,11 @@ export type ModalConfig = {
 };
 
 @Component({
-  selector: 's3gw-model',
-  templateUrl: './model.component.html',
-  styleUrls: ['./model.component.scss']
+  selector: 's3gw-modal',
+  templateUrl: './modal.component.html',
+  styleUrls: ['./modal.component.scss']
 })
-export class ModelComponent implements OnInit {
+export class ModalComponent implements OnInit {
   public config!: ModalConfig;
 
   public button1Text!: string;

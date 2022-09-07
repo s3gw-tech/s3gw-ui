@@ -2,13 +2,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { ComponentsModule } from '~/app/shared/components/components.module';
-import { ModelComponent } from '~/app/shared/components/modal/model.component';
+import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { S3GW_MODAL_DATA } from '~/app/shared/services/dialog.service';
 import { TestingModule } from '~/app/testing.module';
 
 describe('DialogComponent', () => {
-  let component: ModelComponent;
-  let fixture: ComponentFixture<ModelComponent>;
+  let component: ModalComponent;
+  let fixture: ComponentFixture<ModalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -24,7 +24,7 @@ describe('DialogComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ModelComponent);
+    fixture = TestBed.createComponent(ModalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
