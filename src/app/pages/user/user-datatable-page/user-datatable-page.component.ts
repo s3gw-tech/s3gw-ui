@@ -6,7 +6,7 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
-import { ModelComponent } from '~/app/shared/components/modal/model.component';
+import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
@@ -177,7 +177,7 @@ export class UserDatatablePageComponent {
         disabled: userDeletable,
         callback: (data: DatatableData) => {
           this.dialogService.open(
-            ModelComponent,
+            ModalComponent,
             (res: boolean) => {
               if (res) {
                 this.blockUI.start(translate(TEXT('Please wait, deleting user ...')));
