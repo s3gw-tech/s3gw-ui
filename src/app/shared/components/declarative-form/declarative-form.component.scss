@@ -1,30 +1,6 @@
 @import 'styles.scss';
 
 .s3gw-declarative-form {
-  .title {
-    @extend .h3;
-  }
-
-  .col {
-    @extend .mb-2;
-  }
-
-  .form-footer {
-    @extend .mt-3;
-    @extend .d-flex;
-
-    // Place margin between footer elements.
-    > * {
-      @extend .m-1;
-    }
-  }
-
-  .form-divider {
-    hr {
-      width: 100%;
-    }
-  }
-
   .form-label.required::after {
     color: $s3gw-color-danger;
     content: '*';

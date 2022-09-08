@@ -4,11 +4,11 @@
     {{ config.title | transloco }}
   </div>
 </div>
-<div class="modal-body">
+<div class="modal-body d-flex justify-content-start align-items-center overflow-hidden">
   <i *ngIf="iconClass"
      [class]="iconClass">
   </i>
-  <div class="content">
+  <div class="message ms-2">
     <span [innerHTML]="config.message | transloco"></span>
   </div>
 </div>
