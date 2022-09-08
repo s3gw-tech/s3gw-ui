@@ -38,7 +38,7 @@
     "@mdi/font": "6.9.96",
     "@ng-bootstrap/ng-bootstrap": "^12.1.2",
     "@ngneat/transloco": "^4.1.1",
-    "bootstrap": "5.2.0",
+    "bootstrap": "5.2.1",
     "dayjs": "^1.11.5",
     "lodash": "^4.17.21",
     "ng-block-ui": "^3.0.2",
