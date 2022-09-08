@@ -1,6 +1,6 @@
 <div class="card mb-3"
      [title]="tooltip"
-     [ngClass]="{'error': error}">
+     [ngClass]="{'error': error, 's3gw-cursor-pointer': url}">
   <div *ngIf="!firstLoadComplete && loading"
        class="progress">
     <div class="progress-bar indeterminate"></div>

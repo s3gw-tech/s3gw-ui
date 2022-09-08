@@ -1,4 +1,13 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from '@angular/core';
+import { Router } from '@angular/router';
 import * as _ from 'lodash';
 import { EMPTY, Observable, Subscription, timer } from 'rxjs';
 import { catchError, finalize, take, tap } from 'rxjs/operators';
@@ -24,6 +33,10 @@ export class DashboardWidgetComponent implements OnInit, OnDestroy {
   @Input()
   loadData?: () => Observable<any>;
 
+  // The URL to navigate to when the widget is clicked.
+  @Input()
+  url?: string = '';
+
   @Output()
   readonly updateData = new EventEmitter<any>();
 
@@ -34,7 +47,14 @@ export class DashboardWidgetComponent implements OnInit, OnDestroy {
   private loadDataSubscription?: Subscription;
   private timerSubscription?: Subscription;
 
-  constructor() {}
+  constructor(private router: Router) {}
+
+  @HostListener('click', ['$event.target'])
+  onClick(): void {
+    if (this.url) {
+      this.router.navigate([this.url]);
+    }
+  }
 
   ngOnInit(): void {
     this.reload();
