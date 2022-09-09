@@ -10,7 +10,7 @@ import {
 import { Router } from '@angular/router';
 import * as _ from 'lodash';
 import { EMPTY, Observable, Subscription, timer } from 'rxjs';
-import { catchError, finalize, take, tap } from 'rxjs/operators';
+import { catchError, finalize, take } from 'rxjs/operators';
 
 @Component({
   selector: 's3gw-dashboard-widget',
@@ -76,16 +76,12 @@ export class DashboardWidgetComponent implements OnInit, OnDestroy {
           if (_.isFunction(err.preventDefault)) {
             err.preventDefault();
           }
-          this.loading = false;
           this.error = true;
           return EMPTY;
         }),
-        tap(() => {
-          this.loading = false;
-          this.error = false;
-          this.firstLoadComplete = true;
-        }),
         finalize(() => {
+          this.loading = false;
+          this.firstLoadComplete = true;
           if (_.isNumber(this.autoReload) && this.autoReload > 0) {
             this.timerSubscription = timer(this.autoReload)
               .pipe(take(1))
@@ -94,9 +90,11 @@ export class DashboardWidgetComponent implements OnInit, OnDestroy {
                 this.reload();
               });
           }
-        })
+        }),
+        take(1)
       )
       .subscribe((data: any) => {
+        this.error = false;
         this.updateData.emit(data);
       });
   }
