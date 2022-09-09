@@ -3,6 +3,10 @@
 .card {
   border-width: 0;
   break-inside: avoid;
+  // Work-around a bug in Firefox where widgets are broken even if
+  // `break-inside: avoid` is set.
+  // https://stackoverflow.com/a/67873739
+  overflow: hidden;
 
   .progress {
     height: 0.25rem;
