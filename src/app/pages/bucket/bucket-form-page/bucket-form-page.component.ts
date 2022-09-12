@@ -95,14 +95,10 @@ export class BucketFormPageComponent implements OnInit {
       ],
       fields: [
         {
-          type: 'text',
+          type: 'hidden',
           name: 'id',
-          label: TEXT('ID'),
           value: '',
-          readonly: true,
-          submitValue: editing,
-          groupClass: editing ? '' : 'd-none',
-          hasCopyToClipboardButton: true
+          submitValue: editing
         },
         {
           type: 'text',
