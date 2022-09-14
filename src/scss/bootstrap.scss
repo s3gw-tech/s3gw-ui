@@ -124,28 +124,22 @@ li {
 //////////////////////////////////////////////////////////////////////////////
 // Material Design Icons - https://materialdesignicons.com/bootstrap
 /* stylelint-disable no-descending-specificity */
-.mdi.mdi-vertical-center::before {
-  vertical-align: middle;
-}
-
 .mdi::before {
   font-size: 24px;
   line-height: 14px;
+  position: relative;
+  top: 3px;
 }
 
 .btn .mdi::before {
-  position: relative;
-  top: 4px;
 }
 
 .btn-xs .mdi::before {
   font-size: 18px;
-  top: 3px;
 }
 
 .btn-sm .mdi::before {
   font-size: 18px;
-  top: 3px;
 }
 
 .dropdown-menu .mdi {
@@ -154,24 +148,18 @@ li {
 
 .dropdown-menu .mdi::before {
   position: relative;
-  top: 4px;
   left: -8px;
 }
 
 .nav .mdi::before {
-  position: relative;
-  top: 4px;
 }
 
 .navbar .navbar-toggle .mdi::before {
   position: relative;
-  top: 4px;
   color: dc.$s3gw-color-white;
 }
 
 .breadcrumb .mdi::before {
-  position: relative;
-  top: 4px;
 }
 
 .breadcrumb a:hover {
@@ -183,25 +171,17 @@ li {
 }
 
 .alert .mdi::before {
-  position: relative;
-  top: 4px;
   margin-right: 2px;
 }
 
 .input-group-addon .mdi::before {
-  position: relative;
-  top: 3px;
 }
 
 .navbar-brand .mdi::before {
-  position: relative;
-  top: 2px;
   margin-right: 2px;
 }
 
 .list-group-item .mdi::before {
-  position: relative;
-  top: 3px;
   left: -3px;
 }
 /* stylelint-enable no-descending-specificity */

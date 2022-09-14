@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Dashboard widget framework.
 - Add `Total users` and `Total buckets` Dashboard widgets.
 
+### Changed
+
+- Mark the user/bucket quota settings in the user form as non-functional
+  because the feature is not properly supported by the S3GW.
+
 ## [0.4.0] - 2022-09-01
 
 ### Added

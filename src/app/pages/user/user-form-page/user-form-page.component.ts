@@ -162,6 +162,12 @@ export class UserFormPageComponent implements OnInit {
           title: TEXT('User Quota')
         },
         {
+          type: 'paragraph',
+          icon: 'mdi mdi-alert',
+          iconClass: 's3gw-color-warning',
+          text: TEXT('This feature is non-functional right now.')
+        },
+        {
           type: 'checkbox',
           name: 'user_quota_enabled',
           label: TEXT('Enabled'),
@@ -270,6 +276,12 @@ export class UserFormPageComponent implements OnInit {
         {
           type: 'divider',
           title: TEXT('Bucket Quota')
+        },
+        {
+          type: 'paragraph',
+          icon: 'mdi mdi-alert',
+          iconClass: 's3gw-color-warning',
+          text: TEXT('This feature is non-functional right now.')
         },
         {
           type: 'checkbox',

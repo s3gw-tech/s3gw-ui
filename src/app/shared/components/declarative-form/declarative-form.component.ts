@@ -40,7 +40,7 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
 
   @Input()
   formGroup?: FormGroup;
-
+  
   private subscriptions: Subscription = new Subscription();
 
   constructor(
@@ -175,7 +175,7 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
       id: `s3gw-declarative-form-${++nextUniqueId}`,
       buttonAlign: 'end'
     });
-    const fields: Array<FormFieldConfig> = this.getFields();
+    const fields: Array<FormFieldConfig> = this.getFields(true);
     _.forEach(fields, (field: FormFieldConfig) => {
       _.defaultsDeep(field, {
         hasCopyToClipboardButton: false,
@@ -319,12 +319,20 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
       : false;
   }
 
-  private getFields(): Array<FormFieldConfig> {
+  /**
+   * Get the list of fields used in this form.
+   *
+   * @param all If set to `true`, all fields are included, also those
+   *   inside `container` fields. If set to `false`, only fields with
+   *   the `name` property are included. Defaults to `false`.
+   * @private
+   */
+  private getFields(all: boolean = false): Array<FormFieldConfig> {
     const flatten = (fields: Array<FormFieldConfig>): Array<FormFieldConfig> =>
       _.flatMap(
         _.filter(
           fields,
-          (field: FormFieldConfig) => !_.isUndefined(field.name) || _.isArray(field.fields)
+          (field: FormFieldConfig) => all || !_.isUndefined(field.name) || _.isArray(field.fields)
         ),
         (field: FormFieldConfig) => {
           if (_.isArray(field.fields)) {
