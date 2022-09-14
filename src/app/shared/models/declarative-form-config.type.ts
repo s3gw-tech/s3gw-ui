@@ -84,7 +84,9 @@ export type FormFieldConfig = {
   // --- divider ---
   title?: string;
 
-  // --- paragraph ---
+  // --- divider | paragraph ---
+  icon?: string;
+  iconClass?: string;
   text?: string;
 
   // internal only

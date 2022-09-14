@@ -363,18 +363,30 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'divider'">
-            <div class="form-divider">
+            <div class="form-divider mt-4">
               <div *ngIf="field.title"
-                   class="title">
+                   class="title h4">
                 {{ field.title | transloco }}
               </div>
-              <hr>
+              <div *ngIf="field.text"
+                   class="text d-flex justify-content-start align-items-center">
+                <i *ngIf="field.icon"
+                   class="me-2 {{ this.field.icon }} {{ this.field.iconClass }}">
+                </i>
+                <div class="text-muted">
+                  {{ field.text | transloco }}
+                </div>
+              </div>
+              <hr class="my-1">
             </div>
           </ng-template>
 
           <ng-template [ngSwitchCase]="'paragraph'">
-            <div class="form-paragraph">
-              <div class="text">
+            <div class="form-paragraph mb-2 d-flex justify-content-start align-items-center">
+              <i *ngIf="field.icon"
+                 class="me-2 {{ this.field.icon }} {{ this.field.iconClass }}">
+              </i>
+              <div class="text-muted">
                 {{ field.text | transloco }}
               </div>
             </div>
