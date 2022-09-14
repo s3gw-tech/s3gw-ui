@@ -132,6 +132,13 @@ export class BucketFormPageComponent implements OnInit {
           validators: {
             required: true
           }
+        },
+        {
+          type: 'checkbox',
+          name: 'versioning',
+          label: TEXT('Versioning'),
+          hint: TEXT('Enable versioning for the objects in this bucket.'),
+          value: false
         }
       ]
     };
