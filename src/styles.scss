@@ -27,12 +27,17 @@ body {
   color: $s3gw-color-info;
 }
 
-.s3gw-color-theme-danger {
+.s3gw-color-background-pair-warning {
+  color: $s3gw-color-white;
+  background-color: $s3gw-color-warning;
+}
+
+.s3gw-color-background-pair-danger {
   color: $s3gw-color-white;
   background-color: $s3gw-color-danger;
 }
 
-.s3gw-color-theme-success {
+.s3gw-color-background-pair-success {
   color: $s3gw-color-white;
   background-color: $s3gw-color-success;
 }

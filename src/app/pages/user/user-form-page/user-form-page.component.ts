@@ -164,7 +164,7 @@ export class UserFormPageComponent implements OnInit {
         {
           type: 'paragraph',
           icon: 'mdi mdi-alert',
-          iconClass: 's3gw-color-warning',
+          iconClass: 's3gw-color-background-pair-warning',
           text: TEXT('This feature is non-functional right now.')
         },
         {
@@ -280,7 +280,7 @@ export class UserFormPageComponent implements OnInit {
         {
           type: 'paragraph',
           icon: 'mdi mdi-alert',
-          iconClass: 's3gw-color-warning',
+          iconClass: 's3gw-color-background-pair-warning',
           text: TEXT('This feature is non-functional right now.')
         },
         {

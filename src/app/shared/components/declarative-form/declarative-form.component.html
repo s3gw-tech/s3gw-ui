@@ -369,11 +369,13 @@
                 {{ field.title | transloco }}
               </div>
               <div *ngIf="field.text"
-                   class="text d-flex justify-content-start align-items-center">
-                <i *ngIf="field.icon"
-                   class="me-2 {{ this.field.icon }} {{ this.field.iconClass }}">
-                </i>
-                <div class="text-muted">
+                   class="d-flex justify-content-start align-items-center">
+                <div class="icon d-flex justify-content-center align-items-center rounded me-2 {{ this.field.iconClass }}">
+                  <i *ngIf="field.icon"
+                     class="p-1 {{ this.field.icon }}">
+                  </i>
+                </div>
+                <div class="text text-muted">
                   {{ field.text | transloco }}
                 </div>
               </div>
@@ -383,10 +385,12 @@
 
           <ng-template [ngSwitchCase]="'paragraph'">
             <div class="form-paragraph mb-2 d-flex justify-content-start align-items-center">
-              <i *ngIf="field.icon"
-                 class="me-2 {{ this.field.icon }} {{ this.field.iconClass }}">
-              </i>
-              <div class="text-muted">
+              <div class="icon d-flex justify-content-center align-items-center rounded me-2 {{ this.field.iconClass }}">
+                <i *ngIf="field.icon"
+                   class="p-1 {{ this.field.icon }}">
+                </i>
+              </div>
+              <div class="text text-muted">
                 {{ field.text | transloco }}
               </div>
             </div>
