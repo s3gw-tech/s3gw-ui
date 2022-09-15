@@ -40,7 +40,7 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
 
   @Input()
   formGroup?: FormGroup;
-  
+
   private subscriptions: Subscription = new Subscription();
 
   constructor(

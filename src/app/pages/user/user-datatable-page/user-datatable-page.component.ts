@@ -73,8 +73,8 @@ export class UserDatatablePageComponent {
         cellTemplateConfig: {
           map: {
             /* eslint-disable @typescript-eslint/naming-convention */
-            1: { value: TEXT('Suspended'), class: 's3gw-color-theme-danger' },
-            0: { value: TEXT('Active'), class: 's3gw-color-theme-success' }
+            1: { value: TEXT('Suspended'), class: 's3gw-color-background-pair-danger' },
+            0: { value: TEXT('Active'), class: 's3gw-color-background-pair-success' }
           }
         }
       },
