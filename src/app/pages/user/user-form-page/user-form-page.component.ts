@@ -34,7 +34,7 @@ export class UserFormPageComponent implements OnInit {
     private router: Router,
     private userService: UserService
   ) {
-    this.createForm(this.router.url.startsWith(`/user/edit`));
+    this.createForm(this.router.url.startsWith(`/users/edit`));
   }
 
   ngOnInit(): void {
@@ -65,7 +65,7 @@ export class UserFormPageComponent implements OnInit {
         {
           type: 'default',
           text: TEXT('Cancel'),
-          click: () => this.router.navigate(['/user'])
+          click: () => this.router.navigate(['/users'])
         },
         {
           type: 'submit',
@@ -413,7 +413,7 @@ export class UserFormPageComponent implements OnInit {
     // Execute all observables one after the other in series.
     concat(...observables).subscribe({
       next: () => {
-        this.router.navigate(['/user']);
+        this.router.navigate(['/users']);
       },
       error: () => {
         this.pageStatus = PageStatus.savingError;
@@ -438,7 +438,7 @@ export class UserFormPageComponent implements OnInit {
     // Execute all observables one after the other in series.
     concat(...observables).subscribe({
       next: () => {
-        this.router.navigate(['/user']);
+        this.router.navigate(['/users']);
       },
       error: () => {
         this.pageStatus = PageStatus.savingError;

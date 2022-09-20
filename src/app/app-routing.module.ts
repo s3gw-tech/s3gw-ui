@@ -29,7 +29,7 @@ const routes: Routes = [
         component: DashboardPageComponent
       },
       {
-        path: 'bucket',
+        path: 'buckets',
         data: { breadcrumb: TEXT('Buckets') },
         canActivate: [AuthGuardService],
         canActivateChild: [AuthGuardService],
@@ -51,7 +51,7 @@ const routes: Routes = [
         ]
       },
       {
-        path: 'user',
+        path: 'users',
         data: { breadcrumb: TEXT('Users') },
         canActivate: [AuthGuardService],
         canActivateChild: [AuthGuardService],

@@ -42,7 +42,7 @@ export class BreadcrumbsComponent implements OnDestroy {
     let label = route.routeConfig?.data?.['breadcrumb'] || '';
     let path: string = route.routeConfig?.data ? (route.routeConfig.path as string) : '';
 
-    // If the route is dynamic route such as 'user/edit/:id', remove it.
+    // If the route is dynamic route such as 'users/edit/:id', remove it.
     const lastRoutePart = path.split('/').pop() || '';
     if (lastRoutePart.startsWith(':') && !!route.snapshot) {
       const paramName = lastRoutePart.split(':')[1];
