@@ -4,7 +4,7 @@ import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import _ from 'lodash';
 import { Observable, of, timer } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { delayWhen, map, switchMap } from 'rxjs/operators';
 
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
@@ -26,6 +26,7 @@ export class BucketFormPageComponent implements OnInit {
     fields: []
   };
 
+  private listIds$: Observable<string[]>;
   private ownerOptions: Record<any, string> = {};
 
   constructor(
@@ -35,7 +36,7 @@ export class BucketFormPageComponent implements OnInit {
     private userService: UserService
   ) {
     this.createForm(this.router.url.startsWith(`/buckets/edit`));
-    this.userService.listIds().subscribe({
+    (this.listIds$ = this.userService.listIds()).subscribe({
       next: (users: string[]) => {
         // Update the options of the 'owner' field.
         const field = _.find(this.config.fields, ['name', 'owner']);
@@ -61,15 +62,22 @@ export class BucketFormPageComponent implements OnInit {
       }
       const bid = decodeURIComponent(value['bid']);
       this.pageStatus = PageStatus.loading;
-      this.bucketService.get(bid).subscribe({
-        next: (bucket: Bucket) => {
-          this.pageStatus = PageStatus.ready;
-          this.form.patchValues(bucket);
-        },
-        error: () => {
-          this.pageStatus = PageStatus.loadingError;
-        }
-      });
+      this.bucketService
+        .get(bid)
+        .pipe(
+          // Wait until the list of owners has been loaded and the form
+          // configuration has been updated.
+          delayWhen(() => this.listIds$)
+        )
+        .subscribe({
+          next: (bucket: Bucket) => {
+            this.pageStatus = PageStatus.ready;
+            this.form.patchValues(bucket);
+          },
+          error: () => {
+            this.pageStatus = PageStatus.loadingError;
+          }
+        });
     });
   }
 
