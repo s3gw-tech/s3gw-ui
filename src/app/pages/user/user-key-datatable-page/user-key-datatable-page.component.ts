@@ -96,7 +96,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
   }
 
   onAdd(): void {
-    this.router.navigate([`/user/${this.uid}/key/create`]);
+    this.router.navigate([`/users/${this.uid}/key/create`]);
   }
 
   onActionMenu(key: Key): DatatableActionItem[] {

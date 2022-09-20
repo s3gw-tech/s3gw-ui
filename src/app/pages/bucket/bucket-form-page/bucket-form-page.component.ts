@@ -34,7 +34,7 @@ export class BucketFormPageComponent implements OnInit {
     private router: Router,
     private userService: UserService
   ) {
-    this.createForm(this.router.url.startsWith(`/bucket/edit`));
+    this.createForm(this.router.url.startsWith(`/buckets/edit`));
     this.userService.listIds().subscribe({
       next: (users: string[]) => {
         // Update the options of the 'owner' field.
@@ -79,7 +79,7 @@ export class BucketFormPageComponent implements OnInit {
         {
           type: 'default',
           text: TEXT('Cancel'),
-          click: () => this.router.navigate(['/bucket'])
+          click: () => this.router.navigate(['/buckets'])
         },
         {
           type: 'submit',
@@ -133,7 +133,7 @@ export class BucketFormPageComponent implements OnInit {
     const bucket: Bucket = this.form.values as Bucket;
     this.bucketService.create(bucket).subscribe({
       next: () => {
-        this.router.navigate(['/bucket']);
+        this.router.navigate(['/buckets']);
       },
       error: () => {
         this.pageStatus = PageStatus.savingError;
@@ -145,7 +145,7 @@ export class BucketFormPageComponent implements OnInit {
     const user: Partial<Bucket> = this.form.values;
     this.bucketService.update(user).subscribe({
       next: () => {
-        this.router.navigate(['/bucket']);
+        this.router.navigate(['/buckets']);
       },
       error: () => {
         this.pageStatus = PageStatus.savingError;

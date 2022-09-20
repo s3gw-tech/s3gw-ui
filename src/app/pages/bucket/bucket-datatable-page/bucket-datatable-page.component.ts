@@ -97,7 +97,7 @@ export class BucketDatatablePageComponent {
   }
 
   onCreate(): void {
-    this.router.navigate(['/bucket/create/']);
+    this.router.navigate(['/buckets/create/']);
   }
 
   onActionMenu(bucket: Bucket): DatatableActionItem[] {
@@ -106,7 +106,7 @@ export class BucketDatatablePageComponent {
         title: TEXT('Edit'),
         icon: this.icons.edit,
         callback: (data: DatatableData) => {
-          this.router.navigate([`/bucket/edit/${bucket.bucket}`]);
+          this.router.navigate([`/buckets/edit/${bucket.bucket}`]);
         }
       },
       {

@@ -145,7 +145,7 @@ export class UserDatatablePageComponent {
   }
 
   onCreate(): void {
-    this.router.navigate(['/user/create/']);
+    this.router.navigate(['/users/create/']);
   }
 
   onActionMenu(user: User): DatatableActionItem[] {
@@ -158,14 +158,14 @@ export class UserDatatablePageComponent {
         title: TEXT('Edit'),
         icon: this.icons.edit,
         callback: (data: DatatableData) => {
-          this.router.navigate([`/user/edit/${user.user_id}`]);
+          this.router.navigate([`/users/edit/${user.user_id}`]);
         }
       },
       {
         title: TEXT('Manage Keys'),
         icon: this.icons.key,
         callback: (data: DatatableData) => {
-          this.router.navigate([`/user/${user.user_id}/key`]);
+          this.router.navigate([`/users/${user.user_id}/key`]);
         }
       },
       {

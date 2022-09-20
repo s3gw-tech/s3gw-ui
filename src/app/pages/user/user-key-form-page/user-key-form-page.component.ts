@@ -48,7 +48,7 @@ export class UserKeyFormPageComponent implements OnInit {
         {
           type: 'default',
           text: TEXT('Cancel'),
-          click: () => this.router.navigate([`/user/${this.uid}/key`])
+          click: () => this.router.navigate([`/users/${this.uid}/key`])
         },
         {
           type: 'submit',
@@ -57,7 +57,7 @@ export class UserKeyFormPageComponent implements OnInit {
             const key: Key = this.form.values as Key;
             this.userService.createKey(this.uid, key).subscribe({
               next: () => {
-                this.router.navigate([`/user/${this.uid}/key`]);
+                this.router.navigate([`/users/${this.uid}/key`]);
               },
               error: () => {
                 this.pageStatus = PageStatus.savingError;
