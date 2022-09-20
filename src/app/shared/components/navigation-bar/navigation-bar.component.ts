@@ -18,12 +18,12 @@ export class NavigationBarComponent {
     {
       name: TEXT('Users'),
       icon: 'mdi mdi-account-multiple',
-      route: '/user'
+      route: '/users'
     },
     {
       name: TEXT('Buckets'),
       icon: 'mdi mdi-bucket',
-      route: '/bucket'
+      route: '/buckets'
     }
   ];
 }
