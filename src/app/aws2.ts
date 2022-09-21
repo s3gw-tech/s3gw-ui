@@ -74,7 +74,7 @@ class AWSRestSigner {
     const params = new URLSearchParams(queryString);
 
     const subResources: Array<string> = [];
-    for (const param of params.values()) {
+    for (const param of params.keys()) {
       if (AWSRestSigner.subResources.indexOf(param) >= 0) {
         subResources.push(param);
       }

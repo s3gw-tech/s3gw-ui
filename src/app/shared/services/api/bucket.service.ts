@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
-import { Observable, of } from 'rxjs';
+import { concat, Observable, of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 
 import { RgwService } from '~/app/shared/services/api/rgw.service';
@@ -29,6 +29,11 @@ type CreateBucketResponse = {
     tag: string;
     ver: number;
   };
+};
+
+type VersioningResponse = {
+  MfaDelete: 'Enabled' | 'Disabled';
+  Status: 'Enabled' | 'Suspended';
 };
 
 export type Bucket = {
@@ -60,6 +65,7 @@ export type Bucket = {
     max_size_kb: number;
     max_objects: number;
   };
+  versioning?: boolean;
 };
 
 @Injectable({
@@ -105,38 +111,55 @@ export class BucketService {
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-bucket
    */
-  public delete(bid: string, purgeObjects: boolean = true): Observable<void> {
+  public delete(bucket: string, purgeObjects: boolean = true): Observable<void> {
     const credentials: Credentials = this.authStorageService.getCredentials();
-    const params: Record<string, any> = { bucket: bid, 'purge-objects': purgeObjects };
+    const params: Record<string, any> = { bucket, 'purge-objects': purgeObjects };
     return this.rgwService.delete<void>('admin/bucket', { credentials, params });
   }
 
   public update(bucket: Partial<Bucket>): Observable<void> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
-    const params: Record<string, any> = {
-      bucket: bucket.bucket,
-      'bucket-id': bucket.id,
-      uid: bucket.owner
-    };
-    // Link the bucket to (new) user.
-    // https://docs.ceph.com/en/latest/radosgw/adminops/#link-bucket
-    return this.rgwService.put<void>('admin/bucket', { credentials, params });
+    // First get the original bucket data to find out what needs to be
+    // updated.
+    return this.get(bucket.bucket!).pipe(
+      mergeMap((origBucket: Bucket) => {
+        const observables = [];
+        // Need to update the `owner` of the bucket?
+        if (_.isString(bucket.owner) && bucket.owner !== origBucket.owner) {
+          observables.push(this.link(bucket.bucket!, bucket.id!, bucket.owner));
+        }
+        // Need to update the `versioning` flag?
+        if (_.isBoolean(bucket.versioning) && bucket.versioning !== origBucket.versioning) {
+          observables.push(this.updateVersioning(bucket.bucket!, bucket.owner!, bucket.versioning));
+        }
+        // Execute all observables one after the other in series.
+        return concat(...observables);
+      })
+    );
   }
 
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#get-bucket-info
    */
-  public get(bid: string): Observable<Bucket> {
+  public get(bucket: string): Observable<Bucket> {
     const credentials: Credentials = this.authStorageService.getCredentials();
-    const params: Record<string, any> = { bucket: bid };
-    return this.rgwService.get<Bucket>('admin/bucket', { credentials, params });
+    const params: Record<string, any> = { bucket };
+    return this.rgwService.get<Bucket>('admin/bucket', { credentials, params }).pipe(
+      mergeMap((resp: Bucket) =>
+        this.getVersioning(resp.bucket, resp.owner).pipe(
+          map((enabled: boolean) => {
+            resp.versioning = enabled;
+            return resp;
+          })
+        )
+      )
+    );
   }
 
   /**
    * Check if the specified bucket exists.
    */
-  public exists(bid: string): Observable<boolean> {
-    return this.get(bid).pipe(
+  public exists(bucket: string): Observable<boolean> {
+    return this.get(bucket).pipe(
       map(() => true),
       catchError((error) => {
         if (_.isFunction(error.preventDefault)) {
@@ -144,6 +167,66 @@ export class BucketService {
         }
         return of(false);
       })
+    );
+  }
+
+  /**
+   * https://docs.ceph.com/en/latest/radosgw/adminops/#link-bucket
+   *
+   * @protected
+   */
+  private link(bucket: string, bucketId: string, uid: string): Observable<void> {
+    const credentials: Credentials = this.authStorageService.getCredentials();
+    const params: Record<string, any> = {
+      bucket,
+      'bucket-id': bucketId,
+      uid
+    };
+    return this.rgwService.put<void>('admin/bucket', { credentials, params });
+  }
+
+  /**
+   * https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#enable-suspend-bucket-versioning
+   *
+   * @protected
+   */
+  private getVersioning(bucket: string, uid: string): Observable<boolean> {
+    return this.userService.getKey(uid).pipe(
+      mergeMap((key: Key) =>
+        this.rgwService
+          .get<VersioningResponse>(`${bucket}?versioning`, {
+            credentials: {
+              accessKey: key.access_key!,
+              secretKey: key.secret_key!
+            }
+          })
+          .pipe(map((response: VersioningResponse) => response.Status === 'Enabled'))
+      )
+    );
+  }
+
+  /**
+   * https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#enable-suspend-bucket-versioning
+   * https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketVersioning.html
+   *
+   * @protected
+   */
+  private updateVersioning(bucket: string, uid: string, enabled: boolean): Observable<void> {
+    return this.userService.getKey(uid).pipe(
+      mergeMap((key: Key) =>
+        this.rgwService.put<void>(`${bucket}?versioning`, {
+          body: `<VersioningConfiguration><Status>${
+            enabled ? 'Enabled' : 'Suspended'
+          }</Status></VersioningConfiguration>`,
+          headers: {
+            'content-type': 'application/xml'
+          },
+          credentials: {
+            accessKey: key.access_key!,
+            secretKey: key.secret_key!
+          }
+        })
+      )
     );
   }
 }
