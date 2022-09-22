@@ -4,8 +4,9 @@ import * as _ from 'lodash';
 import { forkJoin, iif, Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 
+import { Credentials } from '~/app/shared/models/credentials.type';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
-import { AuthStorageService, Credentials } from '~/app/shared/services/auth-storage.service';
+import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 
 export type User = {
   /* eslint-disable @typescript-eslint/naming-convention */

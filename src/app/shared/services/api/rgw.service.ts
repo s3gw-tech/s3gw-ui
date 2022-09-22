@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import { Observable } from 'rxjs';
 
 import { sign } from '~/app/aws2';
-import { Credentials } from '~/app/shared/services/auth-storage.service';
+import { Credentials } from '~/app/shared/models/credentials.type';
 
 type RgwServiceConfig = {
   url: string;

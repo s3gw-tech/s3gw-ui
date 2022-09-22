@@ -1,8 +1,9 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
+import { Credentials } from '~/app/shared/models/credentials.type';
 import { UserService } from '~/app/shared/services/api/user.service';
-import { AuthStorageService, Credentials } from '~/app/shared/services/auth-storage.service';
+import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { TestingModule } from '~/app/testing.module';
 
 describe('UserService', () => {

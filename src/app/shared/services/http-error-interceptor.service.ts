@@ -33,6 +33,11 @@ export class HttpErrorInterceptorService implements HttpInterceptor {
               this.authStorageService.revoke();
               this.router.navigate(['/login']);
               break;
+            case 403:
+              // E.g. invalid access key.
+              this.authStorageService.revoke();
+              this.router.navigate(['/login']);
+              break;
             default:
               const message = _.get(err, 'error.detail', err.message);
               const title = _.get(err, 'error.Code', err.statusText);

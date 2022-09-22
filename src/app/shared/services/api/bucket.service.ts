@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
-import { concat, Observable, of } from 'rxjs';
-import { catchError, map, mergeMap } from 'rxjs/operators';
+import { concat, Observable, of, toArray } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
+import { Credentials } from '~/app/shared/models/credentials.type';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { Key, UserService } from '~/app/shared/services/api/user.service';
-import { AuthStorageService, Credentials } from '~/app/shared/services/auth-storage.service';
+import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 
 type CreateBucketResponse = {
   /* eslint-disable @typescript-eslint/naming-convention */
@@ -68,6 +69,10 @@ export type Bucket = {
   versioning?: boolean;
 };
 
+type Context = {
+  credentials: Credentials;
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -97,14 +102,26 @@ export class BucketService {
     // 1. Get the credentials of the specified bucket owner.
     // 2. Create the bucket using these credentials.
     return this.userService.getKey(bucket.owner).pipe(
-      mergeMap((key: Key) =>
-        this.rgwService.put<CreateBucketResponse>(bucket.bucket, {
-          credentials: {
-            accessKey: key.access_key!,
-            secretKey: key.secret_key!
-          }
-        })
-      )
+      switchMap((key: Key) => {
+        const credentials: Credentials = Credentials.fromKey(key);
+        const sources = [];
+        // Create the bucket first.
+        sources.push(
+          this.rgwService.put<CreateBucketResponse>(bucket.bucket, {
+            credentials
+          })
+        );
+        // Update the `versioning` flag.
+        if (bucket.versioning) {
+          sources.push(this.updateVersioningByContext(bucket.bucket, true, { credentials }));
+        }
+        // Execute all observables one after the other in series. Return
+        // the response of the request that has created the bucket.
+        return concat(...sources).pipe(
+          toArray(),
+          map((resp: unknown[]): CreateBucketResponse => resp[0] as CreateBucketResponse)
+        );
+      })
     );
   }
 
@@ -117,22 +134,28 @@ export class BucketService {
     return this.rgwService.delete<void>('admin/bucket', { credentials, params });
   }
 
-  public update(bucket: Partial<Bucket>): Observable<void> {
+  public update(bucket: Partial<Bucket>): Observable<Bucket> {
     // First get the original bucket data to find out what needs to be
     // updated.
     return this.get(bucket.bucket!).pipe(
-      mergeMap((origBucket: Bucket) => {
-        const observables = [];
+      switchMap((currentBucket: Bucket) => {
+        const sources = [];
         // Need to update the `owner` of the bucket?
-        if (_.isString(bucket.owner) && bucket.owner !== origBucket.owner) {
-          observables.push(this.link(bucket.bucket!, bucket.id!, bucket.owner));
+        if (_.isString(bucket.owner) && bucket.owner !== currentBucket.owner) {
+          currentBucket.owner = bucket.owner;
+          sources.push(this.link(bucket.bucket!, bucket.id!, bucket.owner));
         }
         // Need to update the `versioning` flag?
-        if (_.isBoolean(bucket.versioning) && bucket.versioning !== origBucket.versioning) {
-          observables.push(this.updateVersioning(bucket.bucket!, bucket.owner!, bucket.versioning));
+        if (_.isBoolean(bucket.versioning) && bucket.versioning !== currentBucket.versioning) {
+          currentBucket.versioning = bucket.versioning;
+          sources.push(this.updateVersioning(bucket.bucket!, bucket.versioning, bucket.owner!));
         }
-        // Execute all observables one after the other in series.
-        return concat(...observables);
+        // Execute all observables one after the other in series. Return
+        // the bucket object with the modified properties.
+        return concat(...sources).pipe(
+          toArray(),
+          map((): Bucket => currentBucket)
+        );
       })
     );
   }
@@ -144,7 +167,7 @@ export class BucketService {
     const credentials: Credentials = this.authStorageService.getCredentials();
     const params: Record<string, any> = { bucket };
     return this.rgwService.get<Bucket>('admin/bucket', { credentials, params }).pipe(
-      mergeMap((resp: Bucket) =>
+      switchMap((resp: Bucket) =>
         this.getVersioning(resp.bucket, resp.owner).pipe(
           map((enabled: boolean) => {
             resp.versioning = enabled;
@@ -192,17 +215,19 @@ export class BucketService {
    */
   private getVersioning(bucket: string, uid: string): Observable<boolean> {
     return this.userService.getKey(uid).pipe(
-      mergeMap((key: Key) =>
-        this.rgwService
-          .get<VersioningResponse>(`${bucket}?versioning`, {
-            credentials: {
-              accessKey: key.access_key!,
-              secretKey: key.secret_key!
-            }
-          })
-          .pipe(map((response: VersioningResponse) => response.Status === 'Enabled'))
-      )
+      switchMap((key: Key) => {
+        const context: Context = { credentials: Credentials.fromKey(key) };
+        return this.getVersioningByContext(bucket, context);
+      })
     );
+  }
+
+  private getVersioningByContext(bucket: string, context: Context): Observable<boolean> {
+    return this.rgwService
+      .get<VersioningResponse>(`${bucket}?versioning`, {
+        credentials: context.credentials
+      })
+      .pipe(map((response: VersioningResponse) => response.Status === 'Enabled'));
   }
 
   /**
@@ -211,22 +236,28 @@ export class BucketService {
    *
    * @protected
    */
-  private updateVersioning(bucket: string, uid: string, enabled: boolean): Observable<void> {
+  private updateVersioning(bucket: string, enabled: boolean, uid: string): Observable<void> {
     return this.userService.getKey(uid).pipe(
-      mergeMap((key: Key) =>
-        this.rgwService.put<void>(`${bucket}?versioning`, {
-          body: `<VersioningConfiguration><Status>${
-            enabled ? 'Enabled' : 'Suspended'
-          }</Status></VersioningConfiguration>`,
-          headers: {
-            'content-type': 'application/xml'
-          },
-          credentials: {
-            accessKey: key.access_key!,
-            secretKey: key.secret_key!
-          }
-        })
-      )
+      switchMap((key: Key) => {
+        const context: Context = { credentials: Credentials.fromKey(key) };
+        return this.updateVersioningByContext(bucket, enabled, context);
+      })
     );
+  }
+
+  private updateVersioningByContext(
+    bucket: string,
+    enabled: boolean,
+    context: Context
+  ): Observable<void> {
+    return this.rgwService.put<void>(`${bucket}?versioning`, {
+      body: `<VersioningConfiguration><Status>${
+        enabled ? 'Enabled' : 'Suspended'
+      }</Status></VersioningConfiguration>`,
+      headers: {
+        'content-type': 'application/xml'
+      },
+      credentials: context.credentials
+    });
   }
 }
