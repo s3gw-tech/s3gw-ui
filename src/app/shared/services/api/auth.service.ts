@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { finalize, tap } from 'rxjs/operators';
 
+import { Credentials } from '~/app/shared/models/credentials.type';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { User } from '~/app/shared/services/api/user.service';
-import { AuthStorageService, Credentials } from '~/app/shared/services/auth-storage.service';
+import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 
 @Injectable({
   providedIn: 'root'

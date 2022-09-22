@@ -1,10 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 
-export type Credentials = {
-  accessKey: string | null;
-  secretKey: string | null;
-};
+import { Credentials } from '~/app/shared/models/credentials.type';
 
 @Injectable({
   providedIn: 'root'
