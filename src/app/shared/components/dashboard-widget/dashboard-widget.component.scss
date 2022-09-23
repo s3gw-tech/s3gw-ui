@@ -1,7 +1,5 @@
-@use 'scss/defaults/colors' as dc;
-
 .card {
-  border-width: 0;
+  background-color: var(--bs-body-bg);
   break-inside: avoid;
   // Work-around a bug in Firefox where widgets are broken even if
   // `break-inside: avoid` is set.
@@ -9,6 +7,7 @@
   overflow: hidden;
 
   .progress {
+    background-color: inherit;
     height: 0.25rem;
   }
 
@@ -18,23 +17,15 @@
   }
 
   &.error {
-    background-color: dc.$s3gw-color-error;
-    color: dc.$s3gw-color-white;
+    background-color: var(--bs-danger);
+    color: var(--bs-white);
   }
 
   &.loading {
-    animation: skeleton-loading 1s linear infinite alternate;
     cursor: wait;
   }
-}
 
-@keyframes skeleton-loading {
-  0% {
-    background-color: dc.$s3gw-color-cultured;
-  }
-
-  100% {
-    // https://colordesigner.io/gradient-generator
-    background-color: #fafbfb;
+  &:hover {
+    border-color: var(--bs-link-color);
   }
 }
