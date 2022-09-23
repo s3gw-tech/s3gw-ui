@@ -7,7 +7,7 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./page-title.component.scss']
 })
 export class PageTitleComponent {
-  public title = '';
+  public title: string;
 
   constructor(private activatedRoute: ActivatedRoute) {
     this.title = this.activatedRoute.snapshot.data?.['title'] ?? '';

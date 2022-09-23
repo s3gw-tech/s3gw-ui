@@ -1,11 +1,13 @@
-@import 'src/scss/defaults/colors';
-@import 'src/scss/defaults/variables';
+@use 'src/scss/defaults/variables' as dv;
 
 .s3gw-top-bar {
-  background-color: $s3gw-color-site-header-background;
-  height: $s3gw-site-header-height;
+  background-color: var(--bs-body-bg);
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--bs-border-color);
+  height: dv.$s3gw-site-header-height;
 
-  ::ng-deep .btn {
-    color: $s3gw-color-submenu-item-text;
+  .btn {
+    color: var(--bs-body-color);
   }
 }

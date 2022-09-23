@@ -10,7 +10,8 @@
   <a class="menu-title"
      ngbNavLink>
     <div fxLayout="row">
-      <i [class]="item.icon"></i>
+      <i class="me-3"
+         [class]="item.icon"></i>
       {{ item.name | transloco }}
       <div fxFlex
            *ngIf="item.children && item.children.length">
