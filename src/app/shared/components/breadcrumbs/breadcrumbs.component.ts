@@ -15,8 +15,8 @@ type Breadcrumb = {
   styleUrls: ['./breadcrumbs.component.scss']
 })
 export class BreadcrumbsComponent implements OnDestroy {
-  breadcrumbs: Breadcrumb[] = [];
-  subscription: Subscription;
+  public breadcrumbs: Breadcrumb[] = [];
+  public subscription: Subscription;
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute) {
     this.breadcrumbs = this.buildBreadCrumb(this.activatedRoute.root);
@@ -39,7 +39,7 @@ export class BreadcrumbsComponent implements OnDestroy {
     url: string = '',
     breadcrumbs: Breadcrumb[] = []
   ): Breadcrumb[] {
-    let label = route.routeConfig?.data?.['breadcrumb'] || '';
+    let label = route.routeConfig?.data?.['breadcrumb'] ?? '';
     let path: string = route.routeConfig?.data ? (route.routeConfig.path as string) : '';
 
     // If the route is dynamic route such as 'users/edit/:id', remove it.

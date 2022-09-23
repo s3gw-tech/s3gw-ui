@@ -17,6 +17,7 @@ import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { NavigationBarComponent } from '~/app/shared/components/navigation-bar/navigation-bar.component';
 import { NavigationBarItemComponent } from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
 import { PageStatusComponent } from '~/app/shared/components/page-status/page-status.component';
+import { PageTitleComponent } from '~/app/shared/components/page-title/page-title.component';
 import { SubmitButtonComponent } from '~/app/shared/components/submit-button/submit-button.component';
 import { TopBarComponent } from '~/app/shared/components/top-bar/top-bar.component';
 import { DirectivesModule } from '~/app/shared/directives/directives.module';
@@ -36,7 +37,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     PageStatusComponent,
     SubmitButtonComponent,
     TopBarComponent,
-    DashboardWidgetComponent
+    DashboardWidgetComponent,
+    PageTitleComponent
   ],
   exports: [
     AlertPanelComponent,
@@ -50,7 +52,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     PageStatusComponent,
     SubmitButtonComponent,
     TopBarComponent,
-    DashboardWidgetComponent
+    DashboardWidgetComponent,
+    PageTitleComponent
   ],
   imports: [
     CommonModule,
