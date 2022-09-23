@@ -1,18 +1,20 @@
-<div [ngClass]="{'hidden': ![2, 6].includes(pageStatus)}"
-     class="progress">
-  <div class="progress-bar indeterminate"></div>
-</div>
-<div class="m-3">
-  <s3gw-breadcrumbs></s3gw-breadcrumbs>
-  <s3gw-alert-panel *ngIf="pageStatus === 3"
-                    type="danger">
-    {{ loadingErrorText! | transloco }}
-  </s3gw-alert-panel>
-  <s3gw-alert-panel *ngIf="pageStatus === 5"
-                    type="danger">
-    {{ savingErrorText! | transloco }}
-  </s3gw-alert-panel>
-  <div *ngIf="[1, 3, 5, 6].includes(pageStatus)">
-    <ng-content></ng-content>
+<div class="page-status-wrapper">
+  <div [ngClass]="{'hidden': ![2, 6].includes(pageStatus)}"
+       class="progress">
+    <div class="progress-bar indeterminate"></div>
+  </div>
+  <div class="content m-3">
+    <s3gw-breadcrumbs></s3gw-breadcrumbs>
+    <s3gw-alert-panel *ngIf="pageStatus === 3"
+                      type="danger">
+      {{ loadingErrorText! | transloco }}
+    </s3gw-alert-panel>
+    <s3gw-alert-panel *ngIf="pageStatus === 5"
+                      type="danger">
+      {{ savingErrorText! | transloco }}
+    </s3gw-alert-panel>
+    <div *ngIf="[1, 3, 5, 6].includes(pageStatus)">
+      <ng-content></ng-content>
+    </div>
   </div>
 </div>
