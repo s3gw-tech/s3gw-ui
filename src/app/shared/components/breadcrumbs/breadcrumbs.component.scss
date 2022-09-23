@@ -1,0 +1,5 @@
+.breadcrumb {
+  .breadcrumb-item + .breadcrumb-item::before {
+    content: quote('>');
+  }
+}

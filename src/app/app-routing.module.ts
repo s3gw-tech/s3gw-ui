@@ -23,14 +23,14 @@ const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        data: { breadcrumb: TEXT('Dashboard') },
+        data: { breadcrumb: TEXT('Dashboard'), title: TEXT('Dashboard') },
         canActivate: [AuthGuardService],
         canActivateChild: [AuthGuardService],
         component: DashboardPageComponent
       },
       {
         path: 'buckets',
-        data: { breadcrumb: TEXT('Buckets') },
+        data: { breadcrumb: TEXT('Buckets'), title: TEXT('Buckets') },
         canActivate: [AuthGuardService],
         canActivateChild: [AuthGuardService],
         children: [
@@ -40,19 +40,19 @@ const routes: Routes = [
           },
           {
             path: 'create',
-            data: { breadcrumb: TEXT('Create') },
+            data: { breadcrumb: TEXT('Create'), title: TEXT('Create Bucket') },
             component: BucketFormPageComponent
           },
           {
             path: 'edit/:bid',
-            data: { breadcrumb: TEXT('Edit') },
+            data: { breadcrumb: TEXT('Edit'), title: TEXT('Edit Bucket') },
             component: BucketFormPageComponent
           }
         ]
       },
       {
         path: 'users',
-        data: { breadcrumb: TEXT('Users') },
+        data: { breadcrumb: TEXT('Users'), title: TEXT('Users') },
         canActivate: [AuthGuardService],
         canActivateChild: [AuthGuardService],
         children: [
@@ -62,17 +62,17 @@ const routes: Routes = [
           },
           {
             path: 'create',
-            data: { breadcrumb: TEXT('Create') },
+            data: { breadcrumb: TEXT('Create'), title: TEXT('Create User') },
             component: UserFormPageComponent
           },
           {
             path: 'edit/:uid',
-            data: { breadcrumb: TEXT('Edit') },
+            data: { breadcrumb: TEXT('Edit'), title: TEXT('Edit User') },
             component: UserFormPageComponent
           },
           {
             path: ':uid/key',
-            data: { breadcrumb: TEXT('Keys') },
+            data: { breadcrumb: TEXT('Keys'), title: TEXT('Keys') },
             children: [
               {
                 path: '',
@@ -80,7 +80,7 @@ const routes: Routes = [
               },
               {
                 path: 'create',
-                data: { breadcrumb: TEXT('Create') },
+                data: { breadcrumb: TEXT('Create'), title: TEXT('Create Key') },
                 component: UserKeyFormPageComponent
               }
             ]
