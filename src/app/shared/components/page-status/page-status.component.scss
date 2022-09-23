@@ -1,8 +1,17 @@
-.progress {
-  border-radius: unset;
-  height: 0.25rem;
+.page-status-wrapper {
+  display: grid;
 
-  &.hidden {
-    visibility: hidden;
+  .progress {
+    border-radius: unset;
+    height: 0.25rem;
+
+    &.hidden {
+      visibility: hidden;
+    }
+  }
+
+  .content,
+  .progress {
+    grid-area: 1 / 1;
   }
 }
