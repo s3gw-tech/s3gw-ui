@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import _ from 'lodash';
+import * as _ from 'lodash';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { S3GW_MODAL_DATA } from '~/app/shared/services/dialog.service';

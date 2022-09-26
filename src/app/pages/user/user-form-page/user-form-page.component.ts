@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import _ from 'lodash';
+import * as _ from 'lodash';
 import { concat, Observable, of, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 

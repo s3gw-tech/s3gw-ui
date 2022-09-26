@@ -1,5 +1,5 @@
 import { AfterViewInit, Directive, ElementRef, Input } from '@angular/core';
-import _ from 'lodash';
+import * as _ from 'lodash';
 
 @Directive({
   selector: '[autofocus]' // eslint-disable-line
