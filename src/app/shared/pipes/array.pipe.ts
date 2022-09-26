@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import _ from 'lodash';
+import * as _ from 'lodash';
 
 /**
  * Convert the given value to an array.
