@@ -1,9 +1,11 @@
 <div class="s3gw-top-bar d-flex flex-row justify-content-start align-items-center">
-  <button class="btn btn-simple"
+  <button class="btn btn-simple rounded-0 toggle"
           title="{{ 'Toggle navigation' | transloco }}"
           (click)="onToggleNavigation()">
     <i class="mdi mdi-menu"></i>
   </button>
+  <div class="logo ms-2"></div>
+  <div class="title ms-2">s3gw</div>
   <div class="flex-fill"></div>
   <div ngbDropdown>
     <button class="btn btn-simple"
