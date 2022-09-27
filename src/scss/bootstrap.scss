@@ -15,8 +15,9 @@
 @use './defaults/fonts' as df;
 @use './defaults/variables' as dv;
 
+// Customize Bootstrap variables to customize the theme to our needs.
 $primary: dc.$s3gw-color-theme-primary !default;
-$secondary: dc.$s3gw-color-theme-accent !default;
+$secondary: dc.$s3gw-color-theme-secondary !default;
 $success: dc.$s3gw-color-success !default;
 $info: dc.$s3gw-color-info !default;
 $warning: dc.$s3gw-color-warning !default;
@@ -33,7 +34,7 @@ $h6-font-size: 1em !default;
 $font-family-sans-serif: df.$s3gw-font-family-sans-serif !default;
 $font-family-monospace: df.$s3gw-font-family-monospace !default;
 $headings-font-family: df.$s3gw-font-family-headings !default;
-$component-active-color: dc.$s3gw-color-theme-primary-complementary;
+$component-active-color: dc.$s3gw-color-white;
 $component-active-bg: dc.$s3gw-color-theme-primary;
 
 @import '~bootstrap/scss/bootstrap';
@@ -61,12 +62,59 @@ $component-active-bg: dc.$s3gw-color-theme-primary;
   }
 }
 
+.btn-primary {
+  @include button-variant(
+    // background
+    $primary,
+    // border
+    $primary,
+    // color
+    dc.$s3gw-color-white,
+    // hover-background
+    dc.$s3gw-color-brilliant-azure,
+    // hover-border
+    dc.$s3gw-color-brilliant-azure,
+    // hover-color
+    dc.$s3gw-color-white,
+    // active-background
+    dc.$s3gw-color-cyan-blue-azure,
+    // active-border
+    dc.$s3gw-color-cyan-blue-azure,
+    // active-color
+    dc.$s3gw-color-white,
+    // disabled-background
+    dc.$s3gw-color-gray-x11,
+    // disabled-border
+    dc.$s3gw-color-gray-x11
+  );
+}
+
+.btn-outline-primary {
+  @include button-outline-variant(
+    // color
+    $primary,
+    // color-hover
+    dc.$s3gw-color-brilliant-azure,
+    // active-background
+    dc.$s3gw-color-white,
+    // active-border
+    dc.$s3gw-color-cyan-blue-azure,
+    // active-color
+    dc.$s3gw-color-cyan-blue-azure
+  );
+}
+
 .btn-submit {
   @extend .btn-primary;
 }
 
 .btn-input-group {
   @extend .btn-outline-secondary;
+}
+
+.btn-warning,
+.btn-danger {
+  color: dc.$s3gw-color-white !important;
 }
 
 //////////////////////////////////////////////////////////////////////////////

@@ -405,7 +405,7 @@
         <ng-container [ngSwitch]="button.type">
           <ng-template [ngSwitchCase]="'default'">
             <button type="button"
-                    class="btn btn-outline-secondary"
+                    class="btn btn-outline-primary"
                     [class]="button.class"
                     (click)="onButtonClick(button)">
               {{ button.text! | transloco }}

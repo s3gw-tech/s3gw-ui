@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add ability to enable/disable versioning of objects in buckets.
 
+### Changed
+
+- Start adapting the UI according to the Rancher UI design kit.
+
 ## [0.5.0] - 2022-09-15
 
 ### Added

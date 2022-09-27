@@ -38,8 +38,8 @@ export class ModalComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.button1Class = 'btn-outline-secondary';
-    this.button2Class = 'btn-outline-secondary';
+    this.button1Class = 'btn-outline-primary';
+    this.button2Class = 'btn-outline-primary';
     switch (this.config.type) {
       case 'ok':
         this.button1Text = TEXT('OK');
