@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { Icon } from '~/app/shared/enum/icon.enum';
 import { Bucket, BucketService } from '~/app/shared/services/api/bucket.service';
 
 @Component({
@@ -10,6 +11,7 @@ import { Bucket, BucketService } from '~/app/shared/services/api/bucket.service'
 })
 export class BucketsWidgetComponent {
   public data: Bucket[] = [];
+  public icons = Icon;
 
   constructor(private bucketService: BucketService) {}
 

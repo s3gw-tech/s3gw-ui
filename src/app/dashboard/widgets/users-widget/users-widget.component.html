@@ -2,7 +2,9 @@
                        [loadData]="loadData.bind(this)"
                        (updateData)="updateData($event)">
   <div class="d-flex gap-4 justify-content-start align-items-center">
-    <i class="mdi mdi-account-multiple mdi-36px"></i>
+    <i class="mdi-36px"
+       [class]="icons.users">
+    </i>
     <div class="d-grid gap-0">
       <div>{{ "Total users" | transloco }}</div>
       <div class="fs-3 fw-bold">{{ data.length }}</div>

@@ -36,8 +36,18 @@ $font-family-monospace: df.$s3gw-font-family-monospace !default;
 $headings-font-family: df.$s3gw-font-family-headings !default;
 $component-active-color: dc.$s3gw-color-white;
 $component-active-bg: dc.$s3gw-color-theme-primary;
+$badge-border-radius: 1.25rem;
+$border-color: dc.$s3gw-color-border;
+$table-hover-bg: dc.$s3gw-color-table-hover-background;
+$table-th-font-weight: normal;
 
 @import '~bootstrap/scss/bootstrap';
+
+//////////////////////////////////////////////////////////////////////////////
+// Table
+.table-light {
+  --bs-table-bg: #{$table-hover-bg};
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // Forms
@@ -49,6 +59,38 @@ $component-active-bg: dc.$s3gw-color-theme-primary;
 .form-control[readonly] {
   background-color: $input-disabled-bg;
   opacity: 1;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Badge
+.badge-outline {
+  &.success {
+    color: $success;
+    border-color: $success;
+  }
+
+  &.info {
+    color: $info;
+    border-color: $info;
+  }
+
+  &.warning {
+    color: $warning;
+    border-color: $warning;
+  }
+
+  &.danger {
+    color: $danger;
+    border-color: $danger;
+  }
+
+  &.success,
+  &.info,
+  &.warning,
+  &.danger {
+    background: transparent;
+    border: 1px solid;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -71,9 +113,9 @@ $component-active-bg: dc.$s3gw-color-theme-primary;
     // color
     dc.$s3gw-color-white,
     // hover-background
-    dc.$s3gw-color-brilliant-azure,
+    dc.$s3gw-color-cyan-blue-azure,
     // hover-border
-    dc.$s3gw-color-brilliant-azure,
+    dc.$s3gw-color-cyan-blue-azure,
     // hover-color
     dc.$s3gw-color-white,
     // active-background
@@ -94,14 +136,16 @@ $component-active-bg: dc.$s3gw-color-theme-primary;
     // color
     $primary,
     // color-hover
-    dc.$s3gw-color-brilliant-azure,
+    dc.$s3gw-color-black,
     // active-background
-    dc.$s3gw-color-white,
+    dc.$s3gw-color-cyan-blue-azure,
     // active-border
     dc.$s3gw-color-cyan-blue-azure,
     // active-color
-    dc.$s3gw-color-cyan-blue-azure
+    dc.$s3gw-color-white
   );
+
+  --bs-btn-hover-bg: #{dc.$s3gw-color-white};
 }
 
 .btn-submit {

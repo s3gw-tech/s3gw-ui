@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 
 import { ModalComponent } from '~/app/shared/components/modal/modal.component';
+import { Icon } from '~/app/shared/enum/icon.enum';
 import { AuthService } from '~/app/shared/services/api/auth.service';
 import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
@@ -15,7 +16,8 @@ export class TopBarComponent {
   @Output()
   readonly toggleNavigation = new EventEmitter<any>();
 
-  userId: string | null;
+  public userId: string | null;
+  public icons = Icon;
 
   constructor(
     private authService: AuthService,

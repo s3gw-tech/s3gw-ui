@@ -1,4 +1,4 @@
-<div class="s3gw-top-bar d-flex flex-row justify-content-start align-items-center">
+<div class="wrapper h-100 d-flex flex-row justify-content-start align-items-center">
   <button class="btn btn-simple rounded-0 toggle"
           title="{{ 'Toggle navigation' | transloco }}"
           (click)="onToggleNavigation()">
@@ -11,7 +11,7 @@
     <button class="btn btn-simple"
             title="{{ 'Help' | transloco }}"
             ngbDropdownToggle>
-      <i class="mdi mdi-help-circle"></i>
+      <i [class]="icons.help"></i>
     </button>
     <div ngbDropdownMenu>
       <a ngbDropdownItem
@@ -38,12 +38,14 @@
     <button class="btn btn-simple"
             title="{{ 'Signed in user' | transloco }}"
             ngbDropdownToggle>
-      <i class="mdi mdi-account-circle"></i>
+      <i [class]="icons.user"></i>
     </button>
     <div ngbDropdownMenu>
       <div ngbDropdownItem
            disabled>
-        <i class="mdi mdi-account-circle mr-1"></i>
+        <i class="mr-1"
+           [class]="icons.user">
+        </i>
         <span translate>Signed in as <b>{{ userId }}</b></span>
       </div>
       <div class="dropdown-divider"></div>

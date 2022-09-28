@@ -13,9 +13,12 @@ $navigation-width: 230px;
   transition: grid-template-columns 0.3s;
 
   header {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: var(--bs-border-color);
     display: flex;
     grid-area: header;
-    z-index: 1000;
+    height: dv.$s3gw-site-header-height;
   }
 
   aside {

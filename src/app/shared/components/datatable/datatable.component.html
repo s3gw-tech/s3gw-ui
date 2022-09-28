@@ -1,5 +1,5 @@
-<table class="table table-striped table-hover">
-  <thead>
+<table class="table table-hover border-top border-start border-end">
+  <thead class="table-light">
     <tr class="d-flex">
       <th *ngFor="let column of columns"
           scope="col"
@@ -9,6 +9,7 @@
         <span *ngIf="column.name">{{ column.name | transloco }}
         </span>
         <i *ngIf="sortHeader === column.prop"
+           class="ps-1 align-middle"
            aria-hidden="true"
            [class]="getHeaderIconCss()"></i>
       </th>
