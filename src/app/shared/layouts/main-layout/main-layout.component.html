@@ -1,22 +1,17 @@
 <block-ui>
   <div class="main-layout"
-       [ngClass]="{'navigation-collapsed': navigationCollapsed}">
-    <aside class="navigation">
-      <nav>
-        <header class="ps-3 d-flex justify-content-start align-items-center">
-          <div class="logo"></div>
-          <div class="title ms-3">s3gw</div>
-        </header>
-        <s3gw-navigation-bar></s3gw-navigation-bar>
-      </nav>
+       [ngClass]="{'collapsed': navigationCollapsed}">
+    <header>
+      <s3gw-top-bar class="w-100"
+                    (toggleNavigation)="navigationCollapsed = !navigationCollapsed">
+      </s3gw-top-bar>
+    </header>
+    <aside>
+      <s3gw-navigation-bar class="w-100"></s3gw-navigation-bar>
     </aside>
-    <div class="main">
-      <header>
-        <s3gw-top-bar (toggleNavigation)="navigationCollapsed = !navigationCollapsed"></s3gw-top-bar>
-      </header>
-      <div class="content">
-        <router-outlet></router-outlet>
-      </div>
-    </div>
+    <main>
+      <router-outlet></router-outlet>
+    </main>
+    <footer></footer>
   </div>
 </block-ui>

@@ -1,67 +1,45 @@
-@use 'src/scss/defaults/fonts' as df;
 @use 'src/scss/defaults/variables' as dv;
 
-$navigation-width: 15rem;
+$navigation-width: 230px;
 
 .main-layout {
-  .navigation {
-    background-color: var(--bs-body-bg);
+  display: grid;
+  grid-template-areas: 'header header' 'sidebar main' 'footer footer';
+  grid-template-columns: $navigation-width auto;
+  grid-template-rows: dv.$s3gw-site-header-height auto 0;
+  height: 100vh;
+  overflow-y: auto;
+  position: relative;
+  transition: grid-template-columns 0.3s;
+
+  header {
+    display: flex;
+    grid-area: header;
+    z-index: 1000;
+  }
+
+  aside {
     border-right-width: 1px;
     border-right-style: solid;
     border-right-color: var(--bs-border-color);
-    height: 100%;
-    left: 0;
-    margin-left: 0;
-    max-width: $navigation-width;
-    min-width: $navigation-width;
-    position: fixed;
-    top: 0;
-    transition: all 0.3s;
-
-    header {
-      border-bottom-width: 1px;
-      border-bottom-style: solid;
-      border-bottom-color: var(--bs-border-color);
-      height: dv.$s3gw-site-header-height;
-
-      .logo {
-        background-image: url('/assets/images/logo.svg');
-        background-position-y: center;
-        background-repeat: no-repeat;
-        background-size: contain;
-        background-position: center;
-        height: 2rem;
-        width: 2rem;
-      }
-
-      .title {
-        font-family: df.$s3gw-font-family-headings;
-        font-size: 1.5rem;
-        font-weight: lighter;
-      }
-    }
+    display: flex;
+    grid-area: sidebar;
+    overflow-y: auto;
   }
 
-  .main {
-    margin-left: $navigation-width;
-    transition: all 0.3s;
-
-    header {
-      overflow-x: clip;
-      position: sticky;
-      top: 0;
-      width: 100%;
-      z-index: 1030;
-    }
+  &.collapsed {
+    grid-template-columns: 0 auto;
   }
 
-  &.navigation-collapsed {
-    .navigation {
-      margin-left: -$navigation-width;
-    }
+  main {
+    display: block;
+    grid-area: main;
+    overflow-y: auto;
+  }
 
-    .main {
-      margin-left: 0;
-    }
+  footer {
+    grid-area: footer;
+    overflow-y: hidden;
+    z-index: 1;
   }
 }
