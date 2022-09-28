@@ -40,6 +40,9 @@ $badge-border-radius: 1.25rem;
 $border-color: dc.$s3gw-color-border;
 $table-hover-bg: dc.$s3gw-color-table-hover-background;
 $table-th-font-weight: normal;
+$pagination-font-size: 0.875rem;
+$pagination-padding-y: 0.187rem;
+$pagination-padding-x: 0.5rem;
 
 @import '~bootstrap/scss/bootstrap';
 

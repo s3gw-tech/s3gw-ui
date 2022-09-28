@@ -15,3 +15,9 @@ td {
     }
   }
 }
+
+::ng-deep ngb-pagination {
+  .pagination {
+    margin-bottom: 0;
+  }
+}
