@@ -1,17 +1,5 @@
-@import 'styles.scss';
-@import '@mdi/font/scss/materialdesignicons.scss';
-
-.content-wrapper {
-  @extend .d-flex;
-  @extend .justify-content-start;
-  @extend .align-items-center;
-  @extend .overflow-hidden;
-
-  i.mdi::before {
-    @extend .mdi-48px;
-  }
-
-  .content {
-    @extend .ms-2;
-  }
+.alert .mdi::before {
+  font-size: 48px;
+  line-height: inherit;
+  top: 0px;
 }

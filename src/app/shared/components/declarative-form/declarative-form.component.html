@@ -4,7 +4,7 @@
     <div [innerHTML]="config?.hint! | transloco | sanitize:'html'"></div>
   </s3gw-alert-panel>
   <div *ngIf="config?.title"
-       class="title"
+       class="title h3"
        [innerHTML]="config?.title! | transloco | sanitize: 'html'">
   </div>
   <p *ngIf="config?.subtitle"
@@ -24,7 +24,7 @@
                    let-field>
         <ng-container [ngSwitch]="field.type">
           <ng-template [ngSwitchCase]="'password'">
-            <div class="col form-field"
+            <div class="col form-field mb-2"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"
@@ -88,7 +88,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'text'">
-            <div class="col form-field"
+            <div class="col form-field mb-2"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"
@@ -147,7 +147,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'number'">
-            <div class="col form-field"
+            <div class="col form-field mb-2"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"
@@ -203,7 +203,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'checkbox'">
-            <div class="col form-field"
+            <div class="col form-field mb-2"
                  [class]="field.groupClass">
               <div class="form-check">
                 <input class="form-check-input"
@@ -235,7 +235,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'radio'">
-            <div class="col form-field"
+            <div class="col form-field mb-2"
                  [class]="field.groupClass">
               <div class="form-check">
                 <input class="form-check-input"
@@ -258,7 +258,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'select'">
-            <div class="col form-field"
+            <div class="col form-field mb-2"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"
@@ -294,7 +294,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'binary'">
-            <div class="col form-field"
+            <div class="col form-field mb-2"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
                      class="form-label"
@@ -399,13 +399,13 @@
       </ng-template>
     </ng-container>
 
-    <div class="form-footer"
+    <div class="form-footer mt-3 d-flex"
          [ngClass]="{'justify-content-start': config.buttonAlign === 'start', 'justify-content-center': config.buttonAlign === 'center', 'justify-content-end': config.buttonAlign === 'end'}">
       <ng-container *ngFor="let button of config.buttons">
         <ng-container [ngSwitch]="button.type">
           <ng-template [ngSwitchCase]="'default'">
             <button type="button"
-                    class="btn btn-outline-primary"
+                    class="btn btn-outline-primary m-1"
                     [class]="button.class"
                     (click)="onButtonClick(button)">
               {{ button.text! | transloco }}
@@ -413,7 +413,8 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'submit'">
-            <s3gw-submit-button [form]="formGroup"
+            <s3gw-submit-button class="m-1"
+                                [form]="formGroup"
                                 [formId]="config.id"
                                 (buttonClick)="onButtonClick(button)">
               {{ button.text! | transloco }}
