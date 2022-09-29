@@ -151,7 +151,7 @@ export class UserDatatablePageComponent {
   onActionMenu(user: User): DatatableActionItem[] {
     // Make sure the logged-in user can't be deleted.
     const credentials = this.authStorageService.getCredentials();
-    const userDeletable = _.some(user.keys, ['access_key', credentials.accessKey]);
+    const deletable = _.some(user.keys, ['access_key', credentials.accessKey]);
     // Build the action menu.
     const result: DatatableActionItem[] = [
       {
@@ -174,7 +174,7 @@ export class UserDatatablePageComponent {
       {
         title: TEXT('Delete'),
         icon: this.icons.delete,
-        disabled: userDeletable,
+        disabled: deletable,
         callback: (data: DatatableData) => {
           this.dialogService.open(
             ModalComponent,

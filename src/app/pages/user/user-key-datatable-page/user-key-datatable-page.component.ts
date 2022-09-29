@@ -17,6 +17,7 @@ import {
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { Key, User, UserService } from '~/app/shared/services/api/user.service';
+import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
 @Component({
@@ -37,6 +38,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
   private firstLoadComplete = false;
 
   constructor(
+    private authStorageService: AuthStorageService,
     private dialogService: DialogService,
     private route: ActivatedRoute,
     private router: Router,
@@ -100,6 +102,9 @@ export class UserKeyDatatablePageComponent implements OnInit {
   }
 
   onActionMenu(key: Key): DatatableActionItem[] {
+    // Make sure the currently used key can't be deleted.
+    const credentials = this.authStorageService.getCredentials();
+    const deletable = _.some(this.keys, ['secret_key', credentials.secretKey]);
     const result: DatatableActionItem[] = [
       {
         title: TEXT('Show Key'),
@@ -144,6 +149,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
       {
         title: TEXT('Delete Key'),
         icon: this.icons.delete,
+        disabled: deletable,
         callback: (data: DatatableData) => {
           this.dialogService.open(
             ModalComponent,
