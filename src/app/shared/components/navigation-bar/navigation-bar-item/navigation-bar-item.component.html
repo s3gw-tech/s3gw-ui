@@ -9,13 +9,13 @@
     ngbNav>
   <a class="menu-title"
      ngbNavLink>
-    <div fxLayout="row">
+    <div class="d-flex flex-row flex-grow-1">
       <i class="me-3"
          [class]="item.icon"></i>
       {{ item.name | transloco }}
-      <div fxFlex
+      <div class="d-flex"
            *ngIf="item.children && item.children.length">
-        <div fxFlex></div>
+        <div class="d-flex"></div>
         <i class="mdi mdi-chevron-right"
            [ngClass]="{'rotated': showSub}"></i>
       </div>
