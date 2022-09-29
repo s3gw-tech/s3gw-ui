@@ -28,13 +28,6 @@ import { SharedModule } from '~/app/shared/shared.module';
     BucketDatatablePageComponent,
     BucketFormPageComponent
   ],
-  imports: [
-    CommonModule,
-    DashboardModule,
-    NgbModule,
-    RouterModule,
-    SharedModule,
-    TranslocoModule
-  ]
+  imports: [CommonModule, DashboardModule, NgbModule, RouterModule, SharedModule, TranslocoModule]
 })
 export class PagesModule {}

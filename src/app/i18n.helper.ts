@@ -27,6 +27,8 @@ export const translateWords = (words: string[]): { [word: string]: string } => {
   return o;
 };
 
+export const defaultLanguage = 'en_US';
+
 export const supportedLanguages: Record<string, string> = {
   /* eslint-disable @typescript-eslint/naming-convention */
   en_US: 'English',
@@ -38,7 +40,7 @@ export const supportedLanguages: Record<string, string> = {
  * then try to get the default browser language. Finally fall back
  * to the specified default language. Defaults to 'en_US'.
  */
-export const getCurrentLanguage = (defaultValue = 'en_US'): string => {
+export const getCurrentLanguage = (defaultValue = defaultLanguage): string => {
   // Get the stored language from local storage.
   let lang = localStorage.getItem('language');
   // If not set, try to detect the browser language.
