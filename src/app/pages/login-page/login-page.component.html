@@ -1,23 +1,15 @@
-<div class="s3gw-login-page container-fluid h-100">
+<div class="login-page container-fluid vh-100">
   <div class="row h-100">
-
-    <div class="col p-3 d-flex flex-column sidebar">
-      <header class="d-flex justify-content-start align-items-center">
-        <div class="logo"></div>
-        <div class="title ms-3">s3gw</div>
-      </header>
-      <div class="h-100"></div>
-      <div class="footer">@2022 SUSE, LLC.</div>
-    </div>
-
-    <div class="col main">
-      <div class="d-flex justify-content-end fixed-top header">
-        <s3gw-language-button class=""></s3gw-language-button>
-      </div>
-      <div class="d-flex flex-column justify-content-center align-items-center w-100 h-100 content">
+    <main class="col-6 align-self-center">
+      <p class="text-center mb-0">{{ 'Howdy!' | transloco }}</p>
+      <h1 class="text-center">{{ 'Welcome to s3gw' | transloco }}</h1>
+      <div class="mt-5 d-flex flex-column justify-content-center align-items-center">
         <s3gw-declarative-form [config]="config"></s3gw-declarative-form>
       </div>
-    </div>
-
+      <s3gw-language-button class="m-3 fixed-bottom"
+                            type="text">
+      </s3gw-language-button>
+    </main>
+    <div class="landscape col-6 g-0"></div>
   </div>
 </div>

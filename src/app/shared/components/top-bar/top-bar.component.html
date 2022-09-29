@@ -36,7 +36,6 @@
        display="dynamic"
        placement="bottom-right">
     <button class="btn btn-simple"
-            title="{{ 'Signed in user' | transloco }}"
             ngbDropdownToggle>
       <i [class]="icons.user"></i>
     </button>
@@ -46,13 +45,13 @@
         <i class="mr-1"
            [class]="icons.user">
         </i>
-        <span translate>Signed in as <b>{{ userId }}</b></span>
+        <span translate>Logged in as <b>{{ userId }}</b></span>
       </div>
       <div class="dropdown-divider"></div>
       <button ngbDropdownItem
               (click)="onLogout()">
         <i class="mdi mdi-logout mr-1"></i>
-        <span translate>Sign out</span>
+        <span translate>Log out</span>
       </button>
     </div>
   </div>

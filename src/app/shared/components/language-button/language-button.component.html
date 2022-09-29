@@ -1,8 +1,10 @@
 <div ngbDropdown>
-  <button class="btn btn-simple"
-          title="{{ 'Language' | transloco }}"
+  <button class="btn btn-simple text-decoration-none"
           ngbDropdownToggle>
-    <i class="mdi mdi-earth"></i>
+    <i *ngIf="type === 'icon'"
+       class="mdi mdi-earth">
+    </i>
+    <span *ngIf="type === 'text'">{{ languages[currentLanguage] }}</span>
   </button>
   <div ngbDropdownMenu>
     <button *ngFor="let language of languages | keyvalue"

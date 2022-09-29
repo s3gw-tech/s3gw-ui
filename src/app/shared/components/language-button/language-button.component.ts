@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 import { getCurrentLanguage, setCurrentLanguage, supportedLanguages } from '~/app/i18n.helper';
 
@@ -8,8 +8,11 @@ import { getCurrentLanguage, setCurrentLanguage, supportedLanguages } from '~/ap
   styleUrls: ['./language-button.component.scss']
 })
 export class LanguageButtonComponent {
-  languages = supportedLanguages;
-  currentLanguage: string;
+  @Input()
+  type: 'icon' | 'text' = 'icon';
+
+  public languages = supportedLanguages;
+  public currentLanguage: string;
 
   constructor() {
     this.currentLanguage = getCurrentLanguage();

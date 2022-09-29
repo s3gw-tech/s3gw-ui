@@ -1,44 +1,9 @@
-@import 'src/scss/defaults/colors';
-@import 'src/scss/defaults/fonts';
-@import 'src/scss/defaults/variables';
-
-.s3gw-login-page {
-  background-color: $s3gw-color-cultured;
-
-  .sidebar {
-    background-color: $s3gw-color-cg-blue;
-    color: $s3gw-color-cultured;
-    max-width: 20rem;
-    min-width: 20rem;
-
-    header {
-      .logo {
-        background-image: url('/assets/images/logo.svg');
-        background-repeat: no-repeat;
-        background-size: contain;
-        background-position: center;
-        height: 3rem;
-        width: 3rem;
-      }
-
-      .title {
-        font-family: $s3gw-font-family-headings;
-        font-size: 2.5rem;
-        font-weight: lighter;
-      }
-    }
-
-    .footer {
-      font-size: 0.75rem;
-    }
-  }
-
-  .main {
-    .header {
-      height: $s3gw-site-header-height;
-    }
-
-    .content {
-    }
+.login-page {
+  .landscape {
+    background-color: var(--bs-primary);
+    background-image: url('/assets/images/login-landscape.svg');
+    background-blend-mode: multiply;
+    background-size: cover;
+    background-position: center center;
   }
 }

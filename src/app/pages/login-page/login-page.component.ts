@@ -24,10 +24,11 @@ export class LoginPageComponent implements OnInit {
   form!: DeclarativeFormComponent;
 
   public config: DeclarativeFormConfig = {
+    buttonAlign: 'center',
     buttons: [
       {
         type: 'submit',
-        text: TEXT('Sign in'),
+        text: TEXT('Log in'),
         click: this.onLogin.bind(this)
       }
     ],
