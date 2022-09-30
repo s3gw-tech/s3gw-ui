@@ -1,8 +1,6 @@
-@import 'styles.scss';
-
 .s3gw-declarative-form {
   .form-label.required::after {
-    color: $s3gw-color-danger;
+    color: var(--bs-danger);
     content: '*';
   }
 }

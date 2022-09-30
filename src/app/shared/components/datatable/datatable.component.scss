@@ -16,6 +16,25 @@ td {
   }
 }
 
+.btn.actions {
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-hover-bg: rgba(var(--bs-primary-rgb), 0.15);
+  --bs-btn-active-bg: rgba(var(--bs-primary-rgb), 0.15);
+  --bs-btn-active-border-color: transparent;
+
+  &:focus-visible {
+    --bs-btn-hover-color: var(--bs-primary);
+  }
+}
+
+.dropdown-menu {
+  .dropdown-item.action {
+    --bs-dropdown-link-color: var(--bs-primary);
+    --bs-dropdown-link-hover-color: var(--bs-white);
+    --bs-dropdown-link-hover-bg: var(--bs-primary);
+  }
+}
+
 ::ng-deep ngb-pagination {
   .pagination {
     margin-bottom: 0;

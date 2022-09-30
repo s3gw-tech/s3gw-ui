@@ -130,15 +130,17 @@
              let-row="row">
   <div ngbDropdown>
     <button *ngIf="items.length"
-            class="btn"
+            class="btn actions"
             title="{{ 'Actions' | transloco }}"
             ngbDropdownToggle>
-      <i class="mdi mdi-dots-vertical"></i>
+      <i [class]="icons.dotsVertical">
+      </i>
     </button>
     <div ngbDropdownMenu>
       <ng-container *ngFor="let item of items">
         <button *ngIf="item.type !== 'divider'"
                 ngbDropdownItem
+                class="action"
                 [disabled]="item.disabled"
                 (click)="item.callback(row)">
           <div class="row">
