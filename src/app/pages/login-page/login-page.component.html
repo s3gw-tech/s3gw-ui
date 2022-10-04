@@ -1,14 +1,20 @@
 <div class="login-page container-fluid vh-100">
   <div class="row h-100">
     <main class="col-6 align-self-center">
-      <p class="text-center mb-0">{{ 'Howdy!' | transloco }}</p>
-      <h1 class="text-center">{{ 'Welcome to s3gw' | transloco }}</h1>
-      <div class="mt-5 d-flex flex-column justify-content-center align-items-center">
-        <s3gw-declarative-form [config]="config"></s3gw-declarative-form>
+      <div class="d-flex flex-column justify-content-center align-items-center">
+        <p class="text-center mb-0">{{ 'Howdy!' | transloco }}</p>
+        <h1 class="text-center">{{ 'Welcome to s3gw' | transloco }}</h1>
+        <div *ngIf="errorMessage"
+             class="my-3 alert alert-danger">
+          {{ errorMessage }}
+        </div>
+        <s3gw-declarative-form class="mt-5"
+                               [config]="config">
+        </s3gw-declarative-form>
+        <s3gw-language-button class="col-1 m-3 fixed-bottom"
+                              type="text">
+        </s3gw-language-button>
       </div>
-      <s3gw-language-button class="m-3 fixed-bottom"
-                            type="text">
-      </s3gw-language-button>
     </main>
     <div class="landscape col-6 g-0"></div>
   </div>

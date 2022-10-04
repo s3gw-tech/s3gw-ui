@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
+import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
@@ -53,6 +54,7 @@ export class LoginPageComponent implements OnInit {
       }
     ]
   };
+  public errorMessage?: string;
 
   constructor(
     private authService: AuthService,
@@ -68,6 +70,7 @@ export class LoginPageComponent implements OnInit {
   }
 
   onLogin(): void {
+    this.errorMessage = undefined;
     this.blockUI.start(translate(TEXT('Please wait ...')));
     const values = this.form.values;
     this.authService
@@ -78,8 +81,12 @@ export class LoginPageComponent implements OnInit {
           this.router.navigate(['/dashboard']);
         },
         error: (err) => {
-          err.preventDefault();
-          this.notificationService.showError(TEXT('Invalid credentials.'));
+          err.preventAll();
+          if (err.status === 403) {
+            this.errorMessage = TEXT('Invalid access or secret key. Please try again.');
+          } else {
+            this.errorMessage = _.get(err, 'error.detail', err.message);
+          }
         }
       });
   }

@@ -28,29 +28,52 @@ export class HttpErrorInterceptorService implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((err) => {
         if (err instanceof HttpErrorResponse) {
+          let timeoutId: number;
+
           switch (err.status) {
             case 401:
-              this.authStorageService.revoke();
-              this.router.navigate(['/login']);
-              break;
-            case 403:
-              // E.g. invalid access key.
-              this.authStorageService.revoke();
-              this.router.navigate(['/login']);
+            case 403: // E.g. invalid access key.
+              timeoutId = window.setTimeout(() => {
+                this.authStorageService.revoke();
+                this.router.navigate(['/login']);
+              }, 5);
               break;
             default:
               const message = _.get(err, 'error.detail', err.message);
               const title = _.get(err, 'error.Code', err.statusText);
-              const notificationId: number = this.notificationService.show(message, title, {
+              timeoutId = this.notificationService.show(message, title, {
                 type: 'error'
               });
-              // Decorate preventDefault method. If called, it will prevent a
-              // notification to be shown.
-              (err as any).preventDefault = () => {
-                this.notificationService.cancel(notificationId);
-              };
               break;
           }
+
+          /**
+           * Decorate `preventDefault` method. If called, it will
+           * prevent a notification to be shown.
+           */
+          (err as any).preventDefault = () => {
+            this.notificationService.cancel(timeoutId);
+          };
+
+          /**
+           * Decorate `preventAll` method. If called, it will prevent
+           * the error handling for all status codes.
+           */
+          (err as any).preventAll = () => {
+            window.clearTimeout(timeoutId);
+          };
+
+          /**
+           * Decorate `preventStatusCode` method. If called, it will
+           * prevent the error handling for the specified status code.
+           *
+           * @param status The status code to be ignored.
+           */
+          (err as any).preventStatusCode = function(status: number) {
+            if (this.status === status) {
+              window.clearTimeout(timeoutId);
+            }
+          };
         }
         return throwError(err);
       })

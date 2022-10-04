@@ -14,12 +14,12 @@ export class AuthService {
   constructor(private authStorageService: AuthStorageService, private rgwService: RgwService) {}
 
   public login(accessKey: string, secretKey: string): Observable<User> {
-    const credentials: Credentials = { accessKey, secretKey };
+    const credentials: Credentials = Credentials.fromStrings(accessKey, secretKey);
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params = { 'access-key': accessKey };
+    const params = { 'access-key': credentials.accessKey! };
     return this.rgwService.get<User>('admin/user', { params, credentials }).pipe(
       tap((user: User) => {
-        this.authStorageService.set(user.user_id, accessKey, secretKey);
+        this.authStorageService.set(user.user_id, credentials.accessKey!, credentials.secretKey!);
       })
     );
   }

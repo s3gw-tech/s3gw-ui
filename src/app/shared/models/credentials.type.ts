@@ -7,5 +7,10 @@ export type Credentials = {
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const Credentials = {
-  fromKey: (key: Key): Credentials => ({ accessKey: key.access_key!, secretKey: key.secret_key! })
+  fromKey: (key: Key): Credentials => ({ accessKey: key.access_key!, secretKey: key.secret_key! }),
+
+  fromStrings: (accessKey: string, secretKey: string): Credentials => ({
+    accessKey,
+    secretKey
+  })
 };
