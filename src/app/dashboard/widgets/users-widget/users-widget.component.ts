@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
-import { User, UserService } from '~/app/shared/services/api/user.service';
+import { AdminOpsUserService } from '~/app/shared/services/api/admin-ops-user.service';
 
 @Component({
   selector: 's3gw-dashboard-widget-users',
@@ -10,16 +10,16 @@ import { User, UserService } from '~/app/shared/services/api/user.service';
   styleUrls: ['./users-widget.component.scss']
 })
 export class UsersWidgetComponent {
-  public data: User[] = [];
+  public data = 0;
   public icons = Icon;
 
-  constructor(private usersService: UserService) {}
+  constructor(private userService: AdminOpsUserService) {}
 
-  loadData(): Observable<User[]> {
-    return this.usersService.list(false);
+  loadData(): Observable<number> {
+    return this.userService.count();
   }
 
-  updateData(data: User[]): void {
+  updateData(data: number): void {
     this.data = data;
   }
 }

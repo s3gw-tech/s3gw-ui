@@ -1,0 +1,9 @@
+<s3gw-dashboard-widget [loadData]="loadData.bind(this)"
+                       (updateData)="updateData($event)">
+  <div class="d-flex gap-4 justify-content-start align-items-center">
+    <div class="d-grid gap-0">
+      <div>{{ "Total Bytes" | transloco }}</div>
+      <div class="fs-3 fw-bold">{{ data?.TotalBytes }}</div>
+    </div>
+  </div>
+</s3gw-dashboard-widget>

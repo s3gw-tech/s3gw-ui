@@ -21,8 +21,8 @@ export class PageStatusComponent {
   pageStatus: PageStatus = PageStatus.ready;
 
   @Input()
-  loadingErrorText? = TEXT('Failed to load data.');
+  loadingErrorText?: string = TEXT('Failed to load data.');
 
   @Input()
-  savingErrorText? = TEXT('Failed to save data.');
+  savingErrorText?: string = TEXT('Failed to save data.');
 }

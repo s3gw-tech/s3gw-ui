@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
-import { Bucket, BucketService } from '~/app/shared/services/api/bucket.service';
+import { AdminOpsBucketService } from '~/app/shared/services/api/admin-ops-bucket.service';
 
 @Component({
   selector: 's3gw-dashboard-widget-buckets',
@@ -10,16 +10,16 @@ import { Bucket, BucketService } from '~/app/shared/services/api/bucket.service'
   styleUrls: ['./buckets-widget.component.scss']
 })
 export class BucketsWidgetComponent {
-  public data: Bucket[] = [];
+  public data = 0;
   public icons = Icon;
 
-  constructor(private bucketService: BucketService) {}
+  constructor(private bucketService: AdminOpsBucketService) {}
 
-  loadData(): Observable<Bucket[]> {
-    return this.bucketService.list();
+  loadData(): Observable<number> {
+    return this.bucketService.count();
   }
 
-  updateData(data: Bucket[]): void {
+  updateData(data: number): void {
     this.data = data;
   }
 }

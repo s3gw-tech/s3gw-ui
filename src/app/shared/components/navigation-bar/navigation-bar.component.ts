@@ -1,8 +1,6 @@
-import { Component } from '@angular/core';
-import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
+import { Component, Input } from '@angular/core';
 
-import { NavItem } from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
-import { Icon } from '~/app/shared/enum/icon.enum';
+import { NavigationItem } from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
 
 @Component({
   selector: 's3gw-navigation-bar',
@@ -10,21 +8,6 @@ import { Icon } from '~/app/shared/enum/icon.enum';
   styleUrls: ['./navigation-bar.component.scss']
 })
 export class NavigationBarComponent {
-  navItems: NavItem[] = [
-    {
-      name: TEXT('Dashboard'),
-      icon: Icon.apps,
-      route: '/dashboard'
-    },
-    {
-      name: TEXT('Users'),
-      icon: Icon.users,
-      route: '/users'
-    },
-    {
-      name: TEXT('Buckets'),
-      icon: Icon.bucket,
-      route: '/buckets'
-    }
-  ];
+  @Input()
+  items: NavigationItem[] = [];
 }

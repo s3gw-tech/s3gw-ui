@@ -1,4 +1,4 @@
-import { Key } from '~/app/shared/services/api/user.service';
+import { Key } from '~/app/shared/services/api/admin-ops-user.service';
 
 export type Credentials = {
   accessKey: string | null;

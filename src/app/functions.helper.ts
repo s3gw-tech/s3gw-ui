@@ -40,3 +40,22 @@ export const bytesToSize = (value: null | number | string): string => {
   const rounded = Math.round((rawVal + Number.EPSILON) * 100) / 100;
   return rounded + ' ' + sizes[i];
 };
+
+/**
+ * Format a string.
+ *
+ * Use this function if you want to format translated text. Using the
+ * mustache style for that seems to be the better approach than using
+ * the ES string interpolate style.
+ *
+ * Example:
+ * format('Hello {{ username }}', {username: 'foo'})
+ *
+ * @param str The template string.
+ * @param options The options object.
+ */
+export const format = (str: string, options: Record<any, any>): string => {
+  _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
+  const compiled = _.template(str);
+  return compiled(options);
+};

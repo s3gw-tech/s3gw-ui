@@ -19,7 +19,7 @@ describe('BucketsWidgetComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(BucketsWidgetComponent);
     component = fixture.componentInstance;
-    component.loadData = () => of([]);
+    component.loadData = () => of(2);
     fixture.detectChanges();
   });
 

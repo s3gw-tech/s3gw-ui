@@ -4,30 +4,22 @@ import { RouterModule } from '@angular/router';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslocoModule } from '@ngneat/transloco';
 
-import { DashboardModule } from '~/app/dashboard/dashboard.module';
-import { BucketDatatablePageComponent } from '~/app/pages/bucket/bucket-datatable-page/bucket-datatable-page.component';
-import { BucketFormPageComponent } from '~/app/pages/bucket/bucket-form-page/bucket-form-page.component';
-import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
-import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
-import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
-import { UserDatatablePageComponent } from '~/app/pages/user/user-datatable-page/user-datatable-page.component';
-import { UserFormPageComponent } from '~/app/pages/user/user-form-page/user-form-page.component';
-import { UserKeyDatatablePageComponent } from '~/app/pages/user/user-key-datatable-page/user-key-datatable-page.component';
-import { UserKeyFormPageComponent } from '~/app/pages/user/user-key-form-page/user-key-form-page.component';
+import { AdminPagesModule } from '~/app/pages/admin/admin-pages.module';
+import { LoginPageComponent } from '~/app/pages/shared/login-page/login-page.component';
+import { NotFoundPageComponent } from '~/app/pages/shared/not-found-page/not-found-page.component';
+import { UserPagesModule } from '~/app/pages/user/user-pages.module';
 import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
-  declarations: [
-    DashboardPageComponent,
-    LoginPageComponent,
-    NotFoundPageComponent,
-    UserDatatablePageComponent,
-    UserKeyDatatablePageComponent,
-    UserFormPageComponent,
-    UserKeyFormPageComponent,
-    BucketDatatablePageComponent,
-    BucketFormPageComponent
-  ],
-  imports: [CommonModule, DashboardModule, NgbModule, RouterModule, SharedModule, TranslocoModule]
+  declarations: [LoginPageComponent, NotFoundPageComponent],
+  imports: [
+    AdminPagesModule,
+    CommonModule,
+    NgbModule,
+    RouterModule,
+    SharedModule,
+    TranslocoModule,
+    UserPagesModule
+  ]
 })
 export class PagesModule {}

@@ -1,11 +1,11 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
-export type NavItem = {
+export type NavigationItem = {
   name: string;
   icon: string;
   route?: string;
-  children?: NavItem[];
+  children?: NavigationItem[];
 };
 
 @Component({
@@ -15,7 +15,7 @@ export type NavItem = {
 })
 export class NavigationBarItemComponent implements OnInit {
   @Input()
-  item!: NavItem;
+  item!: NavigationItem;
 
   @Input()
   depth = 0;
@@ -26,7 +26,7 @@ export class NavigationBarItemComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  itemClicked(item: NavItem) {
+  itemClicked(item: NavigationItem) {
     if (!item.children || !item.children.length) {
       this.router.navigate([item.route]);
     } else if (item.children && item.children.length) {

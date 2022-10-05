@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { ComponentsModule } from '~/app/shared/components/components.module';
 import {
   NavigationBarItemComponent,
-  NavItem
+  NavigationItem
 } from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
 import { TestingModule } from '~/app/testing.module';
 
@@ -13,12 +13,12 @@ describe('NavigationBarItemComponent', () => {
   let fixture: ComponentFixture<NavigationBarItemComponent>;
   let router: Router;
 
-  const item: NavItem = {
+  const item: NavigationItem = {
     name: 'item',
     icon: 'mdi:apps',
     route: '/itemroute'
   };
-  const itemSubs: NavItem = {
+  const itemSubs: NavigationItem = {
     name: 'itemSubs',
     icon: 'mdi:apps',
     children: [item]
