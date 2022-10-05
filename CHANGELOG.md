@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.0] - unreleased
 
+### Fixed
+
+- Login page does not show error messages (gh#aquarist-labs/s3gw#136).
+
 ### Changed
 
 - Continuing to adapt the UI according to the Rancher UI design kit.
