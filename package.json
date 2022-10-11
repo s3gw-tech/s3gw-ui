@@ -38,6 +38,7 @@
     "@mdi/font": "6.9.96",
     "@ng-bootstrap/ng-bootstrap": "^12.1.2",
     "@ngneat/transloco": "^4.1.1",
+    "aws-sdk": "^2.1231.0",
     "bootstrap": "5.2.2",
     "crypto-js": "^4.1.1",
     "dayjs": "^1.11.5",

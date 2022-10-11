@@ -1,19 +1,15 @@
 import { Injectable } from '@angular/core';
+import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
-import { concat, Observable, of, toArray } from 'rxjs';
+import { defer, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
-import {
-  Bucket,
-  BucketListResponse,
-  CreateBucketResponse,
-  VersioningResponse
-} from '~/app/shared/models/s3-api.type';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
 
-export type S3Bucket = Bucket & {
+export type S3Bucket = AWS.S3.Types.Bucket & {
   /* eslint-disable @typescript-eslint/naming-convention */
   Versioning?: boolean;
   /* eslint-enable @typescript-eslint/naming-convention */
@@ -26,35 +22,55 @@ export type S3Bucket = Bucket & {
   providedIn: 'root'
 })
 export class S3BucketService {
-  constructor(private authStorageService: AuthStorageService, private rgwService: RgwService) {}
+  private s3Clients: Map<string, AWS.S3> = new Map();
+
+  constructor(
+    private authStorageService: AuthStorageService,
+    private rgwService: RgwService,
+    private rgwServiceConfigService: RgwServiceConfigService
+  ) {}
 
   /**
-   * https://docs.ceph.com/en/latest/radosgw/s3/serviceops/#list-buckets
+   * Get the list of buckets.
+   *
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listBuckets-property
    */
-  public list(): Observable<S3Bucket[]> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
-    return this.rgwService
-      .get<BucketListResponse>('', { credentials })
-      .pipe(map((resp) => resp[1]));
-  }
-
-  public count(): Observable<number> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
-    return this.rgwService
-      .get<BucketListResponse>('', { credentials })
-      .pipe(map((resp: BucketListResponse) => resp[1].length));
+  public list(credentials?: Credentials): Observable<AWS.S3.Types.Buckets> {
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.getS3Client(credentials).listBuckets().promise()
+    ).pipe(map((resp: AWS.S3.Types.ListBucketsOutput) => resp.Buckets!));
   }
 
   /**
-   * https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#get-bucket
+   * Get the number of buckets.
+   *
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
    */
-  public get(bucket: string): Observable<S3Bucket> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+  public count(credentials?: Credentials): Observable<number> {
+    return this.list(credentials).pipe(map((resp: AWS.S3.Types.Buckets) => resp.length));
+  }
+
+  /**
+   * Get the specified bucket.
+   *
+   * @param bucket The name of the bucket.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#get-bucket
+   */
+  public get(bucket: string, credentials?: Credentials): Observable<S3Bucket> {
+    credentials = credentials ?? this.authStorageService.getCredentials();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: Record<string, any> = { 'max-keys': 0 };
     return this.rgwService.get<S3Bucket>(`${bucket}`, { credentials, params }).pipe(
       switchMap((resp: S3Bucket) =>
-        this.getVersioningByCredentials(bucket, credentials).pipe(
+        this.isVersioning(resp.Name!, credentials).pipe(
           map((enabled: boolean) => {
             resp.Versioning = enabled;
             return resp;
@@ -64,8 +80,15 @@ export class S3BucketService {
     );
   }
 
-  public exists(bucket: string): Observable<boolean> {
-    return this.get(bucket).pipe(
+  /**
+   * Check if the specified bucket exists.
+   *
+   * @param bucket The name of the bucket.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   */
+  public exists(bucket: string, credentials?: Credentials): Observable<boolean> {
+    return this.get(bucket, credentials).pipe(
       map(() => true),
       catchError((error) => {
         if (_.isFunction(error.preventDefault)) {
@@ -77,104 +100,180 @@ export class S3BucketService {
   }
 
   /**
-   * https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#put-bucket
+   * Create the specified bucket.
+   *
+   * @param bucket The bucket to create.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#createBucket-property
    */
-  public create(bucket: S3Bucket): Observable<CreateBucketResponse> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
-    return this.createByCredentials(bucket, credentials);
-  }
-
-  public createByCredentials(
+  public create(
     bucket: S3Bucket,
-    credentials: Credentials
-  ): Observable<CreateBucketResponse> {
-    const sources = [];
-    // Create the bucket first.
-    sources.push(
-      this.rgwService.put<CreateBucketResponse>(bucket.Name, {
-        credentials
+    credentials?: Credentials
+  ): Observable<AWS.S3.Types.CreateBucketOutput> {
+    // const params: AWS.S3.Types.CreateBucketRequest = {
+    //   /* eslint-disable @typescript-eslint/naming-convention */
+    //   Bucket: bucket.Name!,
+    //   CreateBucketConfiguration: {
+    //     LocationConstraint: ''
+    //   }
+    //   /* eslint-enable @typescript-eslint/naming-convention */
+    // };
+    // return defer(() =>
+    //   // Note, we need to convert the hot promise to a cold observable.
+    //   this.getS3Client(credentials).createBucket(params).promise()
+    // ).pipe(
+    //   switchMap((resp: AWS.S3.Types.CreateBucketOutput) => {
+    //     // Update the `versioning` flag.
+    //     if (bucket.Versioning) {
+    //       // eslint-disable-next-line no-underscore-dangle
+    //       return this.setVersioning(bucket.Name!, true, credentials).pipe(
+    //         map((): AWS.S3.Types.CreateBucketOutput => resp)
+    //       );
+    //     }
+    //     return of(resp);
+    //   })
+    // );
+    return this.rgwService
+      .put<AWS.S3.Types.CreateBucketOutput>(bucket.Name!, {
+        credentials: credentials ?? this.authStorageService.getCredentials()
       })
-    );
-    // Update the `versioning` flag.
-    if (bucket.Versioning) {
-      sources.push(this.updateVersioningByCredentials(bucket.Name, true, credentials));
-    }
-    // Execute all observables one after the other in series. Return
-    // the response of the request that has created the bucket.
-    return concat(...sources).pipe(
-      toArray(),
-      map((resp: unknown[]): CreateBucketResponse => resp[0] as CreateBucketResponse)
-    );
+      .pipe(
+        switchMap((resp: AWS.S3.Types.CreateBucketOutput) => {
+          // Update the `versioning` flag.
+          if (bucket.Versioning) {
+            // eslint-disable-next-line no-underscore-dangle
+            return this.setVersioning(bucket.Name!, true, credentials).pipe(
+              map((): AWS.S3.Types.CreateBucketOutput => resp)
+            );
+          }
+          return of(resp);
+        })
+      );
   }
 
-  public update(bucket: Partial<S3Bucket>): Observable<S3Bucket> {
+  /**
+   * Update the specified bucket.
+   *
+   * @param bucket The bucket to update.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   */
+  public update(bucket: Partial<S3Bucket>, credentials?: Credentials): Observable<S3Bucket> {
     // First get the original bucket data to find out what needs to be
     // updated.
-    return this.get(bucket.Name!).pipe(
+    return this.get(bucket.Name!, credentials).pipe(
       switchMap((currentBucket: S3Bucket) => {
-        const sources = [];
-        // Need to update the `versioning` flag?
         if (_.isBoolean(bucket.Versioning) && bucket.Versioning !== currentBucket.Versioning) {
           currentBucket.Versioning = bucket.Versioning;
-          sources.push(this.updateVersioning(bucket.Name!, bucket.Versioning));
+          return this.setVersioning(bucket.Name!, bucket.Versioning, credentials).pipe(
+            map((): S3Bucket => currentBucket)
+          );
         }
-        // Execute all observables one after the other in series. Return
-        // the bucket object with the modified properties.
-        return concat(...sources).pipe(
-          toArray(),
-          map((): Bucket => currentBucket)
-        );
+        return of(currentBucket);
       })
     );
   }
 
   /**
-   * https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#delete-bucket
+   * Delete the specified bucket.
+   *
+   * @param bucket The name of the bucket.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteBucket-property
    */
-  public delete(bucket: string): Observable<void> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
-    return this.rgwService.delete<void>(`${bucket}`, { credentials });
+  public delete(bucket: string, credentials?: Credentials): Observable<void> {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const params: AWS.S3.DeleteBucketRequest = { Bucket: bucket };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.getS3Client(credentials).deleteBucket(params).promise()
+    ).pipe(map(() => void 0));
   }
 
   /**
-   * https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#enable-suspend-bucket-versioning
+   * Get the versioning state of the specified bucket.
+   *
+   * @param bucket The name of the bucket.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getBucketVersioning-property
    */
-  public getVersioning(bucket: string): Observable<boolean> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
-    return this.getVersioningByCredentials(bucket, credentials);
-  }
-
-  public getVersioningByCredentials(bucket: string, credentials: Credentials): Observable<boolean> {
-    return this.rgwService
-      .get<VersioningResponse>(`${bucket}?versioning`, {
-        credentials
-      })
-      .pipe(map((response: VersioningResponse) => response.Status === 'Enabled'));
+  public isVersioning(bucket: string, credentials?: Credentials): Observable<boolean> {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const params: AWS.S3.GetBucketVersioningRequest = { Bucket: bucket };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.getS3Client(credentials).getBucketVersioning(params).promise()
+    ).pipe(map((resp: AWS.S3.Types.GetBucketVersioningOutput) => resp.Status === 'Enabled'));
   }
 
   /**
-   * https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#enable-suspend-bucket-versioning
-   * https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketVersioning.html
+   * Set the versioning state of the specified bucket.
+   *
+   * @param bucket The name of the bucket.
+   * @param enabled Set to `true` to enable the versioning of the bucket.
+   *   Defaults to `false`.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketVersioning-property
    */
-  public updateVersioning(bucket: string, enabled: boolean): Observable<void> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
-    return this.updateVersioningByCredentials(bucket, enabled, credentials);
-  }
-
-  public updateVersioningByCredentials(
+  public setVersioning(
     bucket: string,
-    enabled: boolean,
-    credentials: Credentials
+    enabled: boolean = false,
+    credentials?: Credentials
   ): Observable<void> {
-    return this.rgwService.put<void>(`${bucket}?versioning`, {
-      body: `<VersioningConfiguration><Status>${
-        enabled ? 'Enabled' : 'Suspended'
-      }</Status></VersioningConfiguration>`,
-      headers: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        'content-type': 'application/xml'
+    const params: AWS.S3.PutBucketVersioningRequest = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: bucket,
+      VersioningConfiguration: { Status: enabled ? 'Enabled' : 'Suspended' }
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.getS3Client(credentials).putBucketVersioning(params).promise()
+    ).pipe(map(() => void 0));
+  }
+
+  /**
+   * Helper function to get the S3 service object.
+   *
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   * @private
+   */
+  private getS3Client(credentials?: Credentials): AWS.S3 {
+    credentials = credentials ?? this.authStorageService.getCredentials();
+    const key = Credentials.md5(credentials);
+    let s3client: AWS.S3 | undefined = this.s3Clients.get(key);
+    if (_.isUndefined(s3client)) {
+      s3client = this.createS3Client(credentials);
+      this.s3Clients.set(key, s3client);
+    }
+    return s3client;
+  }
+
+  /**
+   * Helper function to create the S3 service object.
+   *
+   * @param credentials The AWS credentials to sign requests with.
+   * @private
+   */
+  private createS3Client(credentials: Credentials): AWS.S3 {
+    return new AWS.S3({
+      credentials: {
+        accessKeyId: credentials.accessKey!,
+        secretAccessKey: credentials.secretKey!
       },
-      credentials
+      endpoint: this.rgwServiceConfigService.config.url,
+      s3BucketEndpoint: false,
+      s3ForcePathStyle: true,
+      signatureVersion: 'v2'
     });
   }
 }

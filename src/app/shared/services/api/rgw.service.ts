@@ -25,12 +25,10 @@ type BuildHeadersOptions = {
   providedIn: 'root'
 })
 export class RgwService {
-  private url = '';
+  public url = '';
 
   constructor(private http: HttpClient, private rgwServiceConfigService: RgwServiceConfigService) {
-    if (this.rgwServiceConfigService.config.url) {
-      this.url = this.rgwServiceConfigService.config.url;
-    }
+    this.url = this.rgwServiceConfigService.config.url;
   }
 
   get<T>(url: string, options: RgwServiceRequestOptions): Observable<T> {

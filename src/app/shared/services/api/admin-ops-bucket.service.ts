@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
+import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { concat, Observable, of, toArray } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
-import { CreateBucketResponse } from '~/app/shared/models/s3-api.type';
 import { AdminOpsUserService, Key } from '~/app/shared/services/api/admin-ops-user.service';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
@@ -75,14 +75,14 @@ export class AdminOpsBucketService {
     return this.list(true, uid).pipe(map((buckets: Bucket[]) => buckets.length));
   }
 
-  public create(bucket: Bucket): Observable<CreateBucketResponse> {
+  public create(bucket: Bucket): Observable<AWS.S3.Types.CreateBucketOutput> {
     // To create a new bucket the following steps are necessary:
     // 1. Get the credentials of the specified bucket owner.
     // 2. Create the bucket using these credentials.
     return this.userService.getKey(bucket.owner).pipe(
       switchMap((key: Key) => {
         const credentials: Credentials = Credentials.fromKey(key);
-        return this.s3BucketService.createByCredentials(
+        return this.s3BucketService.create(
           {
             /* eslint-disable @typescript-eslint/naming-convention */
             Name: bucket.bucket,
@@ -119,7 +119,7 @@ export class AdminOpsBucketService {
         // Need to update the `versioning` flag?
         if (_.isBoolean(bucket.versioning) && bucket.versioning !== currentBucket.versioning) {
           currentBucket.versioning = bucket.versioning;
-          sources.push(this.updateVersioning(bucket.bucket!, bucket.versioning, bucket.owner!));
+          sources.push(this.setVersioning(bucket.bucket!, bucket.versioning, bucket.owner!));
         }
         // Execute all observables one after the other in series. Return
         // the bucket object with the modified properties.
@@ -139,7 +139,7 @@ export class AdminOpsBucketService {
     const params: Record<string, any> = { bucket };
     return this.rgwService.get<Bucket>('admin/bucket', { credentials, params }).pipe(
       switchMap((resp: Bucket) =>
-        this.getVersioning(resp.bucket, resp.owner).pipe(
+        this.isVersioning(resp.bucket, resp.owner).pipe(
           map((enabled: boolean) => {
             resp.versioning = enabled;
             return resp;
@@ -180,20 +180,40 @@ export class AdminOpsBucketService {
     return this.rgwService.put<void>('admin/bucket', { credentials, params });
   }
 
-  private getVersioning(bucket: string, uid: string): Observable<boolean> {
+  /**
+   * Helper function to get the versioning state of the bucket from the
+   * specified user.
+   *
+   * @param bucket The name of the bucket.
+   * @param uid The ID of the user.
+   *
+   * @private
+   */
+  private isVersioning(bucket: string, uid: string): Observable<boolean> {
     return this.userService.getKey(uid).pipe(
       switchMap((key: Key) => {
         const credentials: Credentials = Credentials.fromKey(key);
-        return this.s3BucketService.getVersioningByCredentials(bucket, credentials);
+        return this.s3BucketService.isVersioning(bucket, credentials);
       })
     );
   }
 
-  private updateVersioning(bucket: string, enabled: boolean, uid: string): Observable<void> {
+  /**
+   * Helper function to set the versioning state of the bucket from the
+   * specified user.
+   *
+   * @param bucket The name of the bucket.
+   * @param enabled Set to `true` to enable the versioning of the bucket,
+   *   otherwise `false`.
+   * @param uid The ID of the user.
+   *
+   * @private
+   */
+  private setVersioning(bucket: string, enabled: boolean, uid: string): Observable<void> {
     return this.userService.getKey(uid).pipe(
       switchMap((key: Key) => {
         const credentials: Credentials = Credentials.fromKey(key);
-        return this.s3BucketService.updateVersioningByCredentials(bucket, enabled, credentials);
+        return this.s3BucketService.setVersioning(bucket, enabled, credentials);
       })
     );
   }

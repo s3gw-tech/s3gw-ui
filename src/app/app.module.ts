@@ -33,7 +33,8 @@ import { TranslocoRootModule } from '~/app/transloco-root.module';
   providers: [
     {
       provide: APP_INITIALIZER,
-      useFactory: (rgwServiceConfigService: RgwServiceConfigService) => () => rgwServiceConfigService.load(),
+      useFactory: (rgwServiceConfigService: RgwServiceConfigService) => () =>
+        rgwServiceConfigService.load(),
       multi: true,
       deps: [RgwServiceConfigService]
     },

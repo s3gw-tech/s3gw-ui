@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
+import * as AWS from 'aws-sdk';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
@@ -27,7 +28,7 @@ export class BucketDatatablePageComponent {
   @BlockUI()
   blockUI!: NgBlockUI;
 
-  public buckets: S3Bucket[] = [];
+  public buckets: AWS.S3.Types.Buckets = [];
   public columns: DatatableColumn[];
   public icons = Icon;
   public pageStatus: PageStatus = PageStatus.none;
@@ -71,7 +72,7 @@ export class BucketDatatablePageComponent {
         })
       )
       .subscribe({
-        next: (buckets: S3Bucket[]) => {
+        next: (buckets: AWS.S3.Types.Buckets) => {
           this.buckets = buckets;
           this.pageStatus = PageStatus.ready;
         },
@@ -113,7 +114,7 @@ export class BucketDatatablePageComponent {
               if (res) {
                 this.blockUI.start(translate(TEXT('Please wait, deleting bucket ...')));
                 this.s3bucketService
-                  .delete(bucket.Name)
+                  .delete(bucket.Name!)
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
                     this.notificationService.showSuccess(TEXT(`Deleted bucket ${bucket.Name}.`));

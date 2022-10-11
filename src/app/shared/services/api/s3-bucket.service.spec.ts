@@ -24,16 +24,4 @@ describe('S3BucketService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
-  it('should call list', () => {
-    service.list().subscribe();
-    const req = httpTesting.expectOne('/');
-    expect(req.request.method).toBe('GET');
-  });
-
-  it('should call delete', () => {
-    service.delete('bar').subscribe();
-    const req = httpTesting.expectOne('/bar');
-    expect(req.request.method).toBe('DELETE');
-  });
 });
