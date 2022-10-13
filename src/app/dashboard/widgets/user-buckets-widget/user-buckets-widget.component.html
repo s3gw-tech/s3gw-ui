@@ -1,0 +1,13 @@
+<s3gw-dashboard-widget url="/user/buckets"
+                       [loadData]="loadData.bind(this)"
+                       (updateData)="updateData($event)">
+  <div class="d-flex gap-4 justify-content-start align-items-center">
+    <i class="mdi-36px"
+       [class]="icons.bucket">
+    </i>
+    <div class="d-grid gap-0">
+      <div>{{ "Total buckets" | transloco }}</div>
+      <div class="fs-3 fw-bold">{{ data }}</div>
+    </div>
+  </div>
+</s3gw-dashboard-widget>

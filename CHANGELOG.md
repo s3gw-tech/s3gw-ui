@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.0] - unreleased
 
+### Added
+
+- Add basic bucket management features for non-admin users. They
+  can create/update/delete buckets.
+
 ### Fixed
 
 - Login page does not show error messages (gh#aquarist-labs/s3gw#136).

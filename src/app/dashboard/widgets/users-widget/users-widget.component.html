@@ -1,4 +1,4 @@
-<s3gw-dashboard-widget url="/users"
+<s3gw-dashboard-widget url="/admin/users"
                        [loadData]="loadData.bind(this)"
                        (updateData)="updateData($event)">
   <div class="d-flex gap-4 justify-content-start align-items-center">
@@ -7,7 +7,7 @@
     </i>
     <div class="d-grid gap-0">
       <div>{{ "Total users" | transloco }}</div>
-      <div class="fs-3 fw-bold">{{ data.length }}</div>
+      <div class="fs-3 fw-bold">{{ data }}</div>
     </div>
   </div>
 </s3gw-dashboard-widget>

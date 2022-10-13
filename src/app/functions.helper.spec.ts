@@ -1,4 +1,4 @@
-import { bytesToSize, toBytes } from '~/app/functions.helper';
+import { bytesToSize, format, toBytes } from '~/app/functions.helper';
 
 describe('functions.helper', () => {
   it('should convert value to bytes [1]', () => {
@@ -43,5 +43,15 @@ describe('functions.helper', () => {
 
   it('should convert bytes to value [4]', () => {
     expect(bytesToSize(1073741824)).toBe('1 GiB');
+  });
+
+  it('should format a string [1]', () => {
+    expect(format('Hello {{ username }}!', { username: 'foo' })).toBe('Hello foo!');
+  });
+
+  it('should format a string [2]', () => {
+    expect(format('foo {{ x.y.z }} {{ a }}', { a: 'baz', x: { y: { z: 'bar' } } })).toBe(
+      'foo bar baz'
+    );
   });
 });

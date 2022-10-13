@@ -5,10 +5,7 @@ import { Observable } from 'rxjs';
 
 import { sign } from '~/app/aws2';
 import { Credentials } from '~/app/shared/models/credentials.type';
-
-type RgwServiceConfig = {
-  url: string;
-};
+import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
 
 export type RgwServiceRequestOptions = {
   credentials: Credentials;
@@ -28,29 +25,10 @@ type BuildHeadersOptions = {
   providedIn: 'root'
 })
 export class RgwService {
-  private url = '';
+  public url = '';
 
-  constructor(private http: HttpClient) {
-    // Try to load the configuration file containing the information
-    // to access the RGW.
-    this.http
-      .get<RgwServiceConfig>('/assets/rgw_service.config.json', {
-        headers: {
-          /* eslint-disable @typescript-eslint/naming-convention */
-          'Cache-Control': 'no-cache',
-          Pragma: 'no-cache'
-        }
-      })
-      .subscribe({
-        next: (config: RgwServiceConfig) => {
-          if (config.url !== '$RGW_SERVICE_URL') {
-            this.url = config.url;
-          }
-        },
-        error: (err) => {
-          err.preventDefault();
-        }
-      });
+  constructor(private http: HttpClient, private rgwServiceConfigService: RgwServiceConfigService) {
+    this.url = this.rgwServiceConfigService.config.url;
   }
 
   get<T>(url: string, options: RgwServiceRequestOptions): Observable<T> {
@@ -110,6 +88,7 @@ export class RgwService {
         'Cache-Control': 'no-cache',
         Pragma: 'no-cache',
         'x-amz-date': new Date().toUTCString()
+        /* eslint-enable @typescript-eslint/naming-convention */
       })
     };
     sign(opts, options.credentials.accessKey!, options.credentials.secretKey!);

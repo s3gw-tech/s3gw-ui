@@ -19,7 +19,7 @@ describe('UsersWidgetComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(UsersWidgetComponent);
     component = fixture.componentInstance;
-    component.loadData = () => of([]);
+    component.loadData = () => of(5);
     fixture.detectChanges();
   });
 

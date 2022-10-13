@@ -1,4 +1,6 @@
-import { Key } from '~/app/shared/services/api/user.service';
+import * as CryptoJS from 'crypto-js';
+
+import { Key } from '~/app/shared/services/api/admin-ops-user.service';
 
 export type Credentials = {
   accessKey: string | null;
@@ -12,5 +14,10 @@ export const Credentials = {
   fromStrings: (accessKey: string, secretKey: string): Credentials => ({
     accessKey,
     secretKey
-  })
+  }),
+
+  /**
+   * Get the MD5 sum of the specified credentials.
+   */
+  md5: (credentials: Credentials): string => CryptoJS.MD5(JSON.stringify(credentials)).toString()
 };

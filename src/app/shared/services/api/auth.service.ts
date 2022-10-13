@@ -3,23 +3,40 @@ import { Observable, of } from 'rxjs';
 import { finalize, tap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
-import { RgwService } from '~/app/shared/services/api/rgw.service';
-import { User } from '~/app/shared/services/api/user.service';
+import { AdminOpsUserService, User } from '~/app/shared/services/api/admin-ops-user.service';
+import { S3UserService } from '~/app/shared/services/api/s3-user.service';
 import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+
+export type AuthResponse = {
+  userId: string;
+  displayName: string;
+  // The URL the user is redirected to after a successful login.
+  redirectUrl: string;
+};
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  constructor(private authStorageService: AuthStorageService, private rgwService: RgwService) {}
+  constructor(
+    private authStorageService: AuthStorageService,
+    private adminOpsUserService: AdminOpsUserService,
+    private s3UserService: S3UserService
+  ) {}
 
-  public login(accessKey: string, secretKey: string): Observable<User> {
+  public login(
+    accessKey: string,
+    secretKey: string,
+    admin: boolean = false
+  ): Observable<AuthResponse> {
     const credentials: Credentials = Credentials.fromStrings(accessKey, secretKey);
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params = { 'access-key': credentials.accessKey! };
-    return this.rgwService.get<User>('admin/user', { params, credentials }).pipe(
-      tap((user: User) => {
-        this.authStorageService.set(user.user_id, credentials.accessKey!, credentials.secretKey!);
+    return (
+      admin
+        ? this.adminOpsUserService.authenticate(credentials)
+        : this.s3UserService.authenticate(credentials)
+    ).pipe(
+      tap((resp: AuthResponse) => {
+        this.authStorageService.set(resp.userId, credentials.accessKey!, credentials.secretKey!);
       })
     );
   }

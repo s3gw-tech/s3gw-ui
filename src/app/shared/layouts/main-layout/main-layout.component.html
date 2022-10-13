@@ -7,7 +7,9 @@
       </s3gw-top-bar>
     </header>
     <aside>
-      <s3gw-navigation-bar class="w-100"></s3gw-navigation-bar>
+      <s3gw-navigation-bar class="w-100"
+                           [items]="navigationItems">
+      </s3gw-navigation-bar>
     </aside>
     <main>
       <router-outlet></router-outlet>
