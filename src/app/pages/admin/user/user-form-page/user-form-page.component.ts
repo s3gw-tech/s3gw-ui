@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import { concat, Observable, of, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
-import { bytesToSize } from '~/app/functions.helper';
+import { bytesToSize, format, getErrorCode } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
 import {
@@ -25,6 +25,8 @@ export class UserFormPageComponent implements OnInit {
   form!: DeclarativeFormComponent;
 
   public pageStatus: PageStatus = PageStatus.none;
+  public loadingErrorText: string = TEXT('Failed to load user.');
+  public savingErrorText: string = TEXT('Failed to save user.');
   public config: DeclarativeFormConfig = {
     fields: []
   };
@@ -52,8 +54,11 @@ export class UserFormPageComponent implements OnInit {
           this.patchQuota(user);
           this.form.patchValues(user);
         },
-        error: () => {
+        error: (err) => {
           this.pageStatus = PageStatus.loadingError;
+          this.loadingErrorText = format(TEXT('Failed to load user (code={{ code }}).'), {
+            code: getErrorCode(err)
+          });
         }
       });
     });
@@ -415,8 +420,11 @@ export class UserFormPageComponent implements OnInit {
       next: () => {
         this.router.navigate(['/admin/users']);
       },
-      error: () => {
+      error: (err) => {
         this.pageStatus = PageStatus.savingError;
+        this.savingErrorText = format(TEXT('Failed to save user (code={{ code }}).'), {
+          code: getErrorCode(err)
+        });
       }
     });
   }
@@ -440,8 +448,11 @@ export class UserFormPageComponent implements OnInit {
       next: () => {
         this.router.navigate(['/admin/users']);
       },
-      error: () => {
+      error: (err) => {
         this.pageStatus = PageStatus.savingError;
+        this.savingErrorText = format(TEXT('Failed to save user (code={{ code }}).'), {
+          code: getErrorCode(err)
+        });
       }
     });
   }

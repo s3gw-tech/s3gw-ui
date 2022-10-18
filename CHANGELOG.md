@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Continuing to adapt the UI according to the Rancher UI design kit.
+- Improve error reporting.
 
 ## [0.6.0] - 2022-09-29
 
