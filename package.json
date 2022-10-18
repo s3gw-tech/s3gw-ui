@@ -10,7 +10,6 @@
     "test:ci": "jest --no-cache",
     "lint:eslint": "ng lint",
     "lint:html": "htmllint src/app/**/*.html && html-linter --config html-linter.config.json",
-    "lint:prettier": "prettier --list-different \"src/**/*.{ts,scss}\"",
     "lint:scss": "stylelint \"**/*.scss\"",
     "lint": "run-p -csl --aggregate-output lint:*",
     "fix:prettier": "prettier --write \"{src,e2e}/**/*.{ts,scss}\"",
