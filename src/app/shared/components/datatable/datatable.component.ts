@@ -47,6 +47,8 @@ export class DatatableComponent implements OnInit, OnDestroy {
   badgeTpl?: TemplateRef<any>;
   @ViewChild('localeDateTimeTpl', { static: true })
   localeDateTimeTpl?: TemplateRef<any>;
+  @ViewChild('buttonTpl', { static: true })
+  buttonTpl?: TemplateRef<any>;
 
   @Input()
   columns: DatatableColumn[] = [];
@@ -198,7 +200,8 @@ export class DatatableComponent implements OnInit, OnDestroy {
       actionMenu: this.actionMenuTpl!,
       map: this.mapTpl!,
       badge: this.badgeTpl!,
-      localeDateTime: this.localeDateTimeTpl!
+      localeDateTime: this.localeDateTimeTpl!,
+      button: this.buttonTpl!
     };
   }
 

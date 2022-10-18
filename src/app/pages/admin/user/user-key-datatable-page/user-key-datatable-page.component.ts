@@ -5,6 +5,7 @@ import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
+import { format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { ModalComponent } from '~/app/shared/components/modal/modal.component';
@@ -167,7 +168,12 @@ export class UserKeyDatatablePageComponent implements OnInit {
             {
               type: 'yesNo',
               icon: 'danger',
-              message: TEXT(`Do you really want to delete key <strong>${key.user}</strong>?`)
+              message: format(
+                TEXT(`Do you really want to delete the key <strong>{{ key }}</strong>?`),
+                {
+                  key: key.user
+                }
+              )
             }
           );
         }

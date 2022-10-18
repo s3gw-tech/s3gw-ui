@@ -16,7 +16,8 @@ type Breadcrumb = {
 })
 export class BreadcrumbsComponent implements OnDestroy {
   public breadcrumbs: Breadcrumb[] = [];
-  public subscription: Subscription;
+
+  private subscription: Subscription;
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute) {
     this.breadcrumbs = this.buildBreadCrumb(this.activatedRoute.root);

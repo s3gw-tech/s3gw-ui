@@ -1,1 +1,11 @@
-<h1 *ngIf="title">{{ title }}</h1>
+<h1 *ngIf="title">
+  <a *ngIf="url"
+     [routerLink]="url">
+    {{ title }}
+  </a>
+  <span *ngIf="!url"
+        class="title">
+    {{ title }}
+  </span>
+  <span *ngIf="subTitle">{{ subTitle }}</span>
+</h1>

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Params } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
+import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
@@ -16,20 +17,22 @@ import {
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
-import { S3Bucket, S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
+import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
+import { S3BucketService, S3Object, S3Objects } from '~/app/shared/services/api/s3-bucket.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 
 @Component({
-  selector: 's3gw-bucket-datatable-page',
-  templateUrl: './bucket-datatable-page.component.html',
-  styleUrls: ['./bucket-datatable-page.component.scss']
+  selector: 's3gw-object-datatable-page',
+  templateUrl: './object-datatable-page.component.html',
+  styleUrls: ['./object-datatable-page.component.scss']
 })
-export class BucketDatatablePageComponent {
+export class ObjectDatatablePageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
-  public buckets: AWS.S3.Types.Buckets = [];
+  public bid: AWS.S3.Types.BucketName = '';
+  public objects: S3Objects = [];
   public columns: DatatableColumn[];
   public icons = Icon;
   public pageStatus: PageStatus = PageStatus.none;
@@ -37,30 +40,26 @@ export class BucketDatatablePageComponent {
   private firstLoadComplete = false;
 
   constructor(
-    private s3bucketService: S3BucketService,
+    private bytesToSizePipe: BytesToSizePipe,
     private dialogService: DialogService,
     private notificationService: NotificationService,
-    private router: Router
+    private route: ActivatedRoute,
+    private s3bucketService: S3BucketService
   ) {
     this.columns = [
       {
         name: TEXT('Name'),
-        prop: 'Name'
+        prop: 'Key'
       },
       {
-        name: TEXT('Created'),
-        prop: 'CreationDate',
+        name: TEXT('Size'),
+        prop: 'Size',
+        pipe: this.bytesToSizePipe
+      },
+      {
+        name: TEXT('Last Modified'),
+        prop: 'LastModified',
         cellTemplateName: DatatableCellTemplateName.localeDateTime
-      },
-      {
-        name: '',
-        prop: '',
-        cellTemplateName: DatatableCellTemplateName.button,
-        cellTemplateConfig: {
-          text: TEXT('Explore'),
-          class: 'btn-primary',
-          url: '/user/objects/{{ Name }}'
-        }
       },
       {
         name: '',
@@ -71,24 +70,38 @@ export class BucketDatatablePageComponent {
     ];
   }
 
+  ngOnInit(): void {
+    this.route.params.subscribe((value: Params) => {
+      if (!_.has(value, 'bid')) {
+        this.pageStatus = PageStatus.ready;
+        return;
+      }
+      this.bid = decodeURIComponent(value['bid']);
+      this.loadData();
+    });
+  }
+
   loadData(): void {
+    this.objects = [];
     if (!this.firstLoadComplete) {
       this.pageStatus = PageStatus.loading;
     }
     this.s3bucketService
-      .list()
+      .listObjects(this.bid)
       .pipe(
         finalize(() => {
           this.firstLoadComplete = true;
         })
       )
       .subscribe({
-        next: (buckets: AWS.S3.Types.Buckets) => {
-          this.buckets = buckets;
+        next: (objects: S3Objects) => {
+          _.merge(this.objects, objects);
+        },
+        complete: () => {
           this.pageStatus = PageStatus.ready;
         },
         error: () => {
-          this.buckets = [];
+          this.objects = [];
           this.pageStatus = PageStatus.loadingError;
         }
       });
@@ -99,22 +112,8 @@ export class BucketDatatablePageComponent {
     this.loadData();
   }
 
-  onCreate(): void {
-    this.router.navigate(['/user/buckets/create/']);
-  }
-
-  onActionMenu(bucket: S3Bucket): DatatableActionItem[] {
+  onActionMenu(object: S3Object): DatatableActionItem[] {
     const result: DatatableActionItem[] = [
-      {
-        title: TEXT('Edit'),
-        icon: this.icons.edit,
-        callback: (data: DatatableData) => {
-          this.router.navigate([`/user/buckets/edit/${bucket.Name}`]);
-        }
-      },
-      {
-        type: 'divider'
-      },
       {
         title: TEXT('Delete'),
         icon: this.icons.delete,
@@ -123,14 +122,12 @@ export class BucketDatatablePageComponent {
             ModalComponent,
             (res: boolean) => {
               if (res) {
-                this.blockUI.start(translate(TEXT('Please wait, deleting bucket ...')));
+                this.blockUI.start(translate(TEXT('Please wait, deleting object ...')));
                 this.s3bucketService
-                  .delete(bucket.Name!)
+                  .deleteObject(this.bid, object.Key!)
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
-                    this.notificationService.showSuccess(
-                      format(TEXT('Deleted bucket {{ name }}.'), { name: bucket.Name })
-                    );
+                    this.notificationService.showSuccess(TEXT(`Deleted object ${object.Key}.`));
                     this.onReload();
                   });
               }
@@ -139,8 +136,13 @@ export class BucketDatatablePageComponent {
               type: 'yesNo',
               icon: 'danger',
               message: format(
-                TEXT('Do you really want to delete the bucket <strong>{{ name }}</strong>?'),
-                { name: bucket.Name }
+                TEXT(
+                  'Do you really want to delete the object <strong>{{ key }}</strong> in the bucket <strong>{{ bucketName }}</strong>?'
+                ),
+                {
+                  key: object.Key,
+                  bucketName: this.bid
+                }
               )
             }
           );

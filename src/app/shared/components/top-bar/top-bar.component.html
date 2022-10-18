@@ -29,7 +29,9 @@
        placement="bottom-right">
     <button class="btn btn-simple"
             ngbDropdownToggle>
-      <i [class]="icons.user"></i>
+      <i [class]="icons.user"
+         [ngClass]="{'s3gw-color-danger': isAdmin}">
+      </i>
     </button>
     <div ngbDropdownMenu>
       <div ngbDropdownItem

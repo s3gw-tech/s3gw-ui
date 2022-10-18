@@ -1,3 +1,12 @@
 h1 {
   line-height: unset;
+
+  a {
+    color: var(--bs-primary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }

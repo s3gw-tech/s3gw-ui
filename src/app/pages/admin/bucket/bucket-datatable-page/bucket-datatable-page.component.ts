@@ -4,6 +4,7 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
+import { format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
@@ -125,7 +126,11 @@ export class BucketDatatablePageComponent {
                   .delete(bucket.bucket)
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
-                    this.notificationService.showSuccess(TEXT(`Deleted bucket ${bucket.bucket}.`));
+                    this.notificationService.showSuccess(
+                      format(TEXT('Deleted bucket {{ bucketName }}.'), {
+                        bucketName: bucket.bucket
+                      })
+                    );
                     this.onReload();
                   });
               }
@@ -133,8 +138,11 @@ export class BucketDatatablePageComponent {
             {
               type: 'yesNo',
               icon: 'danger',
-              message: TEXT(
-                `Do you really want to delete the bucket <strong>${bucket.bucket}</strong>?`
+              message: format(
+                TEXT('Do you really want to delete the bucket <strong>{{ bucketName }}</strong>?'),
+                {
+                  bucketName: bucket.bucket
+                }
               )
             }
           );

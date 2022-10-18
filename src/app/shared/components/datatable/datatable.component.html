@@ -177,3 +177,14 @@
              let-value="value">
   <span>{{ value | localeDate:'datetime' }}</span>
 </ng-template>
+
+<ng-template #buttonTpl
+             let-column="column"
+             let-row="row">
+  <button type="button"
+          class="btn"
+          [class]="column.cellTemplateConfig?.class"
+          [routerLink]="column.cellTemplateConfig?.url | format:row">
+    {{ column.cellTemplateConfig?.text }}
+  </button>
+</ng-template>
