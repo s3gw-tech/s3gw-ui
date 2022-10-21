@@ -6,6 +6,15 @@
             ngbTooltip="{{ 'Reload' | transloco }}">
       <i [class]="icons.reload"></i>
     </button>
+    <input type="file"
+           id="upload"
+           hidden
+           multiple
+           (change)="onUpload($event)">
+    <label for="upload"
+           class="btn btn-primary ">
+      {{ "Upload" | transloco }}
+    </label>
   </div>
   <s3gw-datatable [data]="objects"
                   [columns]="columns"

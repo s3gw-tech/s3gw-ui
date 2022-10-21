@@ -20,5 +20,6 @@ export enum Icon {
   reload = 'mdi mdi-reload',
   bucket = 'mdi mdi-bucket',
   apps = 'mdi mdi-apps',
-  dotsVertical = 'mdi mdi-dots-vertical'
+  dotsVertical = 'mdi mdi-dots-vertical',
+  show = 'mdi mdi-eye'
 }

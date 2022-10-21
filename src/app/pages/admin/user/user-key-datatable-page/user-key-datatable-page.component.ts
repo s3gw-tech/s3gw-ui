@@ -108,8 +108,8 @@ export class UserKeyDatatablePageComponent implements OnInit {
     const deletable = _.some(this.keys, ['secret_key', credentials.secretKey]);
     const result: DatatableActionItem[] = [
       {
-        title: TEXT('Show Key'),
-        icon: this.icons.edit,
+        title: TEXT('Show'),
+        icon: this.icons.show,
         callback: (data: DatatableData) => {
           this.dialogService.open(DeclarativeFormModalComponent, undefined, {
             formConfig: {
@@ -148,7 +148,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
         type: 'divider'
       },
       {
-        title: TEXT('Delete Key'),
+        title: TEXT('Delete'),
         icon: this.icons.delete,
         disabled: deletable,
         callback: (data: DatatableData) => {

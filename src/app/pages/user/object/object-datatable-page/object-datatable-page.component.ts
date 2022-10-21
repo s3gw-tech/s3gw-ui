@@ -112,6 +112,29 @@ export class ObjectDatatablePageComponent implements OnInit {
     this.loadData();
   }
 
+  onUpload(event: Event): void {
+    const fileList: FileList = (event.target as any).files;
+    this.blockUI.start(translate(TEXT('Please wait, uploading objects ...')));
+    this.s3bucketService
+      .uploadObjects(this.bid, fileList)
+      .pipe(finalize(() => this.blockUI.stop()))
+      .subscribe({
+        next: () => {
+          this.notificationService.showSuccess(
+            TEXT('The objects have been successfully uploaded.')
+          );
+          this.onReload();
+        },
+        error: (err: Error) => {
+          this.notificationService.showError(
+            format(translate(TEXT('Failed to upload the objects: {{ error }}')), {
+              error: err.message
+            })
+          );
+        }
+      });
+  }
+
   onActionMenu(object: S3Object): DatatableActionItem[] {
     const result: DatatableActionItem[] = [
       {
