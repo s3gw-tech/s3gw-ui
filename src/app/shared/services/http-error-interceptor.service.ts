@@ -69,7 +69,7 @@ export class HttpErrorInterceptorService implements HttpInterceptor {
            *
            * @param status The status code to be ignored.
            */
-          (err as any).preventStatusCode = function(status: number) {
+          (err as any).preventStatusCode = function (status: number) {
             if (this.status === status) {
               window.clearTimeout(timeoutId);
             }
