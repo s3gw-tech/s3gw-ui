@@ -5,17 +5,18 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import { BucketDatatablePageComponent } from '~/app/pages/user/bucket/bucket-datatable-page/bucket-datatable-page.component';
 import { BucketFormPageComponent } from '~/app/pages/user/bucket/bucket-form-page/bucket-form-page.component';
 import { DashboardPageComponent } from '~/app/pages/user/dashboard-page/dashboard-page.component';
+import { ObjectDatatablePageComponent } from '~/app/pages/user/object/object-datatable-page/object-datatable-page.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
     path: 'dashboard',
-    data: { breadcrumb: TEXT('Dashboard'), title: TEXT('Dashboard') },
+    data: { title: TEXT('Dashboard') },
     component: DashboardPageComponent
   },
   {
     path: 'buckets',
-    data: { breadcrumb: TEXT('Buckets'), title: TEXT('Buckets') },
+    data: { title: TEXT('Buckets') },
     children: [
       {
         path: '',
@@ -23,15 +24,20 @@ const routes: Routes = [
       },
       {
         path: 'create',
-        data: { breadcrumb: TEXT('Create'), title: TEXT('Create Bucket') },
+        data: { subTitle: TEXT('Create'), title: TEXT('Bucket:'), url: '..' },
         component: BucketFormPageComponent
       },
       {
         path: 'edit/:bid',
-        data: { breadcrumb: TEXT('Edit'), title: TEXT('Edit Bucket') },
+        data: { subTitle: '{{ bid }}', title: TEXT('Bucket:'), url: '../..' },
         component: BucketFormPageComponent
       }
     ]
+  },
+  {
+    path: 'objects/:bid',
+    data: { subTitle: '{{ bid }}', title: TEXT('Bucket:'), url: '../../buckets' },
+    component: ObjectDatatablePageComponent
   }
 ];
 

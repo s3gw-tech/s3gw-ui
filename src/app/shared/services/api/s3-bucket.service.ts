@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as AWS from 'aws-sdk';
+import { BucketName, ObjectKey } from 'aws-sdk/clients/s3';
 import * as _ from 'lodash';
 import { defer, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
@@ -14,6 +15,14 @@ export type S3Bucket = AWS.S3.Types.Bucket & {
   Versioning?: boolean;
   /* eslint-enable @typescript-eslint/naming-convention */
 };
+
+export type S3Object = AWS.S3.Types.Object & {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Type: 'DIRECTORY' | 'FILE';
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+export type S3Objects = S3Object[];
 
 /**
  * Service to handle buckets via the S3 API.
@@ -64,7 +73,7 @@ export class S3BucketService {
    *
    * @see https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#get-bucket
    */
-  public get(bucket: string, credentials?: Credentials): Observable<S3Bucket> {
+  public get(bucket: AWS.S3.Types.BucketName, credentials?: Credentials): Observable<S3Bucket> {
     credentials = credentials ?? this.authStorageService.getCredentials();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: Record<string, any> = { 'max-keys': 0 };
@@ -87,7 +96,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  public exists(bucket: string, credentials?: Credentials): Observable<boolean> {
+  public exists(bucket: AWS.S3.Types.BucketName, credentials?: Credentials): Observable<boolean> {
     return this.get(bucket, credentials).pipe(
       map(() => true),
       catchError((error) => {
@@ -185,7 +194,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteBucket-property
    */
-  public delete(bucket: string, credentials?: Credentials): Observable<void> {
+  public delete(bucket: AWS.S3.Types.BucketName, credentials?: Credentials): Observable<void> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: AWS.S3.DeleteBucketRequest = { Bucket: bucket };
     return defer(() =>
@@ -203,7 +212,10 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getBucketVersioning-property
    */
-  public isVersioning(bucket: string, credentials?: Credentials): Observable<boolean> {
+  public isVersioning(
+    bucket: AWS.S3.Types.BucketName,
+    credentials?: Credentials
+  ): Observable<boolean> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: AWS.S3.GetBucketVersioningRequest = { Bucket: bucket };
     return defer(() =>
@@ -224,7 +236,7 @@ export class S3BucketService {
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketVersioning-property
    */
   public setVersioning(
-    bucket: string,
+    bucket: AWS.S3.Types.BucketName,
     enabled: boolean = false,
     credentials?: Credentials
   ): Observable<void> {
@@ -238,6 +250,63 @@ export class S3BucketService {
       // Note, we need to convert the hot promise to a cold observable.
       this.getS3Client(credentials).putBucketVersioning(params).promise()
     ).pipe(map(() => void 0));
+  }
+
+  /**
+   * Get the objects of the specified bucket.
+   *
+   * @param bucket The name of the bucket.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectsV2-property
+   */
+  public listObjects(
+    bucket: AWS.S3.Types.BucketName,
+    credentials?: Credentials
+  ): Observable<S3Objects> {
+    return new Observable((observer: any) => {
+      const s3Client = this.getS3Client(credentials);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const params: AWS.S3.ListObjectsV2Request = { Bucket: bucket };
+      let aborted = false;
+      (async () => {
+        try {
+          do {
+            const resp = await s3Client.listObjectsV2(params).promise();
+            params.ContinuationToken = resp.NextContinuationToken;
+            observer.next(resp.Contents);
+          } while (params.ContinuationToken && !aborted);
+        } catch (error) {
+          observer.error(error);
+        }
+        observer.complete();
+      })();
+      return () => (aborted = true);
+    });
+  }
+
+  /**
+   * Delete the specified object.
+   *
+   * @param bucket The name of the bucket.
+   * @param key The object key.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteObject-property
+   */
+  public deleteObject(
+    bucket: AWS.S3.Types.BucketName,
+    key: AWS.S3.ObjectKey,
+    credentials?: Credentials
+  ): Observable<AWS.S3.Types.DeleteObjectOutput> {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const params: AWS.S3.DeleteObjectRequest = { Bucket: bucket, Key: key };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.getS3Client(credentials).deleteObject(params).promise()
+    );
   }
 
   /**

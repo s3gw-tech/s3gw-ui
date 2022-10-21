@@ -39,7 +39,18 @@ export enum DatatableCellTemplateName {
   badge = 'badge',
   // Convert the specified date/time appropriate to the host/browser
   // environment's current locale.
-  localeDateTime = 'localeDateTime'
+  localeDateTime = 'localeDateTime',
+  // Display a button used to navigate to a specified URL.
+  // {
+  //   ...
+  //   cellTemplateName: DatatableCellTemplateName.button,
+  //   cellTemplateConfig: {
+  //     text: string;
+  //     class: string;
+  //     url: string;
+  //   }
+  // }
+  button = 'button'
 }
 
 export type DatatableColumn = {

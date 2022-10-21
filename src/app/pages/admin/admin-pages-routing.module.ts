@@ -14,12 +14,12 @@ const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
     path: 'dashboard',
-    data: { breadcrumb: TEXT('Dashboard'), title: TEXT('Dashboard') },
+    data: { title: TEXT('Dashboard') },
     component: DashboardPageComponent
   },
   {
     path: 'buckets',
-    data: { breadcrumb: TEXT('Buckets'), title: TEXT('Buckets') },
+    data: { title: TEXT('Buckets') },
     children: [
       {
         path: '',
@@ -27,19 +27,19 @@ const routes: Routes = [
       },
       {
         path: 'create',
-        data: { breadcrumb: TEXT('Create'), title: TEXT('Create Bucket') },
+        data: { subTitle: TEXT('Create'), title: TEXT('Bucket:'), url: '..' },
         component: BucketFormPageComponent
       },
       {
         path: 'edit/:bid',
-        data: { breadcrumb: TEXT('Edit'), title: TEXT('Edit Bucket') },
+        data: { subTitle: '{{ bid }}', title: TEXT('Bucket:'), url: '../..' },
         component: BucketFormPageComponent
       }
     ]
   },
   {
     path: 'users',
-    data: { breadcrumb: TEXT('Users'), title: TEXT('Users') },
+    data: { title: TEXT('Users') },
     children: [
       {
         path: '',
@@ -47,17 +47,17 @@ const routes: Routes = [
       },
       {
         path: 'create',
-        data: { breadcrumb: TEXT('Create'), title: TEXT('Create User') },
+        data: { subTitle: TEXT('Create'), title: TEXT('User:'), url: '..' },
         component: UserFormPageComponent
       },
       {
         path: 'edit/:uid',
-        data: { breadcrumb: TEXT('Edit'), title: TEXT('Edit User') },
+        data: { subTitle: '{{ uid }}', title: TEXT('User:'), url: '../..' },
         component: UserFormPageComponent
       },
       {
         path: ':uid/key',
-        data: { breadcrumb: TEXT('Keys'), title: TEXT('Keys') },
+        data: { subTitle: '{{ uid }}', title: TEXT('User Keys:'), url: '../..' },
         children: [
           {
             path: '',
@@ -65,7 +65,7 @@ const routes: Routes = [
           },
           {
             path: 'create',
-            data: { breadcrumb: TEXT('Create'), title: TEXT('Create Key') },
+            data: { subTitle: TEXT('Create'), title: TEXT('User Key:'), url: '..' },
             component: UserKeyFormPageComponent
           }
         ]

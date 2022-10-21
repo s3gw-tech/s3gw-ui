@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslocoModule } from '@ngneat/transloco';
 
 import { DashboardPageComponent } from '~/app/pages/admin/dashboard-page/dashboard-page.component';
 import { UserPagesModule } from '~/app/pages/user/user-pages.module';
@@ -14,7 +13,7 @@ describe('DashboardPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [DashboardPageComponent],
-      imports: [UserPagesModule, TestingModule, TranslocoModule]
+      imports: [UserPagesModule, TestingModule]
     }).compileComponents();
   });
 

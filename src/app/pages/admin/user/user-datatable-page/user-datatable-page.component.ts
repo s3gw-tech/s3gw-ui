@@ -5,6 +5,7 @@ import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
+import { format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
@@ -186,7 +187,11 @@ export class UserDatatablePageComponent {
                   .delete(user.user_id)
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
-                    this.notificationService.showSuccess(TEXT(`Deleted user ${user.user_id}.`));
+                    this.notificationService.showSuccess(
+                      format(TEXT('Deleted user {{ name }}.'), {
+                        name: user.user_id
+                      })
+                    );
                     this.onReload();
                   });
               }
@@ -194,8 +199,11 @@ export class UserDatatablePageComponent {
             {
               type: 'yesNo',
               icon: 'danger',
-              message: TEXT(
-                `Do you really want to delete the user <strong>${user.user_id}</strong>?`
+              message: format(
+                TEXT('Do you really want to delete the user <strong>{{ name }}</strong>?'),
+                {
+                  name: user.user_id
+                }
               )
             }
           );
