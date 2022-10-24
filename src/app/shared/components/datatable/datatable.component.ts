@@ -67,7 +67,9 @@ export class DatatableComponent implements OnInit, OnDestroy {
   hidePageSize = false;
 
   // The auto-reload time in milliseconds. The load event will be fired
-  // immediately. Set to `0` or `false` to disable this feature.
+  // immediately. Set to `0` or `false` to disable this feature. Set the
+  // value to a negative number to prevent triggering the `loadData`
+  // event when the component is initialized.
   // Defaults to `15000`.
   @Input()
   autoReload: number | boolean = 15000;
@@ -177,6 +179,11 @@ export class DatatableComponent implements OnInit, OnDestroy {
           })
         );
       });
+    } else if (!this.autoReload) {
+      // Fixes 'ExpressionChangedAfterItHasBeenCheckedError'
+      setTimeout(() => {
+        this.reloadData();
+      }, 0);
     }
     this.sortableColumns = this.columns
       .filter((c) => c.sortable === true)
