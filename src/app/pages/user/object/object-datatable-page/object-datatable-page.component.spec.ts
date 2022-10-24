@@ -19,7 +19,6 @@ describe('ObjectDatatablePageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ObjectDatatablePageComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
