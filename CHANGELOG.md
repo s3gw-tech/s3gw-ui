@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.0] - unreleased
 
+### Fixed
+
+- Fix table pagination issue. Only the first page was visible.
+
 ### Added
 
 - Add basic object management features.

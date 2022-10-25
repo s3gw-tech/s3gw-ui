@@ -107,7 +107,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
   protected subscriptions: Subscription = new Subscription();
 
   private sortableColumns: string[] = [];
-  private tableData: DatatableData[] = [];
+  private _filteredData: DatatableData[] = [];
 
   constructor(private ngZone: NgZone) {}
 
@@ -126,10 +126,10 @@ export class DatatableComponent implements OnInit, OnDestroy {
       (this.page - 1) * this.pageSize,
       (this.page - 1) * this.pageSize + this.pageSize
     );
-    if (!_.isEqual(filtered, this.tableData)) {
-      this.tableData = filtered;
+    if (!_.isEqual(filtered, this._filteredData)) {
+      this._filteredData = filtered;
     }
-    return this.tableData;
+    return this._filteredData;
   }
 
   ngOnInit(): void {
@@ -278,9 +278,16 @@ export class DatatableComponent implements OnInit, OnDestroy {
     this.updateSelection();
   }
 
+  onPageChange(page: number): void {
+    this.page = page;
+    // Note, the table will be re-rendered automatically because the
+    // variable has been modified.
+  }
+
   onPageSizeChange(pageSize: number): void {
     this.pageSize = pageSize;
-    this.reloadData();
+    // Note, the table will be re-rendered automatically because the
+    // variable has been modified.
   }
 
   onSelectionChange($event: any, row: DatatableData) {

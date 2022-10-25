@@ -66,9 +66,9 @@
     </div>
   </div>
   <ngb-pagination [collectionSize]="data.length"
-                  [(page)]="page"
+                  [page]="page"
                   [pageSize]="pageSize"
-                  (pageChange)="reloadData()">
+                  (pageChange)="onPageChange($event)">
   </ngb-pagination>
 </div>
 
