@@ -18,7 +18,12 @@ import {
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
-import { S3BucketService, S3Object, S3Objects } from '~/app/shared/services/api/s3-bucket.service';
+import {
+  S3BucketService,
+  S3Object,
+  S3Objects,
+  S3UploadProgress
+} from '~/app/shared/services/api/s3-bucket.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 
@@ -114,14 +119,25 @@ export class ObjectDatatablePageComponent implements OnInit {
 
   onUpload(event: Event): void {
     const fileList: FileList = (event.target as any).files;
-    this.blockUI.start(translate(TEXT('Please wait, uploading objects ...')));
+    this.blockUI.start(
+      format(translate(TEXT('Please wait, uploading objects ({{ percent }}%) ...')), {
+        percent: 0
+      })
+    );
     this.s3bucketService
       .uploadObjects(this.bid, fileList)
       .pipe(finalize(() => this.blockUI.stop()))
       .subscribe({
-        next: () => {
+        next: (progress: S3UploadProgress) => {
+          this.blockUI.update(
+            format(translate(TEXT('Please wait, uploading objects ({{ percent }}%) ...')), {
+              percent: Math.round((Number(progress.loaded) / Number(progress.total)) * 100)
+            })
+          );
+        },
+        complete: () => {
           this.notificationService.showSuccess(
-            TEXT('The objects have been successfully uploaded.')
+            translate(TEXT('The objects have been successfully uploaded.'))
           );
           this.onReload();
         },

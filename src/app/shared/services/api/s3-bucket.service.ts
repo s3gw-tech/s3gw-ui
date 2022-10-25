@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as AWS from 'aws-sdk';
-import { ObjectKey } from 'aws-sdk/clients/s3';
-import { ManagedUpload } from 'aws-sdk/lib/s3/managed_upload';
 import * as _ from 'lodash';
-import { defer, forkJoin, Observable, of } from 'rxjs';
+import { defer, merge, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
@@ -24,6 +22,10 @@ export type S3Object = AWS.S3.Types.Object & {
 };
 
 export type S3Objects = S3Object[];
+
+export type S3UploadProgress = AWS.S3.Types.ManagedUpload.Progress & {
+  sendData: AWS.S3.Types.ManagedUpload.SendData;
+};
 
 /**
  * Service to handle buckets via the S3 API.
@@ -349,11 +351,15 @@ export class S3BucketService {
     bucket: AWS.S3.Types.BucketName,
     fileList: FileList,
     credentials?: Credentials
-  ): Observable<AWS.S3.Types.ManagedUpload.SendData[]> {
+  ): Observable<S3UploadProgress> {
     const observables: Observable<AWS.S3.Types.ManagedUpload.SendData>[] = [];
     _.forEach(fileList, (file: File) =>
       observables.push(this.uploadObject(bucket, file, credentials))
     );
-    return forkJoin(observables);
+    return merge(...observables).pipe(
+      map((sendData: AWS.S3.Types.ManagedUpload.SendData, index: number) => {
+        return { loaded: index + 1, total: fileList.length, sendData };
+      })
+    );
   }
 }
