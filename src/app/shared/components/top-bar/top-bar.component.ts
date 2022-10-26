@@ -62,7 +62,7 @@ export class TopBarComponent implements OnDestroy {
       {
         type: 'yesNo',
         icon: 'question',
-        message: TEXT('Do you really want to sign out?')
+        message: TEXT('Do you really want to log out?')
       }
     );
   }

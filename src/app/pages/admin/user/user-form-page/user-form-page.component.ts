@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import { concat, Observable, of, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
-import { bytesToSize, format, getErrorCode } from '~/app/functions.helper';
+import { bytesToSize, extractErrorCode, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
 import {
@@ -57,7 +57,7 @@ export class UserFormPageComponent implements OnInit {
         error: (err) => {
           this.pageStatus = PageStatus.loadingError;
           this.loadingErrorText = format(TEXT('Failed to load user (code={{ code }}).'), {
-            code: getErrorCode(err)
+            code: extractErrorCode(err)
           });
         }
       });
@@ -423,7 +423,7 @@ export class UserFormPageComponent implements OnInit {
       error: (err) => {
         this.pageStatus = PageStatus.savingError;
         this.savingErrorText = format(TEXT('Failed to save user (code={{ code }}).'), {
-          code: getErrorCode(err)
+          code: extractErrorCode(err)
         });
       }
     });
@@ -451,7 +451,7 @@ export class UserFormPageComponent implements OnInit {
       error: (err) => {
         this.pageStatus = PageStatus.savingError;
         this.savingErrorText = format(TEXT('Failed to save user (code={{ code }}).'), {
-          code: getErrorCode(err)
+          code: extractErrorCode(err)
         });
       }
     });

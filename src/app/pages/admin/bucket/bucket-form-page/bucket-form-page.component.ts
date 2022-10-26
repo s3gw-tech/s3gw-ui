@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import { Observable, of, timer } from 'rxjs';
 import { delayWhen, map, switchMap } from 'rxjs/operators';
 
-import { format, getErrorCode } from '~/app/functions.helper';
+import { extractErrorCode, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
@@ -80,7 +80,7 @@ export class BucketFormPageComponent implements OnInit {
           error: (err) => {
             this.pageStatus = PageStatus.loadingError;
             this.loadingErrorText = format(TEXT('Failed to load bucket (code={{ code }}).'), {
-              code: getErrorCode(err)
+              code: extractErrorCode(err)
             });
           }
         });
@@ -159,7 +159,7 @@ export class BucketFormPageComponent implements OnInit {
       error: (err) => {
         this.pageStatus = PageStatus.savingError;
         this.savingErrorText = format(TEXT('Failed to save bucket (code={{ code }}).'), {
-          code: getErrorCode(err)
+          code: extractErrorCode(err)
         });
       }
     });
@@ -174,7 +174,7 @@ export class BucketFormPageComponent implements OnInit {
       error: (err) => {
         this.pageStatus = PageStatus.savingError;
         this.savingErrorText = format(TEXT('Failed to save bucket (code={{ code }}).'), {
-          code: getErrorCode(err)
+          code: extractErrorCode(err)
         });
       }
     });

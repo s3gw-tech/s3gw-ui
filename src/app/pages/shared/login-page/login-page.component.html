@@ -4,10 +4,11 @@
       <div class="d-flex flex-column justify-content-center align-items-center">
         <p class="text-center mb-0">{{ 'Howdy!' | transloco }}</p>
         <h1 class="text-center">{{ 'Welcome to s3gw' | transloco }}</h1>
-        <div *ngIf="errorMessage"
-             class="my-3 alert alert-danger">
+        <s3gw-alert-panel *ngIf="errorMessage"
+                          type="danger"
+                          noIcon>
           {{ errorMessage }}
-        </div>
+        </s3gw-alert-panel>
         <s3gw-declarative-form class="mt-5"
                                [config]="config">
         </s3gw-declarative-form>

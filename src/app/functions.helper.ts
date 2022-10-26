@@ -64,5 +64,5 @@ export const format = (str: string, options: Record<any, any>): string => {
  * Try to extract the error code from an error object. This might
  * be provided by the RGW Admin Ops or the S3 API.
  */
-export const getErrorCode = (err: Record<string, any>): string =>
+export const extractErrorCode = (err: Record<string, any>): string =>
   err['code'] ?? (_.isString(err['error']) ? err['error'] : err['statusText']);
