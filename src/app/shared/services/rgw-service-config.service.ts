@@ -20,6 +20,9 @@ export class RgwServiceConfigService {
     return this._config;
   }
 
+  /**
+   * Load the configuration file.
+   */
   public load(): Observable<RgwServiceConfig> {
     // Try to load the configuration file containing the information
     // to access the RGW.
@@ -45,5 +48,13 @@ export class RgwServiceConfigService {
           }
         })
       );
+  }
+
+  /**
+   * Check whether the configuration is valid.
+   */
+  public isValid(): boolean {
+    // At the moment it is enough to check if the URL is empty.
+    return this.config.url !== '';
   }
 }

@@ -1,4 +1,5 @@
 /* eslint-disable no-underscore-dangle */
+/* eslint-disable @typescript-eslint/member-ordering */
 import { BooleanInput, coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Component, Input, OnInit } from '@angular/core';
 
@@ -13,11 +14,6 @@ export class AlertPanelComponent implements OnInit {
   @Input()
   type: 'success' | 'info' | 'warning' | 'danger' | 'hint' = 'danger';
 
-  public bsType = 'danger';
-  public icons = Icon;
-
-  private _noColor = false;
-
   @Input()
   get noColor(): boolean {
     return this._noColor;
@@ -25,6 +21,29 @@ export class AlertPanelComponent implements OnInit {
   set noColor(value: BooleanInput) {
     this._noColor = coerceBooleanProperty(value);
   }
+
+  @Input()
+  get noIcon(): boolean {
+    return this._noIcon;
+  }
+  set noIcon(value: BooleanInput) {
+    this._noIcon = coerceBooleanProperty(value);
+  }
+
+  @Input()
+  get noMargin(): boolean {
+    return this._noMargin;
+  }
+  set noMargin(value: BooleanInput) {
+    this._noMargin = coerceBooleanProperty(value);
+  }
+
+  public bsType = 'danger';
+  public icons = Icon;
+
+  private _noColor = false;
+  private _noIcon = false;
+  private _noMargin = false;
 
   ngOnInit(): void {
     switch (this.type) {

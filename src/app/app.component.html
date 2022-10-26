@@ -1,1 +1,6 @@
+<s3gw-alert-panel *ngIf="!isRgwServiceConfigValid"
+                  type="danger"
+                  noMargin>
+  {{ "The configuration file is invalid. Please make sure the RGW endpoint is configured correctly." | transloco }}
+</s3gw-alert-panel>
 <router-outlet></router-outlet>

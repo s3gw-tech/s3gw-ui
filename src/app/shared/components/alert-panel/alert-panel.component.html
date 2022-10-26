@@ -1,4 +1,5 @@
 <ngb-alert *ngIf="!noColor"
+           [ngClass]="{'m-0': noMargin}"
            [dismissible]="false"
            [type]="bsType">
   <ng-container *ngTemplateOutlet="renderContent"></ng-container>
@@ -9,7 +10,9 @@
 
 <ng-template #renderContent>
   <div class="d-flex justify-content-start align-items-center overflow-hidden">
-    <i [class]="icons[type]"></i>
+    <i *ngIf="!noIcon"
+       [class]="icons[type]">
+    </i>
     <div class="content ms-2">
       <ng-content></ng-content>
     </div>
