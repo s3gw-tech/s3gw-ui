@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Display an error message on the login page if the RGW endpoint is not
   configured correctly.
-- Add basic object management features.
+- Add basic object management features (gh#aquarist-labs/s3gw#146).
+- Add feature to upload objects into buckets via browser (gh#aquarist-labs/s3gw#167).
 
 ## [0.7.0] - 2022-10-20
 

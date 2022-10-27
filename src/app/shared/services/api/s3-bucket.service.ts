@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import * as AWS from 'aws-sdk';
-import { BucketName, ObjectKey } from 'aws-sdk/clients/s3';
 import * as _ from 'lodash';
-import { defer, Observable, of } from 'rxjs';
+import { defer, merge, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
+import { S3ClientService } from '~/app/shared/services/api/s3-client.service';
 import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
-import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
 
 export type S3Bucket = AWS.S3.Types.Bucket & {
   /* eslint-disable @typescript-eslint/naming-convention */
@@ -24,6 +23,10 @@ export type S3Object = AWS.S3.Types.Object & {
 
 export type S3Objects = S3Object[];
 
+export type S3UploadProgress = AWS.S3.Types.ManagedUpload.Progress & {
+  sendData: AWS.S3.Types.ManagedUpload.SendData;
+};
+
 /**
  * Service to handle buckets via the S3 API.
  */
@@ -31,12 +34,10 @@ export type S3Objects = S3Object[];
   providedIn: 'root'
 })
 export class S3BucketService {
-  private s3Clients: Map<string, AWS.S3> = new Map();
-
   constructor(
     private authStorageService: AuthStorageService,
     private rgwService: RgwService,
-    private rgwServiceConfigService: RgwServiceConfigService
+    private s3ClientService: S3ClientService
   ) {}
 
   /**
@@ -50,7 +51,7 @@ export class S3BucketService {
   public list(credentials?: Credentials): Observable<AWS.S3.Types.Buckets> {
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
-      this.getS3Client(credentials).listBuckets().promise()
+      this.s3ClientService.get(credentials).listBuckets().promise()
     ).pipe(map((resp: AWS.S3.Types.ListBucketsOutput) => resp.Buckets!));
   }
 
@@ -131,7 +132,7 @@ export class S3BucketService {
     // };
     // return defer(() =>
     //   // Note, we need to convert the hot promise to a cold observable.
-    //   this.getS3Client(credentials).createBucket(params).promise()
+    //   this.s3ClientService.get(credentials).createBucket(params).promise()
     // ).pipe(
     //   switchMap((resp: AWS.S3.Types.CreateBucketOutput) => {
     //     // Update the `versioning` flag.
@@ -199,7 +200,7 @@ export class S3BucketService {
     const params: AWS.S3.DeleteBucketRequest = { Bucket: bucket };
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
-      this.getS3Client(credentials).deleteBucket(params).promise()
+      this.s3ClientService.get(credentials).deleteBucket(params).promise()
     ).pipe(map(() => void 0));
   }
 
@@ -220,7 +221,7 @@ export class S3BucketService {
     const params: AWS.S3.GetBucketVersioningRequest = { Bucket: bucket };
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
-      this.getS3Client(credentials).getBucketVersioning(params).promise()
+      this.s3ClientService.get(credentials).getBucketVersioning(params).promise()
     ).pipe(map((resp: AWS.S3.Types.GetBucketVersioningOutput) => resp.Status === 'Enabled'));
   }
 
@@ -248,7 +249,7 @@ export class S3BucketService {
     };
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
-      this.getS3Client(credentials).putBucketVersioning(params).promise()
+      this.s3ClientService.get(credentials).putBucketVersioning(params).promise()
     ).pipe(map(() => void 0));
   }
 
@@ -266,7 +267,7 @@ export class S3BucketService {
     credentials?: Credentials
   ): Observable<S3Objects> {
     return new Observable((observer: any) => {
-      const s3Client = this.getS3Client(credentials);
+      const s3Client = this.s3ClientService.get(credentials);
       // eslint-disable-next-line @typescript-eslint/naming-convention
       const params: AWS.S3.ListObjectsV2Request = { Bucket: bucket };
       let aborted = false;
@@ -305,44 +306,60 @@ export class S3BucketService {
     const params: AWS.S3.DeleteObjectRequest = { Bucket: bucket, Key: key };
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
-      this.getS3Client(credentials).deleteObject(params).promise()
+      this.s3ClientService.get(credentials).deleteObject(params).promise()
     );
   }
 
   /**
-   * Helper function to get the S3 service object.
+   * Upload the given file.
    *
+   * @param bucket The name of the bucket.
+   * @param file The file to upload.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   * @private
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
    */
-  private getS3Client(credentials?: Credentials): AWS.S3 {
-    credentials = credentials ?? this.authStorageService.getCredentials();
-    const key = Credentials.md5(credentials);
-    let s3client: AWS.S3 | undefined = this.s3Clients.get(key);
-    if (_.isUndefined(s3client)) {
-      s3client = this.createS3Client(credentials);
-      this.s3Clients.set(key, s3client);
-    }
-    return s3client;
+  public uploadObject(
+    bucket: AWS.S3.Types.BucketName,
+    file: File,
+    credentials?: Credentials
+  ): Observable<AWS.S3.Types.ManagedUpload.SendData> {
+    const params: AWS.S3.PutObjectRequest = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: bucket,
+      Key: file.name,
+      Body: file,
+      ContentType: file.type
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).upload(params).promise()
+    );
   }
 
   /**
-   * Helper function to create the S3 service object.
+   * Upload the given files in parallel.
    *
-   * @param credentials The AWS credentials to sign requests with.
-   * @private
+   * @param bucket The name of the bucket.
+   * @param fileList The list of files to upload.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
    */
-  private createS3Client(credentials: Credentials): AWS.S3 {
-    return new AWS.S3({
-      credentials: {
-        accessKeyId: credentials.accessKey!,
-        secretAccessKey: credentials.secretKey!
-      },
-      endpoint: this.rgwServiceConfigService.config.url,
-      s3BucketEndpoint: false,
-      s3ForcePathStyle: true,
-      signatureVersion: 'v2'
-    });
+  public uploadObjects(
+    bucket: AWS.S3.Types.BucketName,
+    fileList: FileList,
+    credentials?: Credentials
+  ): Observable<S3UploadProgress> {
+    const observables: Observable<AWS.S3.Types.ManagedUpload.SendData>[] = [];
+    _.forEach(fileList, (file: File) =>
+      observables.push(this.uploadObject(bucket, file, credentials))
+    );
+    return merge(...observables).pipe(
+      map((sendData: AWS.S3.Types.ManagedUpload.SendData, index: number) => {
+        return { loaded: index + 1, total: fileList.length, sendData };
+      })
+    );
   }
 }
