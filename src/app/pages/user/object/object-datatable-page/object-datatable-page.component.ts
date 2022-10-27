@@ -120,7 +120,8 @@ export class ObjectDatatablePageComponent implements OnInit {
   onUpload(event: Event): void {
     const fileList: FileList = (event.target as any).files;
     this.blockUI.start(
-      format(translate(TEXT('Please wait, uploading objects ({{ percent }}%) ...')), {
+      format(translate(TEXT('Please wait, uploading {{ total }} object(s) ({{ percent }}%) ...')), {
+        total: fileList.length,
         percent: 0
       })
     );
@@ -130,14 +131,25 @@ export class ObjectDatatablePageComponent implements OnInit {
       .subscribe({
         next: (progress: S3UploadProgress) => {
           this.blockUI.update(
-            format(translate(TEXT('Please wait, uploading objects ({{ percent }}%) ...')), {
-              percent: Math.round((Number(progress.loaded) / Number(progress.total)) * 100)
-            })
+            format(
+              translate(
+                TEXT(
+                  'Please wait, uploading {{ loaded }} of {{ total }} object(s) ({{ percent }}%) ...'
+                )
+              ),
+              {
+                loaded: progress.loaded,
+                total: progress.total,
+                percent: Math.round((Number(progress.loaded) / Number(progress.total)) * 100)
+              }
+            )
           );
         },
         complete: () => {
           this.notificationService.showSuccess(
-            translate(TEXT('The objects have been successfully uploaded.'))
+            format(translate(TEXT('{{ total }} object(s) have been successfully uploaded.')), {
+              total: fileList.length
+            })
           );
           this.onReload();
         },
