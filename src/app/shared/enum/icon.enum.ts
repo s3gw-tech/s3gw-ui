@@ -21,5 +21,6 @@ export enum Icon {
   bucket = 'mdi mdi-bucket',
   apps = 'mdi mdi-apps',
   dotsVertical = 'mdi mdi-dots-vertical',
-  show = 'mdi mdi-eye'
+  show = 'mdi mdi-eye',
+  download = 'mdi mdi-download'
 }

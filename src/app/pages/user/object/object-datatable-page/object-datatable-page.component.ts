@@ -154,6 +154,16 @@ export class ObjectDatatablePageComponent implements OnInit {
   onActionMenu(object: S3Object): DatatableActionItem[] {
     const result: DatatableActionItem[] = [
       {
+        title: TEXT('Download'),
+        icon: this.icons.download,
+        callback: (data: DatatableData) => {
+          this.s3bucketService.downloadObject(this.bid, object.Key!).subscribe();
+        }
+      },
+      {
+        type: 'divider'
+      },
+      {
         title: TEXT('Delete'),
         icon: this.icons.delete,
         callback: (data: DatatableData) => {
