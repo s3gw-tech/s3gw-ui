@@ -19,7 +19,7 @@
          target="_blank">
         <div>
           <i class="mdi mdi-web mr-1"></i>
-          <span translate>Website</span>
+          <span>{{ "Website" | transloco }}</span>
         </div>
       </a>
     </div>
@@ -39,13 +39,13 @@
         <i class="mr-1"
            [class]="icons.user">
         </i>
-        <span translate>Logged in as <strong>{{ userId }}</strong></span>
+        <span transloco="Logged in as {{ userId }}"></span>
       </div>
       <div class="dropdown-divider"></div>
       <button ngbDropdownItem
               (click)="onLogout()">
         <i class="mdi mdi-logout mr-1"></i>
-        <span translate>Log out</span>
+        <span>{{ "Log out" | transloco }}</span>
       </button>
     </div>
   </div>
