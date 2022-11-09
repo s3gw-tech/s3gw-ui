@@ -194,7 +194,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
     this.prepareColumnStyle();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 

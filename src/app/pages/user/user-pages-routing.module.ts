@@ -6,6 +6,7 @@ import { BucketDatatablePageComponent } from '~/app/pages/user/bucket/bucket-dat
 import { BucketFormPageComponent } from '~/app/pages/user/bucket/bucket-form-page/bucket-form-page.component';
 import { DashboardPageComponent } from '~/app/pages/user/dashboard-page/dashboard-page.component';
 import { ObjectDatatablePageComponent } from '~/app/pages/user/object/object-datatable-page/object-datatable-page.component';
+import { IsDirtyGuardService } from '~/app/shared/services/is-dirty-guard.service';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -25,12 +26,14 @@ const routes: Routes = [
       {
         path: 'create',
         data: { subTitle: TEXT('Create'), title: TEXT('Bucket:'), url: '..' },
-        component: BucketFormPageComponent
+        component: BucketFormPageComponent,
+        canDeactivate: [IsDirtyGuardService]
       },
       {
         path: 'edit/:bid',
         data: { subTitle: '{{ bid }}', title: TEXT('Bucket:'), url: '../..' },
-        component: BucketFormPageComponent
+        component: BucketFormPageComponent,
+        canDeactivate: [IsDirtyGuardService]
       }
     ]
   },

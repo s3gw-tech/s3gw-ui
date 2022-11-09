@@ -107,6 +107,10 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
     return this.formGroup?.valid ?? false;
   }
 
+  get pristine(): boolean {
+    return this.formGroup?.pristine ?? true;
+  }
+
   private static createFormControl(field: FormFieldConfig): FormControl {
     const validators: Array<ValidatorFn> = [];
     const asyncValidator: Array<AsyncValidatorFn> = [];
@@ -320,6 +324,13 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
   }
 
   /**
+   * Marks all descendants pristine.
+   */
+  public markAsPristine(): void {
+    this.formGroup?.markAsPristine();
+  }
+
+  /**
    * Get the list of fields used in this form.
    *
    * @param all If set to `true`, all fields are included, also those
@@ -368,8 +379,8 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
     const successful = ConstraintService.test(modifier.constraint, this.allValues);
     const opposite = _.defaultTo(modifier?.opposite, true);
     const control: AbstractControl | null = this.getControl(field.name!);
-    const nativeElement: HTMLElement = _.get(control, 'nativeElement');
-    const formFieldElement = nativeElement && nativeElement.closest('.form-field');
+    const nativeElement: HTMLElement | undefined = _.get(control, 'nativeElement');
+    const formFieldElement = nativeElement && (nativeElement as HTMLElement).closest('.form-field');
     switch (modifier.type) {
       case 'readonly':
         if (successful) {
