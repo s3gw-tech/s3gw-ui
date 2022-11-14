@@ -9,6 +9,7 @@ import { UserDatatablePageComponent } from '~/app/pages/admin/user/user-datatabl
 import { UserFormPageComponent } from '~/app/pages/admin/user/user-form-page/user-form-page.component';
 import { UserKeyDatatablePageComponent } from '~/app/pages/admin/user/user-key-datatable-page/user-key-datatable-page.component';
 import { UserKeyFormPageComponent } from '~/app/pages/admin/user/user-key-form-page/user-key-form-page.component';
+import { IsDirtyGuardService } from '~/app/shared/services/is-dirty-guard.service';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -28,12 +29,14 @@ const routes: Routes = [
       {
         path: 'create',
         data: { subTitle: TEXT('Create'), title: TEXT('Bucket:'), url: '..' },
-        component: BucketFormPageComponent
+        component: BucketFormPageComponent,
+        canDeactivate: [IsDirtyGuardService]
       },
       {
         path: 'edit/:bid',
         data: { subTitle: '{{ bid }}', title: TEXT('Bucket:'), url: '../..' },
-        component: BucketFormPageComponent
+        component: BucketFormPageComponent,
+        canDeactivate: [IsDirtyGuardService]
       }
     ]
   },
@@ -48,12 +51,14 @@ const routes: Routes = [
       {
         path: 'create',
         data: { subTitle: TEXT('Create'), title: TEXT('User:'), url: '..' },
-        component: UserFormPageComponent
+        component: UserFormPageComponent,
+        canDeactivate: [IsDirtyGuardService]
       },
       {
         path: 'edit/:uid',
         data: { subTitle: '{{ uid }}', title: TEXT('User:'), url: '../..' },
-        component: UserFormPageComponent
+        component: UserFormPageComponent,
+        canDeactivate: [IsDirtyGuardService]
       },
       {
         path: ':uid/key',
@@ -66,7 +71,8 @@ const routes: Routes = [
           {
             path: 'create',
             data: { subTitle: TEXT('Create'), title: TEXT('User Key:'), url: '..' },
-            component: UserKeyFormPageComponent
+            component: UserKeyFormPageComponent,
+            canDeactivate: [IsDirtyGuardService]
           }
         ]
       }

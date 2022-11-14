@@ -10,6 +10,7 @@ import { extractErrorCode, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
+import { IsDirty } from '~/app/shared/models/is-dirty.interface';
 import { AdminOpsBucketService, Bucket } from '~/app/shared/services/api/admin-ops-bucket.service';
 import { AdminOpsUserService } from '~/app/shared/services/api/admin-ops-user.service';
 
@@ -18,7 +19,7 @@ import { AdminOpsUserService } from '~/app/shared/services/api/admin-ops-user.se
   templateUrl: './bucket-form-page.component.html',
   styleUrls: ['./bucket-form-page.component.scss']
 })
-export class BucketFormPageComponent implements OnInit {
+export class BucketFormPageComponent implements OnInit, IsDirty {
   @ViewChild(DeclarativeFormComponent, { static: false })
   form!: DeclarativeFormComponent;
 
@@ -75,7 +76,7 @@ export class BucketFormPageComponent implements OnInit {
         .subscribe({
           next: (bucket: Bucket) => {
             this.pageStatus = PageStatus.ready;
-            this.form.patchValues(bucket);
+            this.form.patchValues(bucket, false);
           },
           error: (err) => {
             this.pageStatus = PageStatus.loadingError;
@@ -85,6 +86,10 @@ export class BucketFormPageComponent implements OnInit {
           }
         });
     });
+  }
+
+  isDirty(): boolean {
+    return !this.form.pristine;
   }
 
   private createForm(editing: boolean) {
@@ -152,8 +157,10 @@ export class BucketFormPageComponent implements OnInit {
 
   private createBucket(): void {
     const bucket: Bucket = this.form.values as Bucket;
+    this.pageStatus = PageStatus.saving;
     this.adminOpsBucketService.create(bucket).subscribe({
       next: () => {
+        this.form.markAsPristine();
         this.router.navigate(['/admin/buckets']);
       },
       error: (err) => {
@@ -167,8 +174,10 @@ export class BucketFormPageComponent implements OnInit {
 
   private updateBucket(): void {
     const bucket: Partial<Bucket> = this.form.values;
+    this.pageStatus = PageStatus.saving;
     this.adminOpsBucketService.update(bucket).subscribe({
       next: () => {
+        this.form.markAsPristine();
         this.router.navigate(['/admin/buckets']);
       },
       error: (err) => {

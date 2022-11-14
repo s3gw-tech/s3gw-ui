@@ -13,6 +13,7 @@ import {
   DeclarativeFormConfig,
   DeclarativeFormValues
 } from '~/app/shared/models/declarative-form-config.type';
+import { IsDirty } from '~/app/shared/models/is-dirty.interface';
 import { AdminOpsUserService, Quota, User } from '~/app/shared/services/api/admin-ops-user.service';
 
 @Component({
@@ -20,7 +21,7 @@ import { AdminOpsUserService, Quota, User } from '~/app/shared/services/api/admi
   templateUrl: './user-form-page.component.html',
   styleUrls: ['./user-form-page.component.scss']
 })
-export class UserFormPageComponent implements OnInit {
+export class UserFormPageComponent implements OnInit, IsDirty {
   @ViewChild(DeclarativeFormComponent, { static: false })
   form!: DeclarativeFormComponent;
 
@@ -52,7 +53,7 @@ export class UserFormPageComponent implements OnInit {
           this.pageStatus = PageStatus.ready;
           this.patchMaxBuckets(user, true);
           this.patchQuota(user);
-          this.form.patchValues(user);
+          this.form.patchValues(user, false);
         },
         error: (err) => {
           this.pageStatus = PageStatus.loadingError;
@@ -62,6 +63,10 @@ export class UserFormPageComponent implements OnInit {
         }
       });
     });
+  }
+
+  isDirty(): boolean {
+    return !this.form.pristine;
   }
 
   private createForm(editing: boolean) {
@@ -415,9 +420,11 @@ export class UserFormPageComponent implements OnInit {
       const quota: Quota = this.getQuota('bucket');
       observables.push(this.userService.updateQuota(user.user_id, quota));
     }
+    this.pageStatus = PageStatus.saving;
     // Execute all observables one after the other in series.
     concat(...observables).subscribe({
       next: () => {
+        this.form.markAsPristine();
         this.router.navigate(['/admin/users']);
       },
       error: (err) => {
@@ -443,9 +450,11 @@ export class UserFormPageComponent implements OnInit {
       const quota: Quota = this.getQuota('bucket');
       observables.push(this.userService.updateQuota(user.user_id!, quota));
     }
+    this.pageStatus = PageStatus.saving;
     // Execute all observables one after the other in series.
     concat(...observables).subscribe({
       next: () => {
+        this.form.markAsPristine();
         this.router.navigate(['/admin/users']);
       },
       error: (err) => {

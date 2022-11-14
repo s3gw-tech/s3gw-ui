@@ -10,6 +10,7 @@ import { extractErrorCode, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
+import { IsDirty } from '~/app/shared/models/is-dirty.interface';
 import { S3Bucket, S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
 
 @Component({
@@ -17,7 +18,7 @@ import { S3Bucket, S3BucketService } from '~/app/shared/services/api/s3-bucket.s
   templateUrl: './bucket-form-page.component.html',
   styleUrls: ['./bucket-form-page.component.scss']
 })
-export class BucketFormPageComponent implements OnInit {
+export class BucketFormPageComponent implements OnInit, IsDirty {
   @ViewChild(DeclarativeFormComponent, { static: false })
   form!: DeclarativeFormComponent;
 
@@ -47,7 +48,7 @@ export class BucketFormPageComponent implements OnInit {
       this.s3BucketService.get(bid).subscribe({
         next: (bucket: S3Bucket) => {
           this.pageStatus = PageStatus.ready;
-          this.form.patchValues(bucket);
+          this.form.patchValues(bucket, false);
         },
         error: (err) => {
           this.pageStatus = PageStatus.loadingError;
@@ -57,6 +58,10 @@ export class BucketFormPageComponent implements OnInit {
         }
       });
     });
+  }
+
+  isDirty(): boolean {
+    return !this.form.pristine;
   }
 
   private createForm(editing: boolean) {
@@ -112,8 +117,10 @@ export class BucketFormPageComponent implements OnInit {
 
   private createBucket(): void {
     const bucket: S3Bucket = this.form.values as S3Bucket;
+    this.pageStatus = PageStatus.saving;
     this.s3BucketService.create(bucket).subscribe({
       next: () => {
+        this.form.markAsPristine();
         this.router.navigate(['/user/buckets']);
       },
       error: (err) => {
@@ -127,8 +134,10 @@ export class BucketFormPageComponent implements OnInit {
 
   private updateBucket(): void {
     const bucket: Partial<S3Bucket> = this.form.values;
+    this.pageStatus = PageStatus.saving;
     this.s3BucketService.update(bucket).subscribe({
       next: () => {
+        this.form.markAsPristine();
         this.router.navigate(['/user/buckets']);
       },
       error: (err) => {

@@ -4,18 +4,16 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
-import {
-  DeclarativeFormConfig,
-  FormButtonConfig
-} from '~/app/shared/models/declarative-form-config.type';
-import { AdminOpsUserService, Key, User } from '~/app/shared/services/api/admin-ops-user.service';
+import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
+import { IsDirty } from '~/app/shared/models/is-dirty.interface';
+import { AdminOpsUserService, Key } from '~/app/shared/services/api/admin-ops-user.service';
 
 @Component({
   selector: 's3gw-user-key-form-page',
   templateUrl: './user-key-form-page.component.html',
   styleUrls: ['./user-key-form-page.component.scss']
 })
-export class UserKeyFormPageComponent implements OnInit {
+export class UserKeyFormPageComponent implements OnInit, IsDirty {
   @ViewChild(DeclarativeFormComponent, { static: false })
   form!: DeclarativeFormComponent;
 
@@ -42,6 +40,10 @@ export class UserKeyFormPageComponent implements OnInit {
     });
   }
 
+  isDirty(): boolean {
+    return !this.form.pristine;
+  }
+
   private createForm() {
     this.config = {
       buttons: [
@@ -55,8 +57,10 @@ export class UserKeyFormPageComponent implements OnInit {
           text: TEXT('Create'),
           click: () => {
             const key: Key = this.form.values as Key;
+            this.pageStatus = PageStatus.saving;
             this.userService.createKey(this.uid, key).subscribe({
               next: () => {
+                this.form.markAsPristine();
                 this.router.navigate([`/admin/users/${this.uid}/key`]);
               },
               error: () => {

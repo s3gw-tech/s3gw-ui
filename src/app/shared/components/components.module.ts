@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslocoModule } from '@ngneat/transloco';
+import { BlockUIModule } from 'ng-block-ui';
 
 import { AlertPanelComponent } from '~/app/shared/components/alert-panel/alert-panel.component';
 import { BreadcrumbsComponent } from '~/app/shared/components/breadcrumbs/breadcrumbs.component';
@@ -55,6 +56,7 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     PageTitleComponent
   ],
   imports: [
+    BlockUIModule,
     CommonModule,
     DirectivesModule,
     FormsModule,
