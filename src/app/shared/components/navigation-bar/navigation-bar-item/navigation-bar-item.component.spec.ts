@@ -2,10 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
 import { ComponentsModule } from '~/app/shared/components/components.module';
-import {
-  NavigationBarItemComponent,
-  NavigationItem
-} from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
+import { NavigationBarItemComponent } from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
+import { NavigationItem } from '~/app/shared/models/navigation-item.type';
 import { TestingModule } from '~/app/testing.module';
 
 describe('NavigationBarItemComponent', () => {
@@ -14,14 +12,15 @@ describe('NavigationBarItemComponent', () => {
   let router: Router;
 
   const item: NavigationItem = {
-    name: 'item',
+    text: 'item',
     icon: 'mdi:apps',
-    route: '/itemroute'
+    url: '/itemroute'
   };
   const itemSubs: NavigationItem = {
-    name: 'itemSubs',
+    text: 'itemSubs',
     icon: 'mdi:apps',
-    children: [item]
+    children: [item],
+    expanded: false
   };
 
   beforeEach(async () => {
@@ -53,8 +52,9 @@ describe('NavigationBarItemComponent', () => {
   });
 
   it('should not navigate and show subs if defined', () => {
+    expect(itemSubs.expanded).toBeFalsy();
     component.itemClicked(itemSubs);
     expect(router.navigate).not.toHaveBeenCalled();
-    expect(component.showSub).toBe(true);
+    expect(itemSubs.expanded).toBeTruthy();
   });
 });

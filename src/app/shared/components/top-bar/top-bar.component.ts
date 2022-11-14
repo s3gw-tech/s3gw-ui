@@ -1,9 +1,5 @@
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
-import { Event, NavigationEnd, Router } from '@angular/router';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import * as _ from 'lodash';
-import { Subscription } from 'rxjs';
-import { distinctUntilChanged, filter } from 'rxjs/operators';
 
 import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
@@ -16,35 +12,19 @@ import { DialogService } from '~/app/shared/services/dialog.service';
   templateUrl: './top-bar.component.html',
   styleUrls: ['./top-bar.component.scss']
 })
-export class TopBarComponent implements OnDestroy {
+export class TopBarComponent {
   @Output()
   readonly toggleNavigation = new EventEmitter<any>();
 
   public userId: string | null;
-  public isAdmin?: boolean;
   public icons = Icon;
-
-  private subscription: Subscription;
 
   constructor(
     private authService: AuthService,
     private authStorageService: AuthStorageService,
-    private dialogService: DialogService,
-    private router: Router
+    private dialogService: DialogService
   ) {
     this.userId = this.authStorageService.getUserId();
-    this.subscription = this.router.events
-      .pipe(
-        filter((x) => x instanceof NavigationEnd),
-        distinctUntilChanged()
-      )
-      .subscribe((event: Event) => {
-        this.isAdmin = _.startsWith((event as NavigationEnd).urlAfterRedirects, '/admin');
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
   }
 
   onToggleNavigation(): void {

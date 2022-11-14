@@ -16,11 +16,14 @@ export class AuthStorageService {
    * @param accessKey The access key of the current user.
    * @param secretKey The secret key of the current user.
    *   This is required to sign AdminOps API request.
+   * @param isAdmin Whether or not the user has administrator
+   *   privileges. Defaults to `false`.
    */
-  set(userId: string, accessKey: string, secretKey: string): void {
+  set(userId: string, accessKey: string, secretKey: string, isAdmin: boolean = false): void {
     sessionStorage.setItem('userId', userId);
     sessionStorage.setItem('accessKey', accessKey);
     sessionStorage.setItem('secretKey', secretKey);
+    sessionStorage.setItem('isAdmin', isAdmin ? 'yes' : 'no');
   }
 
   getCredentials(): Credentials {
@@ -38,10 +41,15 @@ export class AuthStorageService {
     sessionStorage.removeItem('userId');
     sessionStorage.removeItem('accessKey');
     sessionStorage.removeItem('secretKey');
+    sessionStorage.removeItem('isAdmin');
   }
 
-  isLoggedIn() {
+  isLoggedIn(): boolean {
     const credentials = this.getCredentials();
     return !_.isNull(credentials.accessKey);
+  }
+
+  isAdmin(): boolean {
+    return sessionStorage.getItem('isAdmin') === 'yes';
   }
 }

@@ -70,7 +70,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
         {
           type: 'default',
           text: TEXT('Cancel'),
-          click: () => this.router.navigate(['/user/buckets'])
+          click: () => this.router.navigate(['/buckets'])
         },
         {
           type: 'submit',
@@ -121,7 +121,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
     this.s3BucketService.create(bucket).subscribe({
       next: () => {
         this.form.markAsPristine();
-        this.router.navigate(['/user/buckets']);
+        this.router.navigate(['/buckets']);
       },
       error: (err) => {
         this.pageStatus = PageStatus.savingError;
@@ -138,7 +138,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
     this.s3BucketService.update(bucket).subscribe({
       next: () => {
         this.form.markAsPristine();
-        this.router.navigate(['/user/buckets']);
+        this.router.navigate(['/buckets']);
       },
       error: (err) => {
         this.pageStatus = PageStatus.savingError;

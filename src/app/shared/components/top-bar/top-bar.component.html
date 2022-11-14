@@ -15,11 +15,19 @@
     </button>
     <div ngbDropdownMenu>
       <a ngbDropdownItem
-         href="https://github.com/aquarist-labs/s3gw"
+         href="https://aquarist-labs.io/s3gw/"
          target="_blank">
         <div>
           <i class="mdi mdi-web mr-1"></i>
           <span>{{ "Website" | transloco }}</span>
+        </div>
+      </a>
+      <a ngbDropdownItem
+         href="https://github.com/aquarist-labs/s3gw"
+         target="_blank">
+        <div>
+          <i class="mdi mdi-github mr-1"></i>
+          <span>{{ "GitHub" | transloco }}</span>
         </div>
       </a>
     </div>
@@ -29,9 +37,7 @@
        placement="bottom-right">
     <button class="btn btn-simple"
             ngbDropdownToggle>
-      <i [class]="icons.user"
-         [ngClass]="{'s3gw-color-danger': isAdmin}">
-      </i>
+      <i [class]="icons.user"></i>
     </button>
     <div ngbDropdownMenu>
       <div ngbDropdownItem

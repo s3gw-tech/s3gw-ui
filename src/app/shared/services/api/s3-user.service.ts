@@ -40,7 +40,7 @@ export class S3UserService {
       map((resp: AWS.S3.Types.ListBucketsOutput) => ({
         userId: resp.Owner!.ID!,
         displayName: resp.Owner!.DisplayName!,
-        redirectUrl: '/user'
+        isAdmin: false
       }))
     );
   }

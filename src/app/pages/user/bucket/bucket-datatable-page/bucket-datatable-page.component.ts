@@ -59,7 +59,7 @@ export class BucketDatatablePageComponent {
         cellTemplateConfig: {
           text: TEXT('Explore'),
           class: 'btn-primary',
-          url: '/user/objects/{{ Name }}'
+          url: '/objects/{{ Name }}'
         }
       },
       {
@@ -100,7 +100,7 @@ export class BucketDatatablePageComponent {
   }
 
   onCreate(): void {
-    this.router.navigate(['/user/buckets/create/']);
+    this.router.navigate(['/buckets/create/']);
   }
 
   onActionMenu(bucket: S3Bucket): DatatableActionItem[] {

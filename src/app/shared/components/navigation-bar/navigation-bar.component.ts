@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-import { NavigationItem } from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
+import { NavigationItem } from '~/app/shared/models/navigation-item.type';
 
 @Component({
   selector: 's3gw-navigation-bar',
