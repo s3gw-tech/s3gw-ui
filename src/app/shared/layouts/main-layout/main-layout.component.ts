@@ -16,7 +16,7 @@ export class MainLayoutComponent implements OnDestroy {
   private subscription: Subscription;
 
   constructor(private navigationConfigService: NavigationConfigService) {
-    this.subscription = navigationConfigService.items$.subscribe(
+    this.subscription = navigationConfigService.config$.subscribe(
       (items) => (this.navigationItems = items)
     );
   }

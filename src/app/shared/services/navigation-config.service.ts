@@ -1,56 +1,86 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
+import { ViewMode } from '~/app/shared/enum/view-mode.enum';
 import { NavigationItem } from '~/app/shared/models/navigation-item.type';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+
+type NavigationConfigs = {
+  [mode: string]: {
+    // The URL that is called whenever the view mode is changed.
+    startUrl: string;
+    items: {
+      text: string;
+      icon: string;
+      url: string;
+    }[];
+  };
+};
+
 @Injectable({
   providedIn: 'root'
 })
 export class NavigationConfigService {
-  public readonly items$: Observable<NavigationItem[]>;
+  public readonly config$: Observable<NavigationItem[]>;
 
-  private itemsSource = new BehaviorSubject<NavigationItem[]>([]);
-
-  constructor(private authStorageService: AuthStorageService) {
-    const items: NavigationItem[] = [
-      {
-        text: TEXT('Dashboard'),
-        icon: Icon.apps,
-        url: '/dashboard'
-      },
-      {
-        text: TEXT('Buckets'),
-        icon: Icon.bucket,
-        url: '/buckets'
-      }
-    ];
-    if (authStorageService.isAdmin()) {
-      items.push({
-        text: TEXT('Administration'),
-        icon: Icon.cog,
-        expanded: false,
-        children: [
-          {
-            text: TEXT('Dashboard'),
-            icon: Icon.apps,
-            url: '/admin/dashboard'
-          },
-          {
-            text: TEXT('Users'),
-            icon: Icon.users,
-            url: '/admin/users'
-          },
-          {
-            text: TEXT('Buckets'),
-            icon: Icon.bucket,
-            url: '/admin/buckets'
-          }
-        ]
-      });
+  private viewMode: ViewMode = ViewMode.user;
+  private itemsSource: BehaviorSubject<NavigationItem[]>;
+  private configs: NavigationConfigs = {
+    admin: {
+      startUrl: '/admin/dashboard',
+      items: [
+        {
+          text: TEXT('Dashboard'),
+          icon: Icon.apps,
+          url: '/admin/dashboard'
+        },
+        {
+          text: TEXT('Users'),
+          icon: Icon.users,
+          url: '/admin/users'
+        },
+        {
+          text: TEXT('Buckets'),
+          icon: Icon.bucket,
+          url: '/admin/buckets'
+        }
+      ]
+    },
+    user: {
+      startUrl: '/dashboard',
+      items: [
+        {
+          text: TEXT('Dashboard'),
+          icon: Icon.apps,
+          url: '/dashboard'
+        },
+        {
+          text: TEXT('Buckets'),
+          icon: Icon.bucket,
+          url: '/buckets'
+        }
+      ]
     }
-    this.items$ = this.itemsSource.asObservable();
-    this.itemsSource.next(items);
+  };
+
+  constructor(private router: Router) {
+    this.itemsSource = new BehaviorSubject<NavigationItem[]>([]);
+    this.config$ = this.itemsSource.asObservable();
+    this.setViewMode(this.viewMode, false);
+  }
+
+  get currentViewMode(): ViewMode {
+    return this.viewMode;
+  }
+
+  setViewMode(viewMode: ViewMode, navigate: boolean = true): void {
+    this.viewMode = viewMode;
+    this.itemsSource.next(this.configs[this.viewMode].items);
+    if (navigate) {
+      const url = this.configs[this.viewMode].startUrl;
+      this.router.navigate([url]);
+    }
   }
 }

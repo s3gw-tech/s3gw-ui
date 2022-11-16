@@ -100,7 +100,7 @@ export class BucketDatatablePageComponent {
   }
 
   onCreate(): void {
-    this.router.navigate(['/buckets/create/']);
+    this.router.navigate(['/buckets/create']);
   }
 
   onActionMenu(bucket: S3Bucket): DatatableActionItem[] {
