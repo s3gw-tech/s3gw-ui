@@ -266,20 +266,18 @@
                      [ngClass]="{'required': !field.readonly && field.validators?.required!}">
                 {{ field.label | transloco }}
               </label>
-              <div class="select-wrapper">
-                <select class="form-control"
-                        [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                        [id]="field.name"
-                        [formControlName]="field.name"
-                        [autofocus]="field.autofocus"
-                        [required]="field.validators?.required!">
-                  <option *ngFor="let option of field.options | keyvalue"
-                          [value]="option.key"
-                          [selected]="option.key === field.value">
-                    {{ option.value | toString | transloco }}
-                  </option>
-                </select>
-              </div>
+              <select class="form-select"
+                      [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                      [id]="field.name"
+                      [formControlName]="field.name"
+                      [autofocus]="field.autofocus"
+                      [required]="field.validators?.required!">
+                <option *ngFor="let option of field.options | keyvalue"
+                        [value]="option.key"
+                        [selected]="option.key === field.value">
+                  {{ option.value | toString | transloco }}
+                </option>
+              </select>
               <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                      class="form-text text-muted"
                      [innerHTML]="field.hint | transloco | sanitize:'html'">
