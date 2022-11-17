@@ -1,6 +1,18 @@
 .s3gw-declarative-form {
-  .form-label.required::after {
-    color: var(--bs-danger);
-    content: '*';
+  .form-label {
+    // Always position label in upper left corner.
+    opacity: 0.65;
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+
+    &.required::after {
+      color: var(--bs-danger);
+      content: '*';
+    }
+  }
+
+  .form-floating > .form-control:focus ~ .form-label,
+  .form-floating > .form-select:focus ~ .form-label {
+    opacity: initial;
+    color: var(--bs-primary);
   }
 }

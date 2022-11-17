@@ -26,26 +26,28 @@
           <ng-template [ngSwitchCase]="'password'">
             <div class="col form-field mb-2"
                  [class]="field.groupClass">
-              <label *ngIf="field.label"
-                     class="form-label"
-                     [for]="field.name"
-                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
-                {{ field.label | transloco }}
-              </label>
               <div class="input-group">
-                <input #passwordInput
-                       class="form-control"
-                       type="password"
-                       autocorrect="off"
-                       autocapitalize="none"
-                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                       [id]="field.name"
-                       [formControlName]="field.name"
-                       [placeholder]="field.placeholder"
-                       [readonly]="field.readonly"
-                       [required]="field.validators?.required!"
-                       [autofocus]="field.autofocus"
-                       (paste)="onPaste(field, $event)">
+                <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
+                  <input #passwordInput
+                         class="form-control"
+                         type="password"
+                         autocorrect="off"
+                         autocapitalize="none"
+                         [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                         [id]="field.name"
+                         [formControlName]="field.name"
+                         [placeholder]="field.placeholder"
+                         [readonly]="field.readonly"
+                         [required]="field.validators?.required!"
+                         [autofocus]="field.autofocus"
+                         (paste)="onPaste(field, $event)">
+                  <label *ngIf="field.label"
+                         class="form-label"
+                         [for]="field.name"
+                         [ngClass]="{'required': !field.readonly && field.validators?.required!}">
+                    {{ field.label | transloco }}
+                  </label>
+                </div>
                 <button type="button"
                         class="btn btn-input-group"
                         title="{{ passwordInput.type === 'password' ? 'Show' : 'Hide' | transloco }}"
@@ -90,23 +92,25 @@
           <ng-template [ngSwitchCase]="'text'">
             <div class="col form-field mb-2"
                  [class]="field.groupClass">
-              <label *ngIf="field.label"
-                     class="form-label"
-                     [for]="field.name"
-                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
-                {{ field.label | transloco }}
-              </label>
               <div class="input-group">
-                <input class="form-control"
-                       type="text"
-                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                       [id]="field.name"
-                       [formControlName]="field.name"
-                       [placeholder]="field.placeholder"
-                       [readonly]="field.readonly"
-                       [required]="field.validators?.required!"
-                       [autofocus]="field.autofocus"
-                       (paste)="onPaste(field, $event)">
+                <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
+                  <input class="form-control"
+                         type="text"
+                         [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                         [id]="field.name"
+                         [formControlName]="field.name"
+                         [placeholder]="field.placeholder"
+                         [readonly]="field.readonly"
+                         [required]="field.validators?.required!"
+                         [autofocus]="field.autofocus"
+                         (paste)="onPaste(field, $event)">
+                  <label *ngIf="field.label"
+                         class="form-label"
+                         [for]="field.name"
+                         [ngClass]="{'required': !field.readonly && field.validators?.required!}">
+                    {{ field.label | transloco }}
+                  </label>
+                </div>
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
                         class="btn btn-input-group"
@@ -149,24 +153,26 @@
           <ng-template [ngSwitchCase]="'number'">
             <div class="col form-field mb-2"
                  [class]="field.groupClass">
-              <label *ngIf="field.label"
-                     class="form-label"
-                     [for]="field.name"
-                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
-                {{ field.label | transloco }}
-              </label>
               <div class="input-group">
-                <input class="form-control"
-                       type="number"
-                       inputmode="numeric"
-                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                       [id]="field.name"
-                       [formControlName]="field.name"
-                       [placeholder]="field.placeholder"
-                       [readonly]="field.readonly"
-                       [required]="field.validators?.required!"
-                       [autofocus]="field.autofocus"
-                       (paste)="onPaste(field, $event)">
+                <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
+                  <input class="form-control"
+                         type="number"
+                         inputmode="numeric"
+                         [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                         [id]="field.name"
+                         [formControlName]="field.name"
+                         [placeholder]="field.placeholder"
+                         [readonly]="field.readonly"
+                         [required]="field.validators?.required!"
+                         [autofocus]="field.autofocus"
+                         (paste)="onPaste(field, $event)">
+                  <label *ngIf="field.label"
+                         class="form-label"
+                         [for]="field.name"
+                         [ngClass]="{'required': !field.readonly && field.validators?.required!}">
+                    {{ field.label | transloco }}
+                  </label>
+                </div>
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
                         class="btn btn-input-group"
@@ -260,24 +266,26 @@
           <ng-template [ngSwitchCase]="'select'">
             <div class="col form-field mb-2"
                  [class]="field.groupClass">
-              <label *ngIf="field.label"
-                     class="form-label"
-                     [for]="field.name"
-                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
-                {{ field.label | transloco }}
-              </label>
-              <select class="form-select"
-                      [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                      [id]="field.name"
-                      [formControlName]="field.name"
-                      [autofocus]="field.autofocus"
-                      [required]="field.validators?.required!">
-                <option *ngFor="let option of field.options | keyvalue"
-                        [value]="option.key"
-                        [selected]="option.key === field.value">
-                  {{ option.value | toString | transloco }}
-                </option>
-              </select>
+              <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
+                <select class="form-select"
+                        [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                        [id]="field.name"
+                        [formControlName]="field.name"
+                        [autofocus]="field.autofocus"
+                        [required]="field.validators?.required!">
+                  <option *ngFor="let option of field.options | keyvalue"
+                          [value]="option.key"
+                          [selected]="option.key === field.value">
+                    {{ option.value | toString | transloco }}
+                  </option>
+                </select>
+                <label *ngIf="field.label"
+                       class="form-label"
+                       [for]="field.name"
+                       [ngClass]="{'required': !field.readonly && field.validators?.required!}">
+                  {{ field.label | transloco }}
+                </label>
+              </div>
               <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                      class="form-text text-muted"
                      [innerHTML]="field.hint | transloco | sanitize:'html'">
@@ -296,26 +304,28 @@
           <ng-template [ngSwitchCase]="'binary'">
             <div class="col form-field mb-2"
                  [class]="field.groupClass">
-              <label *ngIf="field.label"
-                     class="form-label"
-                     [for]="field.name"
-                     [ngClass]="{'required': !field.readonly && field.validators?.required!}">
-                {{ field.label | transloco }}
-              </label>
               <div class="input-group">
-                <input class="form-control"
-                       type="text"
-                       inputmode="numeric"
-                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                       [id]="field.name"
-                       [formControlName]="field.name"
-                       [placeholder]="field.placeholder"
-                       [readonly]="field.readonly"
-                       [required]="field.validators?.required!"
-                       [autofocus]="field.autofocus"
-                       (paste)="onPaste(field, $event)"
-                       dimlessBinary
-                       [defaultUnit]="field.defaultUnit">
+                <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
+                  <input class="form-control"
+                         type="text"
+                         inputmode="numeric"
+                         [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                         [id]="field.name"
+                         [formControlName]="field.name"
+                         [placeholder]="field.placeholder"
+                         [readonly]="field.readonly"
+                         [required]="field.validators?.required!"
+                         [autofocus]="field.autofocus"
+                         (paste)="onPaste(field, $event)"
+                         dimlessBinary
+                         [defaultUnit]="field.defaultUnit">
+                  <label *ngIf="field.label"
+                         class="form-label"
+                         [for]="field.name"
+                         [ngClass]="{'required': !field.readonly && field.validators?.required!}">
+                    {{ field.label | transloco }}
+                  </label>
+                </div>
                 <button *ngIf="field.hasCopyToClipboardButton"
                         type="button"
                         class="btn btn-input-group"
