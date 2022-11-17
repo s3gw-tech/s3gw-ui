@@ -6,19 +6,12 @@ import { BlockUIModule } from 'ng-block-ui';
 
 import { ComponentsModule } from '~/app/shared/components/components.module';
 import { DirectivesModule } from '~/app/shared/directives/directives.module';
-import { AdminLayoutComponent } from '~/app/shared/layouts/admin-layout/admin-layout.component';
 import { BlankLayoutComponent } from '~/app/shared/layouts/blank-layout/blank-layout.component';
 import { MainLayoutComponent } from '~/app/shared/layouts/main-layout/main-layout.component';
-import { UserLayoutComponent } from '~/app/shared/layouts/user-layout/user-layout.component';
 import { PipesModule } from '~/app/shared/pipes/pipes.module';
 
 @NgModule({
-  declarations: [
-    AdminLayoutComponent,
-    BlankLayoutComponent,
-    UserLayoutComponent,
-    MainLayoutComponent
-  ],
+  declarations: [BlankLayoutComponent, MainLayoutComponent],
   imports: [
     BlockUIModule.forRoot(),
     CommonModule,
@@ -28,12 +21,6 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     RouterModule,
     TranslocoModule
   ],
-  exports: [
-    AdminLayoutComponent,
-    BlankLayoutComponent,
-    ComponentsModule,
-    DirectivesModule,
-    PipesModule
-  ]
+  exports: [BlankLayoutComponent, ComponentsModule, DirectivesModule, PipesModule]
 })
 export class SharedModule {}

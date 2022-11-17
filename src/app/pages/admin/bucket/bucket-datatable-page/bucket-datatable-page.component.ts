@@ -98,7 +98,7 @@ export class BucketDatatablePageComponent {
   }
 
   onCreate(): void {
-    this.router.navigate(['/admin/buckets/create/']);
+    this.router.navigate(['/admin/buckets/create']);
   }
 
   onActionMenu(bucket: Bucket): DatatableActionItem[] {

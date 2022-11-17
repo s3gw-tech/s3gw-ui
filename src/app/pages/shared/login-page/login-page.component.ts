@@ -51,12 +51,6 @@ export class LoginPageComponent implements OnInit {
         validators: {
           required: true
         }
-      },
-      {
-        name: 'admin',
-        type: 'checkbox',
-        label: TEXT('Log in as administrator.'),
-        value: false
       }
     ]
   };
@@ -80,11 +74,11 @@ export class LoginPageComponent implements OnInit {
     this.blockUI.start(translate(TEXT('Please wait ...')));
     const values = this.form.values;
     this.authService
-      .login(values['accessKey'], values['secretKey'], values['admin'])
+      .login(values['accessKey'], values['secretKey'])
       .pipe(finalize(() => this.blockUI.stop()))
       .subscribe({
         next: (resp: AuthResponse) => {
-          this.router.navigate([resp.redirectUrl]);
+          this.router.navigate(['/dashboard']);
         },
         error: (err) => {
           err.preventAll?.();

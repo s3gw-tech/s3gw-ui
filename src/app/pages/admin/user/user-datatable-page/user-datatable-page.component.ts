@@ -147,7 +147,7 @@ export class UserDatatablePageComponent {
   }
 
   onCreate(): void {
-    this.router.navigate(['/admin/users/create/']);
+    this.router.navigate(['/admin/users/create']);
   }
 
   onActionMenu(user: User): DatatableActionItem[] {

@@ -83,7 +83,7 @@ export class AdminOpsUserService {
       map((resp: User) => ({
         userId: resp.user_id,
         displayName: resp.display_name,
-        redirectUrl: '/admin'
+        isAdmin: true
       }))
     );
   }

@@ -1,28 +1,22 @@
-<li class="menu-item"
-    [ngbNavItem]="item.name"
-    [routerLink]="item.route"
+<li [ngbNavItem]="item.text"
+    [routerLink]="item.url"
     [ngStyle]="{'padding-left': (depth * 1.5) + 'rem'}"
     (click)="itemClicked(item)"
     [routerLinkActiveOptions]="{exact: false}"
-    [ngClass]="{'has-subs': item.children && item.children.length}"
     routerLinkActive="selected"
     ngbNav>
-  <a class="menu-title"
+  <a class="w-100 d-flex flex-row"
      ngbNavLink>
-    <div class="d-flex flex-row flex-grow-1">
-      <i class="me-3"
-         [class]="item.icon"></i>
-      {{ item.name | transloco }}
-      <div class="d-flex"
-           *ngIf="item.children && item.children.length">
-        <div class="d-flex"></div>
-        <i class="mdi mdi-chevron-right"
-           [ngClass]="{'rotated': showSub}"></i>
-      </div>
-    </div>
+    <i class="me-3"
+       [class]="item.icon"></i>
+    {{ item.text | transloco }}
+    <i *ngIf="item.children && item.children.length"
+       class="w-100 d-flex justify-content-end"
+       [class]="item.expanded ? icons.chevronUp : icons.chevronDown">
+    </i>
   </a>
 </li>
-<div *ngIf="showSub">
+<div *ngIf="item.expanded">
   <s3gw-navigation-bar-item *ngFor="let child of item.children"
                             [item]="child"
                             [depth]="depth + 1">

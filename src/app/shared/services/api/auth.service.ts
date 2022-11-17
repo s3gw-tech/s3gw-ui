@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { finalize, tap } from 'rxjs/operators';
+import { catchError, finalize, tap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { AdminOpsUserService, User } from '~/app/shared/services/api/admin-ops-user.service';
@@ -10,8 +10,7 @@ import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 export type AuthResponse = {
   userId: string;
   displayName: string;
-  // The URL the user is redirected to after a successful login.
-  redirectUrl: string;
+  isAdmin: boolean;
 };
 
 @Injectable({
@@ -24,19 +23,21 @@ export class AuthService {
     private s3UserService: S3UserService
   ) {}
 
-  public login(
-    accessKey: string,
-    secretKey: string,
-    admin: boolean = false
-  ): Observable<AuthResponse> {
+  public login(accessKey: string, secretKey: string): Observable<AuthResponse> {
     const credentials: Credentials = Credentials.fromStrings(accessKey, secretKey);
-    return (
-      admin
-        ? this.adminOpsUserService.authenticate(credentials)
-        : this.s3UserService.authenticate(credentials)
-    ).pipe(
+    // Try to access a RGW Admin Ops endpoint first. If that works, the
+    // given credentials have `admin` privileges. If it fails, try to
+    // access a RGW endpoint. If that works, the given credentials can
+    // be used to sign in as `regular` user.
+    return this.adminOpsUserService.authenticate(credentials).pipe(
+      catchError(() => this.s3UserService.authenticate(credentials)),
       tap((resp: AuthResponse) => {
-        this.authStorageService.set(resp.userId, credentials.accessKey!, credentials.secretKey!);
+        this.authStorageService.set(
+          resp.userId,
+          credentials.accessKey!,
+          credentials.secretKey!,
+          resp.isAdmin
+        );
       })
     );
   }

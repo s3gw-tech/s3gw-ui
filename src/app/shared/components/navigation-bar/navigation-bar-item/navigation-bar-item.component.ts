@@ -1,12 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
-export type NavigationItem = {
-  name: string;
-  icon: string;
-  route?: string;
-  children?: NavigationItem[];
-};
+import { Icon } from '~/app/shared/enum/icon.enum';
+import { NavigationItem } from '~/app/shared/models/navigation-item.type';
 
 @Component({
   selector: 's3gw-navigation-bar-item',
@@ -20,7 +16,7 @@ export class NavigationBarItemComponent implements OnInit {
   @Input()
   depth = 0;
 
-  showSub = false;
+  public icons = Icon;
 
   constructor(private router: Router) {}
 
@@ -28,9 +24,9 @@ export class NavigationBarItemComponent implements OnInit {
 
   itemClicked(item: NavigationItem) {
     if (!item.children || !item.children.length) {
-      this.router.navigate([item.route]);
+      this.router.navigate([item.url]);
     } else if (item.children && item.children.length) {
-      this.showSub = !this.showSub;
+      item.expanded = !item.expanded;
     }
   }
 }
