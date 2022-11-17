@@ -3,20 +3,4 @@
     color: var(--bs-danger);
     content: '*';
   }
-
-  .select-wrapper {
-    position: relative;
-
-    &::after {
-      font-family: 'Material Design Icons'; /* stylelint-disable-line font-family-no-missing-generic-family-keyword */
-      content: '\F054F';
-      right: 0.8rem;
-      top: 0.5rem;
-      position: absolute;
-    }
-
-    select.form-control {
-      cursor: pointer;
-    }
-  }
 }
