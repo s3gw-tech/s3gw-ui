@@ -186,7 +186,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
       }, 0);
     }
     this.sortableColumns = this.columns
-      .filter((c) => c.sortable === true)
+      .filter((c) => c.sortable === true && this.getSortProp(c))
       .map((c) => this.getSortProp(c));
     if (!this.sortHeader && this.sortableColumns.length > 0) {
       this.sortHeader = this.sortableColumns[0];
