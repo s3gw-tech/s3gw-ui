@@ -1,0 +1,35 @@
+<ng-container *ngFor="let action of actions">
+  <ng-container [ngSwitch]="action.type">
+    <ng-template [ngSwitchCase]="'button'">
+      <button type="button"
+              class="btn btn-primary me-2"
+              ngbTooltip="{{ action.tooltip | transloco }}"
+              (click)="onAction($event, action)">
+        <i *ngIf="action.icon"
+           [class]="action.icon">
+        </i>
+        {{ action.text | transloco }}
+      </button>
+    </ng-template>
+
+    <ng-template [ngSwitchCase]="'file'">
+      <input type="file"
+             id="file"
+             hidden
+             multiple
+             (change)="onAction($event, action)">
+      <label for="file"
+             class="btn btn-primary me-2"
+             ngbTooltip="{{ action.tooltip | transloco }}">
+        <i *ngIf="action.icon"
+           [class]="action.icon">
+        </i>
+        {{ action.text | transloco }}
+      </label>
+    </ng-template>
+
+    <ng-template [ngSwitchCase]="'divider'">
+      <div class="vr me-2"></div>
+    </ng-template>
+  </ng-container>
+</ng-container>

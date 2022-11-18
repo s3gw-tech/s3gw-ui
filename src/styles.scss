@@ -15,6 +15,10 @@ body {
   margin: 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// General
+////////////////////////////////////////////////////////////////////////////////
+
 .s3gw-color-danger {
   color: $s3gw-color-danger;
 }
@@ -50,21 +54,4 @@ body {
 // Cursors
 .s3gw-cursor-pointer {
   cursor: pointer;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Page actions.
-.s3gw-page-actions {
-  @extend .d-flex;
-  @extend .justify-content-end;
-  @extend .mb-3;
-
-  // Place margin between action elements.
-  > * {
-    @extend .m-1;
-  }
-
-  button:not(.btn-primary):not(.btn-outline-primary) {
-    @extend .btn-light;
-  }
 }

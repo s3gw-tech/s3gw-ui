@@ -10,14 +10,16 @@ import { AlertPanelComponent } from '~/app/shared/components/alert-panel/alert-p
 import { BreadcrumbsComponent } from '~/app/shared/components/breadcrumbs/breadcrumbs.component';
 import { DashboardWidgetComponent } from '~/app/shared/components/dashboard-widget/dashboard-widget.component';
 import { DatatableComponent } from '~/app/shared/components/datatable/datatable.component';
+import { DatatableActionsComponent } from '~/app/shared/components/datatable-actions/datatable-actions.component';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { LanguageButtonComponent } from '~/app/shared/components/language-button/language-button.component';
 import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { NavigationBarComponent } from '~/app/shared/components/navigation-bar/navigation-bar.component';
 import { NavigationBarItemComponent } from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
-import { PageStatusComponent } from '~/app/shared/components/page-status/page-status.component';
+import { PageActionsComponent } from '~/app/shared/components/page-actions/page-actions.component';
 import { PageTitleComponent } from '~/app/shared/components/page-title/page-title.component';
+import { PageWrapperComponent } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { SubmitButtonComponent } from '~/app/shared/components/submit-button/submit-button.component';
 import { TopBarComponent } from '~/app/shared/components/top-bar/top-bar.component';
 import { DirectivesModule } from '~/app/shared/directives/directives.module';
@@ -34,11 +36,13 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     LanguageButtonComponent,
     NavigationBarComponent,
     NavigationBarItemComponent,
-    PageStatusComponent,
+    PageWrapperComponent,
     SubmitButtonComponent,
     TopBarComponent,
     DashboardWidgetComponent,
-    PageTitleComponent
+    PageTitleComponent,
+    DatatableActionsComponent,
+    PageActionsComponent
   ],
   exports: [
     AlertPanelComponent,
@@ -49,11 +53,13 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     ModalComponent,
     LanguageButtonComponent,
     NavigationBarComponent,
-    PageStatusComponent,
+    PageWrapperComponent,
     SubmitButtonComponent,
     TopBarComponent,
     DashboardWidgetComponent,
-    PageTitleComponent
+    PageTitleComponent,
+    DatatableActionsComponent,
+    PageActionsComponent
   ],
   imports: [
     BlockUIModule,

@@ -28,6 +28,20 @@ export type S3UploadProgress = AWS.S3.Types.ManagedUpload.Progress & {
   sendData: AWS.S3.Types.ManagedUpload.SendData;
 };
 
+export type S3DeleteObjectOutput = AWS.S3.Types.DeleteObjectOutput & {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Bucket: AWS.S3.Types.BucketName;
+  Key: AWS.S3.Types.ObjectKey;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+export type S3GetObjectOutput = AWS.S3.Types.GetObjectOutput & {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Bucket: AWS.S3.Types.BucketName;
+  Key: AWS.S3.Types.ObjectKey;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
 /**
  * Service to handle buckets via the S3 API.
  */
@@ -196,13 +210,16 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteBucket-property
    */
-  public delete(bucket: AWS.S3.Types.BucketName, credentials?: Credentials): Observable<void> {
+  public delete(
+    bucket: AWS.S3.Types.BucketName,
+    credentials?: Credentials
+  ): Observable<AWS.S3.Types.BucketName> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: AWS.S3.Types.DeleteBucketRequest = { Bucket: bucket };
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
       this.s3ClientService.get(credentials).deleteBucket(params).promise()
-    ).pipe(map(() => void 0));
+    ).pipe(map(() => bucket));
   }
 
   /**
@@ -267,7 +284,7 @@ export class S3BucketService {
     bucket: AWS.S3.Types.BucketName,
     credentials?: Credentials
   ): Observable<S3Objects> {
-    return new Observable((observer: any) => {
+    return new Observable<S3Objects>((observer: any) => {
       const s3Client = this.s3ClientService.get(credentials);
       // eslint-disable-next-line @typescript-eslint/naming-convention
       const params: AWS.S3.Types.ListObjectsV2Request = { Bucket: bucket };
@@ -302,13 +319,13 @@ export class S3BucketService {
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
     credentials?: Credentials
-  ): Observable<AWS.S3.Types.DeleteObjectOutput> {
+  ): Observable<S3DeleteObjectOutput> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: AWS.S3.Types.DeleteObjectRequest = { Bucket: bucket, Key: key };
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
       this.s3ClientService.get(credentials).deleteObject(params).promise()
-    );
+    ).pipe(map((res) => _.merge(res, params)));
   }
 
   /**
@@ -353,11 +370,9 @@ export class S3BucketService {
     fileList: FileList,
     credentials?: Credentials
   ): Observable<S3UploadProgress> {
-    const observables: Observable<AWS.S3.Types.ManagedUpload.SendData>[] = [];
-    _.forEach(fileList, (file: File) =>
-      observables.push(this.uploadObject(bucket, file, credentials))
-    );
-    return merge(...observables).pipe(
+    const sources: Observable<AWS.S3.Types.ManagedUpload.SendData>[] = [];
+    _.forEach(fileList, (file: File) => sources.push(this.uploadObject(bucket, file, credentials)));
+    return merge(...sources).pipe(
       map((sendData: AWS.S3.Types.ManagedUpload.SendData, index: number) => {
         return { loaded: index + 1, total: fileList.length, sendData };
       })
@@ -378,7 +393,7 @@ export class S3BucketService {
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
     credentials?: Credentials
-  ): Observable<AWS.S3.Types.GetObjectOutput> {
+  ): Observable<S3GetObjectOutput> {
     const params: AWS.S3.Types.GetObjectRequest = {
       /* eslint-disable @typescript-eslint/naming-convention */
       Bucket: bucket,
@@ -388,7 +403,7 @@ export class S3BucketService {
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
       this.s3ClientService.get(credentials).getObject(params).promise()
-    );
+    ).pipe(map((res) => _.merge(res, params)));
   }
 
   /**
@@ -403,11 +418,11 @@ export class S3BucketService {
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
     credentials?: Credentials
-  ): Observable<AWS.S3.Types.GetObjectOutput> {
+  ): Observable<S3GetObjectOutput> {
     return this.getObject(bucket, key, credentials).pipe(
-      tap((resp: AWS.S3.Types.GetObjectOutput) => {
+      tap((res: S3GetObjectOutput) => {
         // @ts-ignore
-        const blob: Blob = new Blob([resp.Body!]);
+        const blob: Blob = new Blob([res.Body!]);
         const filename: string = _.split(key, '/').slice(-1)[0];
         saveAs(blob, filename);
       })

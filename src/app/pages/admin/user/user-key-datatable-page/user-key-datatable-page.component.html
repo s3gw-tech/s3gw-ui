@@ -1,20 +1,8 @@
-<s3gw-page-status [pageStatus]="pageStatus">
-  <div class="s3gw-page-actions">
-    <button type="button"
-            class="btn"
-            (click)="onReload()"
-            ngbTooltip="{{ 'Reload' | transloco }}">
-      <i [class]="icons.reload"></i>
-    </button>
-    <button type="button"
-            class="btn btn-primary"
-            (click)="onAdd()">
-      {{ "Create" | transloco }}
-    </button>
-  </div>
+<s3gw-wrapper-status [actions]="pageActions"
+                     [pageStatus]="pageStatus">
   <s3gw-datatable [data]="keys"
-                  [columns]="columns"
+                  [columns]="datatableColumns"
                   [autoReload]="false"
                   (loadData)="loadData()">
   </s3gw-datatable>
-</s3gw-page-status>
+</s3gw-wrapper-status>

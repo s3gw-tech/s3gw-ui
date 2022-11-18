@@ -25,5 +25,7 @@ export enum Icon {
   download = 'mdi mdi-download',
   chevronUp = 'mdi mdi-chevron-up',
   chevronDown = 'mdi mdi-chevron-down',
-  cog = 'mdi mdi-cog'
+  cog = 'mdi mdi-cog',
+  upload = 'mdi mdi-upload',
+  create = 'mdi mdi-plus'
 }

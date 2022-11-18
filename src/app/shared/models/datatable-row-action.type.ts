@@ -1,6 +1,6 @@
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 
-export type DatatableActionItem = {
+export type DatatableRowAction = {
   type?: 'menu' | 'divider';
   title?: string;
   icon?: string;

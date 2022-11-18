@@ -150,4 +150,15 @@ export class ConstraintService {
     };
     return _.uniq(_getProps(constraint));
   }
+
+  /**
+   * Return an array of all objects the constraint returns truthy for.
+   *
+   * @param objects The collection to iterate over.
+   * @param constraint The constraint to process.
+   * @return Returns the new filtered array.
+   */
+  static filter(objects: Record<any, any>[], constraint: Constraint): Record<any, any>[] {
+    return _.filter(objects, (object) => ConstraintService.test(constraint, object));
+  }
 }

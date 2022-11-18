@@ -3,6 +3,7 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { translate } from '~/app/i18n.helper';
+import { PageAction } from '~/app/shared/models/page-action.type';
 
 export enum PageStatus {
   none = 0,
@@ -15,11 +16,11 @@ export enum PageStatus {
 }
 
 @Component({
-  selector: 's3gw-page-status',
-  templateUrl: './page-status.component.html',
-  styleUrls: ['./page-status.component.scss']
+  selector: 's3gw-wrapper-status',
+  templateUrl: './page-wrapper.component.html',
+  styleUrls: ['./page-wrapper.component.scss']
 })
-export class PageStatusComponent implements OnChanges, OnDestroy {
+export class PageWrapperComponent implements OnChanges, OnDestroy {
   @BlockUI()
   blockUI!: NgBlockUI;
 
@@ -34,6 +35,9 @@ export class PageStatusComponent implements OnChanges, OnDestroy {
 
   @Input()
   savingText?: string = TEXT('Please wait, saving data ...');
+
+  @Input()
+  actions?: PageAction[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['pageStatus'].currentValue === PageStatus.saving) {

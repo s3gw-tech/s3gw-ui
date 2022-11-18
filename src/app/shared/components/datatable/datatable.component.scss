@@ -1,3 +1,5 @@
+@use 'src/scss/defaults/colors' as dc;
+
 th.sortable {
   cursor: pointer;
 }
@@ -12,6 +14,16 @@ td {
 
     &::after {
       display: none;
+    }
+  }
+}
+
+tbody > tr {
+  &.selected {
+    background-color: dc.$s3gw-color-table-selected-background;
+
+    &:hover > * {
+      --bs-table-accent-bg: dc.$s3gw-color-table-selected-background;
     }
   }
 }

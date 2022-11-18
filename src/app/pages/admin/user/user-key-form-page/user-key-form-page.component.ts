@@ -3,7 +3,7 @@ import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
-import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
+import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { IsDirty } from '~/app/shared/models/is-dirty.interface';
 import { AdminOpsUserService, Key } from '~/app/shared/services/api/admin-ops-user.service';

@@ -1,13 +1,28 @@
+<div class="actions d-flex align-items-center justify-content-start mb-3">
+  <ng-content select="s3gw-datatable-actions">
+  </ng-content>
+  <div class="flex-fill"></div>
+  <button type="button"
+          class="btn btn-light"
+          (click)="reloadData()"
+          ngbTooltip="{{ 'Reload' | transloco }}">
+    <i [class]="icons.reload"></i>
+  </button>
+</div>
 <table class="table table-hover border-top border-start border-end">
   <thead class="table-light">
     <tr class="d-flex">
       <th *ngFor="let column of columns"
           scope="col"
           [class]="setHeaderClasses(column)"
+          [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}"
           [hidden]="column.hidden"
           (click)="updateSorting(column)">
-        <span *ngIf="column.name">{{ column.name | transloco }}
-        </span>
+        <span *ngIf="column.name">{{ column.name | transloco }}</span>
+        <input *ngIf="selectionType === 'multi' && column.cellTemplateName === 'rowSelect'"
+               type="checkbox"
+               [checked]="isAllRowsSelected"
+               (click)="onHeaderSelectRows($event)">
         <i *ngIf="sortHeader === column.prop"
            class="ps-1 align-middle"
            aria-hidden="true"
@@ -17,25 +32,32 @@
   </thead>
   <tbody>
     <tr *ngFor="let row of filteredData"
-        class="d-flex">
+        class="d-flex"
+        [ngClass]="{'selected': selected.includes(row)}">
       <td *ngFor="let column of columns"
           [class]="column.css"
           [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}"
-          [hidden]="column.hidden">
+          [hidden]="column.hidden"
+          (click)="column.cellTemplateName !== 'actionMenu' ? onSelectRow(row) : undefined">
         <ng-template *ngIf="!(column.cellTemplateName || column.cellTemplate)"
                      [ngTemplateOutlet]="defaultTpl"
                      [ngTemplateOutletContext]="{ value: renderCellValue(row, column) }">
         </ng-template>
         <ng-template *ngIf="column.cellTemplate"
                      [ngTemplateOutlet]="column.cellTemplate"
-                     [ngTemplateOutletContext]="{ row: row, column: column, value: column.prop ? renderCellValue(row, column) : undefined,
+                     [ngTemplateOutletContext]="{ row: row, column: column, value: renderCellValue(row, column),
                      disabled: column.prop ? renderCellDisabled(row, column) : false }">
         </ng-template>
       </td>
     </tr>
   </tbody>
 </table>
-<div class="d-flex align-items-center justify-content-end">
+<div class="d-flex align-items-center justify-content-start">
+  <div *ngIf="selectionType !== 'none'"
+       class="text-nowrap">
+    {{ selected.length }} {{ 'selected' | transloco }}
+  </div>
+  <div class="flex-fill"></div>
   <div *ngIf="!hidePageSize"
        ngbDropdown>
     <button class="btn btn-outline-default mr-2"
@@ -65,6 +87,9 @@
       </button>
     </div>
   </div>
+  <div class="mx-4 text-nowrap">
+    {{ (page - 1) * pageSize + 1 }} - {{ page * pageSize > data.length ? data.length : page * pageSize }} {{ 'of' | transloco }} {{ data.length }}
+  </div>
   <ngb-pagination [collectionSize]="data.length"
                   [page]="page"
                   [pageSize]="pageSize"
@@ -82,9 +107,9 @@
              let-row="row"
              let-disabled="disabled">
   <input type="checkbox"
+         class="s3gw-cursor-pointer"
          [checked]="value"
-         [disabled]="disabled"
-         (change)="onSelectionChange($event, row)">
+         [disabled]="disabled">
 </ng-template>
 
 <ng-template #yesNoIconTpl

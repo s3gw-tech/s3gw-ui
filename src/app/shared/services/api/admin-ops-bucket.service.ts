@@ -98,11 +98,13 @@ export class AdminOpsBucketService {
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-bucket
    */
-  public delete(bucket: string, purgeObjects: boolean = true): Observable<void> {
+  public delete(bucket: string, purgeObjects: boolean = true): Observable<string> {
     const credentials: Credentials = this.authStorageService.getCredentials();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: Record<string, any> = { bucket, 'purge-objects': purgeObjects };
-    return this.rgwService.delete<void>('admin/bucket', { credentials, params });
+    return this.rgwService
+      .delete<void>('admin/bucket', { credentials, params })
+      .pipe(map(() => bucket));
   }
 
   public update(bucket: Partial<Bucket>): Observable<Bucket> {
