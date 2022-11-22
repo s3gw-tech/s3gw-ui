@@ -6,11 +6,13 @@ import {
   ValidationErrors,
   ValidatorFn
 } from '@angular/forms';
+import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
 import { Observable, of, timer } from 'rxjs';
 import { map, switchMapTo, take } from 'rxjs/operators';
 import validator from 'validator';
 
+import { format } from '~/app/functions.helper';
 import { Constraint } from '~/app/shared/models/constraint.type';
 import { ConstraintService } from '~/app/shared/services/constraint.service';
 
@@ -137,6 +139,72 @@ export class S3gwValidators {
       }
       const result = ConstraintService.test(constraint, getFormValues(control));
       return !result ? { custom: errorMessage } : null;
+    };
+  }
+
+  /**
+   * Validator to check if the given bucket name is valid.
+   *
+   * @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+   *
+   * @returns a validator function. The function returns the error `custom` if the
+   * validation fails, otherwise `null`.
+   */
+  static bucketName(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (_.isEmpty(control.value)) {
+        return null;
+      }
+      // Must be between 3 (min) and 63 (max) characters long.
+      if (control.value.length < 3) {
+        return { custom: format(TEXT('Minimum length is {{ num }} characters.'), { num: 3 }) };
+      }
+      if (control.value.length > 63) {
+        return { custom: format(TEXT('Maximum length is {{ num }} characters.'), { num: 63 }) };
+      }
+      // Can consist only of lowercase letters, numbers, dots (.), and hyphens (-).
+      if (!/^[0-9a-z.-]+$/.test(control.value)) {
+        return {
+          custom: TEXT(
+            'The value contains invalid characters. Only lowercase letters, numbers, dots and hyphens are allowed.'
+          )
+        };
+      }
+      // Must begin and end with a letter or number.
+      if (
+        !_.every([control.value.slice(0, 1), control.value.slice(-1)], (c) => {
+          return /[a-z]/.test(c) || _.isInteger(_.parseInt(c));
+        })
+      ) {
+        return {
+          custom: TEXT('The value must begin and end with a letter or number.')
+        };
+      }
+      // Must not contain two adjacent periods.
+      if (control.value.includes('..')) {
+        return {
+          custom: TEXT('The value must not contain two adjacent periods.')
+        };
+      }
+      // Must not be formatted as an IP address.
+      if (validator.isIP(control.value)) {
+        return {
+          custom: TEXT('The value must not be formatted as an IP address.')
+        };
+      }
+      // Must not start with the prefix `xn--`.
+      if (_.startsWith(control.value, 'xn--')) {
+        return {
+          custom: TEXT('The value must not start with the prefix xn--.')
+        };
+      }
+      // Must not end with the suffix `-s3alias`.
+      if (_.endsWith(control.value, '-s3alias')) {
+        return {
+          custom: TEXT('The value must not end with the suffix -s3alias.')
+        };
+      }
+      return null;
     };
   }
 }
