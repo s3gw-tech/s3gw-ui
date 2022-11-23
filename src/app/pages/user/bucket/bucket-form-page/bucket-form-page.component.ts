@@ -9,6 +9,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { extractErrorCode, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
+import { S3gwValidators } from '~/app/shared/forms/validators';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { IsDirty } from '~/app/shared/models/is-dirty.interface';
 import { S3Bucket, S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
@@ -101,7 +102,8 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           autofocus: !editing,
           validators: {
             required: true,
-            asyncCustom: this.bucketNameValidator()
+            custom: S3gwValidators.bucketName(),
+            asyncCustom: this.uniqueBucketName()
           }
         },
         {
@@ -149,7 +151,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
     });
   }
 
-  private bucketNameValidator(): AsyncValidatorFn {
+  private uniqueBucketName(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
       if (control.pristine || _.isEmpty(control.value)) {
         return of(null);

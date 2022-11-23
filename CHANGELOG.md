@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.0] - unreleased
 
+### Fixed
+
+- Creating a bucket with spaces crashed the app (gh#aquarist-labs/s3gw#225). 
+
 ### Changed
 
 - Combine the regular and administrator UI (gh#aquarist-labs/s3gw#175).

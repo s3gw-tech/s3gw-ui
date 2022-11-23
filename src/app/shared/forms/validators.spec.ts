@@ -156,4 +156,76 @@ describe('GlassValidators', () => {
       expect(validator(enabledControl)).toBeNull();
     });
   });
+
+  describe('bucketName', () => {
+    let control: AbstractControl | null;
+
+    beforeEach(() => {
+      control = formGroup.get('x');
+      control?.setValidators(S3gwValidators.bucketName());
+    });
+
+    it('should validate bucket name [1]', () => {
+      control?.setValue('foo.-bar');
+      expect(control?.valid).toBeTruthy();
+    });
+
+    it('should not validate bucket name [2]', () => {
+      control?.setValue('a'.repeat(2));
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toMatch(/^Minimum length is/);
+    });
+
+    it('should not validate bucket name [3]', () => {
+      control?.setValue('a'.repeat(64));
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toMatch(/^Maximum length is/);
+    });
+
+    it('should not validate bucket name [4]', () => {
+      control?.setValue('a#&!');
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toMatch(/^The value contains invalid characters./);
+    });
+
+    it('should not validate bucket name [5]', () => {
+      control?.setValue('-abc');
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toBe(
+        'The value must begin and end with a letter or number.'
+      );
+    });
+
+    it('should not validate bucket name [6]', () => {
+      control?.setValue('1abc.');
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toBe(
+        'The value must begin and end with a letter or number.'
+      );
+    });
+
+    it('should not validate bucket name [7]', () => {
+      control?.setValue('1abc..a');
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toBe('The value must not contain two adjacent periods.');
+    });
+
+    it('should not validate bucket name [8]', () => {
+      control?.setValue('127.0.0.1');
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toBe('The value must not be formatted as an IP address.');
+    });
+
+    it('should not validate bucket name [9]', () => {
+      control?.setValue('xn--foo');
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toBe('The value must not start with the prefix xn--.');
+    });
+
+    it('should not validate bucket name [10]', () => {
+      control?.setValue('foo-s3alias');
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toBe('The value must not end with the suffix -s3alias.');
+    });
+  });
 });
