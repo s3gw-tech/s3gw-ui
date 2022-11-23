@@ -3,7 +3,7 @@ import { Observable, of } from 'rxjs';
 import { catchError, finalize, tap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
-import { AdminOpsUserService, User } from '~/app/shared/services/api/admin-ops-user.service';
+import { AdminOpsUserService } from '~/app/shared/services/api/admin-ops-user.service';
 import { S3UserService } from '~/app/shared/services/api/s3-user.service';
 import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 
