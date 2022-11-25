@@ -8,7 +8,7 @@ import { S3GW_MODAL_DATA } from '~/app/shared/services/dialog.service';
 
 export type ModalConfig = {
   type: 'ok' | 'okCancel' | 'yesNo';
-  icon?: 'info' | 'warning' | 'danger' | 'question';
+  severity?: 'info' | 'warning' | 'danger' | 'question';
   title?: string;
   message: string;
 };
@@ -66,7 +66,7 @@ export class ModalComponent implements OnInit {
         this.button2Visible = true;
         break;
     }
-    switch (this.config.icon) {
+    switch (this.config.severity) {
       case 'info':
         this.iconClass = `${this.icons.info} s3gw-color-info`;
         break;

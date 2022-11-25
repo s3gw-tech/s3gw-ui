@@ -3,23 +3,25 @@ import { Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
+import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
-import { format } from '~/app/functions.helper';
-import { translate } from '~/app/i18n.helper';
-import { ModalComponent } from '~/app/shared/components/modal/modal.component';
-import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
+import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
-import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
+import { Datatable } from '~/app/shared/models/datatable.interface';
+import { DatatableAction } from '~/app/shared/models/datatable-action.type';
 import {
   DatatableCellTemplateName,
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
+import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
+import { PageAction } from '~/app/shared/models/page-action.type';
 import { AdminOpsUserService, User } from '~/app/shared/services/api/admin-ops-user.service';
 import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
-import { DialogService } from '~/app/shared/services/dialog.service';
+import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
+import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.service';
 
 @Component({
   selector: 's3gw-user-datatable-page',
@@ -30,21 +32,42 @@ export class UserDatatablePageComponent {
   @BlockUI()
   blockUI!: NgBlockUI;
 
+  public datatableActions: DatatableAction[];
+  public datatableColumns: DatatableColumn[];
   public icons = Icon;
+  public pageActions: PageAction[];
   public pageStatus: PageStatus = PageStatus.none;
   public users: Record<string, any>[] = [];
-  public columns: DatatableColumn[];
 
   private firstLoadComplete = false;
 
   constructor(
     private authStorageService: AuthStorageService,
-    private dialogService: DialogService,
+    private modalDialogService: ModalDialogService,
     private notificationService: NotificationService,
     private router: Router,
+    private rxjsUiHelperService: RxjsUiHelperService,
     private userService: AdminOpsUserService
   ) {
-    this.columns = [
+    this.datatableActions = [
+      {
+        type: 'button',
+        text: TEXT('Delete'),
+        icon: this.icons.delete,
+        enabledConstraints: {
+          minSelected: 1,
+          constraint: [
+            {
+              operator: 'ne',
+              arg0: { prop: 'user_id' },
+              arg1: this.authStorageService.getUserId()!
+            }
+          ]
+        },
+        callback: (table: Datatable) => this.doDelete(table.selected)
+      }
+    ];
+    this.datatableColumns = [
       {
         name: TEXT('User ID'),
         prop: 'user_id'
@@ -95,12 +118,18 @@ export class UserDatatablePageComponent {
         cellTemplateConfig: this.onActionMenu.bind(this)
       }
     ];
+    this.pageActions = [
+      {
+        type: 'button',
+        text: TEXT('Create'),
+        icon: this.icons.create,
+        callback: () => this.router.navigate(['/admin/users/create'])
+      }
+    ];
   }
 
   loadData(): void {
-    if (!this.firstLoadComplete) {
-      this.pageStatus = PageStatus.loading;
-    }
+    this.pageStatus = !this.firstLoadComplete ? PageStatus.loading : PageStatus.reloading;
     this.userService
       .list(true)
       .pipe(
@@ -112,10 +141,8 @@ export class UserDatatablePageComponent {
         next: (users: Record<string, any>[]) => {
           _.forEach(users, (record) => {
             const user: User = record as User;
-
             record['size_limit'] = TEXT('Unlimited');
             record['object_limit'] = TEXT('Unlimited');
-
             if (user.user_quota!.max_size > 0 && user.user_quota!.enabled) {
               const percentage =
                 user.user_quota!.max_size > 0
@@ -141,25 +168,13 @@ export class UserDatatablePageComponent {
       });
   }
 
-  onReload(): void {
-    this.pageStatus = PageStatus.reloading;
-    this.loadData();
-  }
-
-  onCreate(): void {
-    this.router.navigate(['/admin/users/create']);
-  }
-
-  onActionMenu(user: User): DatatableActionItem[] {
-    // Make sure the logged-in user can't be deleted.
-    const credentials = this.authStorageService.getCredentials();
-    const deletable = _.some(user.keys, ['access_key', credentials.accessKey]);
+  private onActionMenu(user: User): DatatableRowAction[] {
     // Build the action menu.
-    const result: DatatableActionItem[] = [
+    const result: DatatableRowAction[] = [
       {
         title: TEXT('Edit'),
         icon: this.icons.edit,
-        callback: (data: DatatableData) => {
+        callback: () => {
           this.router.navigate([`/admin/users/edit/${user.user_id}`]);
         }
       },
@@ -176,40 +191,46 @@ export class UserDatatablePageComponent {
       {
         title: TEXT('Delete'),
         icon: this.icons.delete,
-        disabled: deletable,
-        callback: (data: DatatableData) => {
-          this.dialogService.open(
-            ModalComponent,
-            (res: boolean) => {
-              if (res) {
-                this.blockUI.start(translate(TEXT('Please wait, deleting user ...')));
-                this.userService
-                  .delete(user.user_id)
-                  .pipe(finalize(() => this.blockUI.stop()))
-                  .subscribe(() => {
-                    this.notificationService.showSuccess(
-                      format(TEXT('Deleted user {{ name }}.'), {
-                        name: user.user_id
-                      })
-                    );
-                    this.onReload();
-                  });
-              }
-            },
-            {
-              type: 'yesNo',
-              icon: 'danger',
-              message: format(
-                TEXT('Do you really want to delete the user <strong>{{ name }}</strong>?'),
-                {
-                  name: user.user_id
-                }
-              )
-            }
-          );
-        }
+        // Make sure the logged-in user can't be deleted.
+        disabled: user.user_id === this.authStorageService.getUserId(),
+        callback: (data: DatatableData) => this.doDelete([data])
       }
     ];
     return result;
+  }
+
+  private doDelete(selected: DatatableData[]): void {
+    this.modalDialogService.confirmation<User>(
+      selected as User[],
+      'danger',
+      {
+        singular: TEXT('Do you really want to delete the user <strong>{{ name }}</strong>?'),
+        singularFmtArgs: (value: User) => ({ name: value.user_id }),
+        plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> users?')
+      },
+      () => {
+        const sources: Observable<string>[] = [];
+        _.forEach(selected, (data: DatatableData) => {
+          sources.push(this.userService.delete(data['user_id']));
+        });
+        this.rxjsUiHelperService
+          .concat<string>(
+            sources,
+            {
+              start: TEXT('Please wait, deleting {{ total }} user(s) ...'),
+              next: TEXT(
+                'Please wait, deleting user {{ current }} of {{ total }} ({{ percent }}%) ...'
+              )
+            },
+            {
+              next: TEXT('User {{ name }} has been deleted.'),
+              nextFmtArgs: (name: string) => ({ name })
+            }
+          )
+          .subscribe({
+            complete: () => this.loadData()
+          });
+      }
+    );
   }
 }

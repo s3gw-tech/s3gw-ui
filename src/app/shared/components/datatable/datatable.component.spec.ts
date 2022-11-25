@@ -22,6 +22,7 @@ describe('DatatableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      declarations: [DatatableComponent],
       imports: [ComponentsModule, TestingModule]
     }).compileComponents();
   });

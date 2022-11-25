@@ -64,6 +64,14 @@ $pagination-padding-x: 0.5rem;
   opacity: 1;
 }
 
+.form-check > .form-check-input {
+  cursor: pointer;
+
+  & ~ .form-check-label {
+    cursor: pointer;
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Badge
 .badge-outline {

@@ -8,7 +8,7 @@ import { map, switchMap } from 'rxjs/operators';
 
 import { extractErrorCode, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
-import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
+import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { S3gwValidators } from '~/app/shared/forms/validators';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { IsDirty } from '~/app/shared/models/is-dirty.interface';

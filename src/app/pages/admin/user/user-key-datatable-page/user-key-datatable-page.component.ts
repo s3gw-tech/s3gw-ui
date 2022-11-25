@@ -5,21 +5,23 @@ import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
-import { format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
-import { ModalComponent } from '~/app/shared/components/modal/modal.component';
-import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
+import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
-import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
+import { DatatableAction } from '~/app/shared/models/datatable-action.type';
 import {
   DatatableCellTemplateName,
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
+import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
+import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
+import { PageAction } from '~/app/shared/models/page-action.type';
 import { AdminOpsUserService, Key, User } from '~/app/shared/services/api/admin-ops-user.service';
 import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
+import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 
 @Component({
   selector: 's3gw-user-key-datatable-page',
@@ -30,10 +32,12 @@ export class UserKeyDatatablePageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
+  public datatableActions: DatatableAction[];
+  public datatableColumns: DatatableColumn[];
   public icons = Icon;
-  public pageStatus: PageStatus = PageStatus.none;
   public keys: Key[] = [];
-  public columns: DatatableColumn[];
+  public pageActions: PageAction[];
+  public pageStatus: PageStatus = PageStatus.none;
 
   private uid = '';
   private firstLoadComplete = false;
@@ -41,11 +45,22 @@ export class UserKeyDatatablePageComponent implements OnInit {
   constructor(
     private authStorageService: AuthStorageService,
     private dialogService: DialogService,
+    private modalDialogService: ModalDialogService,
     private route: ActivatedRoute,
     private router: Router,
     private userService: AdminOpsUserService
   ) {
-    this.columns = [
+    this.datatableActions = [
+      {
+        type: 'button',
+        text: TEXT('Delete'),
+        icon: this.icons.delete,
+        enabledConstraints: {
+          minSelected: 1
+        }
+      }
+    ];
+    this.datatableColumns = [
       {
         name: TEXT('Username'),
         prop: 'user'
@@ -55,6 +70,14 @@ export class UserKeyDatatablePageComponent implements OnInit {
         prop: '',
         cellTemplateName: DatatableCellTemplateName.actionMenu,
         cellTemplateConfig: this.onActionMenu.bind(this)
+      }
+    ];
+    this.pageActions = [
+      {
+        type: 'button',
+        text: TEXT('Create'),
+        icon: this.icons.create,
+        callback: () => this.router.navigate([`/admin/users/${this.uid}/key/create`])
       }
     ];
   }
@@ -71,9 +94,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
   }
 
   loadData(): void {
-    if (!this.firstLoadComplete) {
-      this.pageStatus = PageStatus.loading;
-    }
+    this.pageStatus = !this.firstLoadComplete ? PageStatus.loading : PageStatus.reloading;
     this.userService
       .get(this.uid)
       .pipe(
@@ -93,24 +114,15 @@ export class UserKeyDatatablePageComponent implements OnInit {
       });
   }
 
-  onReload(): void {
-    this.pageStatus = PageStatus.reloading;
-    this.loadData();
-  }
-
-  onAdd(): void {
-    this.router.navigate([`/admin/users/${this.uid}/key/create`]);
-  }
-
-  onActionMenu(key: Key): DatatableActionItem[] {
+  onActionMenu(key: Key): DatatableRowAction[] {
     // Make sure the currently used key can't be deleted.
     const credentials = this.authStorageService.getCredentials();
     const deletable = _.some(this.keys, ['secret_key', credentials.secretKey]);
-    const result: DatatableActionItem[] = [
+    const result: DatatableRowAction[] = [
       {
         title: TEXT('Show'),
         icon: this.icons.show,
-        callback: (data: DatatableData) => {
+        callback: () => {
           this.dialogService.open(DeclarativeFormModalComponent, undefined, {
             formConfig: {
               fields: [
@@ -141,7 +153,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
             },
             submitButtonVisible: false,
             cancelButtonText: TEXT('Close')
-          });
+          } as DeclarativeFormModalConfig);
         }
       },
       {
@@ -152,28 +164,21 @@ export class UserKeyDatatablePageComponent implements OnInit {
         icon: this.icons.delete,
         disabled: deletable,
         callback: (data: DatatableData) => {
-          this.dialogService.open(
-            ModalComponent,
-            (res: boolean) => {
-              if (res) {
-                this.blockUI.start(translate(TEXT('Please wait, deleting key ...')));
-                this.userService
-                  .deleteKey(this.uid, key.access_key!)
-                  .pipe(finalize(() => this.blockUI.stop()))
-                  .subscribe(() => {
-                    this.loadData();
-                  });
-              }
-            },
+          this.modalDialogService.confirmation<Key>(
+            [key],
+            'danger',
             {
-              type: 'yesNo',
-              icon: 'danger',
-              message: format(
-                TEXT(`Do you really want to delete the key <strong>{{ key }}</strong>?`),
-                {
-                  key: key.user
-                }
-              )
+              singular: TEXT('Do you really want to delete the key <strong>{{ name }}</strong>?'),
+              singularFmtArgs: (value: Key) => ({ name: value.user })
+            },
+            () => {
+              this.blockUI.start(translate(TEXT('Please wait, deleting key ...')));
+              this.userService
+                .deleteKey(this.uid, key.access_key!)
+                .pipe(finalize(() => this.blockUI.stop()))
+                .subscribe(() => {
+                  this.loadData();
+                });
             }
           );
         }

@@ -428,4 +428,23 @@ describe('ConstraintService', () => {
     });
     expect(result).toEqual(['prop1', 'prop2', 'prop3']);
   });
+
+  it('should filter (1)', () => {
+    const result = ConstraintService.filter([{ bar: 4 }, { bar: 5 }], {
+      operator: 'ne',
+      arg0: { prop: 'bar' },
+      arg1: 4
+    });
+    expect(result.length).toBe(1);
+    expect(result).toEqual([{ bar: 5 }]);
+  });
+
+  it('should filter (2)', () => {
+    const result = ConstraintService.filter([{ bar: 4 }, { bar: 5 }], {
+      operator: 'eq',
+      arg0: { prop: 'bar' },
+      arg1: 2
+    });
+    expect(result.length).toBe(0);
+  });
 });

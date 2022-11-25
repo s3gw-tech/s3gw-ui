@@ -4,28 +4,34 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
+import { merge, Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
 import { format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
-import { ModalComponent } from '~/app/shared/components/modal/modal.component';
-import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
+import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
-import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
+import { Datatable } from '~/app/shared/models/datatable.interface';
+import { DatatableAction } from '~/app/shared/models/datatable-action.type';
 import {
   DatatableCellTemplateName,
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
+import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
+import { PageAction } from '~/app/shared/models/page-action.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import {
   S3BucketService,
+  S3DeleteObjectOutput,
+  S3GetObjectOutput,
   S3Object,
   S3Objects,
   S3UploadProgress
 } from '~/app/shared/services/api/s3-bucket.service';
-import { DialogService } from '~/app/shared/services/dialog.service';
+import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
+import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.service';
 
 @Component({
   selector: 's3gw-object-datatable-page',
@@ -36,22 +42,45 @@ export class ObjectDatatablePageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
+  public datatableActions: DatatableAction[];
   public bid: AWS.S3.Types.BucketName = '';
   public objects: S3Objects = [];
-  public columns: DatatableColumn[];
+  public datatableColumns: DatatableColumn[];
   public icons = Icon;
+  public pageActions: PageAction[];
   public pageStatus: PageStatus = PageStatus.none;
 
   private firstLoadComplete = false;
 
   constructor(
     private bytesToSizePipe: BytesToSizePipe,
-    private dialogService: DialogService,
+    private modalDialogService: ModalDialogService,
     private notificationService: NotificationService,
     private route: ActivatedRoute,
+    private rxjsUiHelperService: RxjsUiHelperService,
     private s3bucketService: S3BucketService
   ) {
-    this.columns = [
+    this.datatableActions = [
+      {
+        type: 'button',
+        text: TEXT('Download'),
+        icon: this.icons.download,
+        enabledConstraints: {
+          minSelected: 1
+        },
+        callback: (table: Datatable) => this.doDownload(table.selected)
+      },
+      {
+        type: 'button',
+        text: TEXT('Delete'),
+        icon: this.icons.delete,
+        enabledConstraints: {
+          minSelected: 1
+        },
+        callback: (table: Datatable) => this.doDelete(table.selected)
+      }
+    ];
+    this.datatableColumns = [
       {
         name: TEXT('Name'),
         prop: 'Key'
@@ -73,6 +102,14 @@ export class ObjectDatatablePageComponent implements OnInit {
         cellTemplateConfig: this.onActionMenu.bind(this)
       }
     ];
+    this.pageActions = [
+      {
+        type: 'file',
+        text: TEXT('Upload'),
+        icon: this.icons.upload,
+        callback: (event: Event) => this.doUpload((event.target as HTMLInputElement).files)
+      }
+    ];
   }
 
   ngOnInit(): void {
@@ -88,9 +125,7 @@ export class ObjectDatatablePageComponent implements OnInit {
 
   loadData(): void {
     this.objects = [];
-    if (!this.firstLoadComplete) {
-      this.pageStatus = PageStatus.loading;
-    }
+    this.pageStatus = !this.firstLoadComplete ? PageStatus.loading : PageStatus.reloading;
     this.s3bucketService
       .listObjects(this.bid)
       .pipe(
@@ -112,17 +147,41 @@ export class ObjectDatatablePageComponent implements OnInit {
       });
   }
 
-  onReload(): void {
-    this.pageStatus = PageStatus.reloading;
-    this.loadData();
+  onActionMenu(object: S3Object): DatatableRowAction[] {
+    const result: DatatableRowAction[] = [
+      {
+        title: TEXT('Download'),
+        icon: this.icons.download,
+        callback: (data: DatatableData) => this.doDownload([data])
+      },
+      {
+        type: 'divider'
+      },
+      {
+        title: TEXT('Delete'),
+        icon: this.icons.delete,
+        callback: (data: DatatableData) => this.doDelete([data])
+      }
+    ];
+    return result;
   }
 
-  onUpload(event: Event): void {
-    const fileList: FileList = (event.target as any).files;
+  private doDownload(selected: DatatableData[]): void {
+    const sources: Observable<S3GetObjectOutput>[] = [];
+    _.forEach(selected, (data: DatatableData) =>
+      sources.push(this.s3bucketService.downloadObject(this.bid, data['Key']))
+    );
+    // Download the files in parallel.
+    merge(...sources).subscribe();
+  }
+
+  private doUpload(fileList: FileList | null): void {
+    if (!fileList) {
+      return;
+    }
     this.blockUI.start(
-      format(translate(TEXT('Please wait, uploading {{ total }} object(s) ({{ percent }}%) ...')), {
-        total: fileList.length,
-        percent: 0
+      format(translate(TEXT('Please wait, uploading {{ total }} object(s) ...')), {
+        total: fileList.length
       })
     );
     this.s3bucketService
@@ -151,7 +210,7 @@ export class ObjectDatatablePageComponent implements OnInit {
               total: fileList.length
             })
           );
-          this.onReload();
+          this.loadData();
         },
         error: (err: Error) => {
           this.notificationService.showError(
@@ -163,53 +222,38 @@ export class ObjectDatatablePageComponent implements OnInit {
       });
   }
 
-  onActionMenu(object: S3Object): DatatableActionItem[] {
-    const result: DatatableActionItem[] = [
+  private doDelete(selected: DatatableData[]): void {
+    this.modalDialogService.confirmation<S3Object>(
+      selected as S3Object[],
+      'danger',
       {
-        title: TEXT('Download'),
-        icon: this.icons.download,
-        callback: (data: DatatableData) => {
-          this.s3bucketService.downloadObject(this.bid, object.Key!).subscribe();
-        }
+        singular: TEXT('Do you really want to delete the object <strong>{{ name }}</strong>?'),
+        singularFmtArgs: (value: S3Object) => ({ name: value.Key }),
+        plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> objects?')
       },
-      {
-        type: 'divider'
-      },
-      {
-        title: TEXT('Delete'),
-        icon: this.icons.delete,
-        callback: (data: DatatableData) => {
-          this.dialogService.open(
-            ModalComponent,
-            (res: boolean) => {
-              if (res) {
-                this.blockUI.start(translate(TEXT('Please wait, deleting object ...')));
-                this.s3bucketService
-                  .deleteObject(this.bid, object.Key!)
-                  .pipe(finalize(() => this.blockUI.stop()))
-                  .subscribe(() => {
-                    this.notificationService.showSuccess(TEXT(`Deleted object ${object.Key}.`));
-                    this.onReload();
-                  });
-              }
+      () => {
+        const sources: Observable<S3DeleteObjectOutput>[] = [];
+        _.forEach(selected, (data: DatatableData) => {
+          sources.push(this.s3bucketService.deleteObject(this.bid, data['Key']));
+        });
+        this.rxjsUiHelperService
+          .concat<S3DeleteObjectOutput>(
+            sources,
+            {
+              start: TEXT('Please wait, deleting {{ total }} object(s) ...'),
+              next: TEXT(
+                'Please wait, deleting object {{ current }} of {{ total }} ({{ percent }}%) ...'
+              )
             },
             {
-              type: 'yesNo',
-              icon: 'danger',
-              message: format(
-                TEXT(
-                  'Do you really want to delete the object <strong>{{ key }}</strong> in the bucket <strong>{{ bucketName }}</strong>?'
-                ),
-                {
-                  key: object.Key,
-                  bucketName: this.bid
-                }
-              )
+              next: TEXT('Object {{ name }} has been deleted.'),
+              nextFmtArgs: (output: S3DeleteObjectOutput) => ({ name: output.Key })
             }
-          );
-        }
+          )
+          .subscribe({
+            complete: () => this.loadData()
+          });
       }
-    ];
-    return result;
+    );
   }
 }

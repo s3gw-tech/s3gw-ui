@@ -127,10 +127,10 @@ export class AdminOpsUserService {
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-user
    */
-  public delete(uid: string): Observable<void> {
+  public delete(uid: string): Observable<string> {
     const credentials: Credentials = this.authStorageService.getCredentials();
     const params: Record<string, any> = { uid };
-    return this.rgwService.delete<void>('admin/user', { credentials, params });
+    return this.rgwService.delete<void>('admin/user', { credentials, params }).pipe(map(() => uid));
   }
 
   /**

@@ -8,7 +8,7 @@ import { map, switchMap } from 'rxjs/operators';
 
 import { bytesToSize, extractErrorCode, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
-import { PageStatus } from '~/app/shared/components/page-status/page-status.component';
+import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import {
   DeclarativeFormConfig,
   DeclarativeFormValues

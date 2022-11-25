@@ -1,24 +1,14 @@
-<s3gw-page-status [pageStatus]="pageStatus">
-  <div class="s3gw-page-actions">
-    <button type="button"
-            class="btn"
-            (click)="onReload()"
-            ngbTooltip="{{ 'Reload' | transloco }}">
-      <i [class]="icons.reload"></i>
-    </button>
-    <input type="file"
-           id="upload"
-           hidden
-           multiple
-           (change)="onUpload($event)">
-    <label for="upload"
-           class="btn btn-primary ">
-      {{ "Upload" | transloco }}
-    </label>
-  </div>
-  <s3gw-datatable [data]="objects"
-                  [columns]="columns"
+<s3gw-wrapper-status [actions]="pageActions"
+                     [pageStatus]="pageStatus">
+  <s3gw-datatable #table
+                  selectionType="multi"
+                  identifier="Key"
+                  [data]="objects"
+                  [columns]="datatableColumns"
                   [autoReload]="false"
                   (loadData)="loadData()">
+    <s3gw-datatable-actions [actions]="datatableActions"
+                            [table]="table">
+    </s3gw-datatable-actions>
   </s3gw-datatable>
-</s3gw-page-status>
+</s3gw-wrapper-status>

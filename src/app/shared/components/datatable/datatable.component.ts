@@ -14,6 +14,7 @@ import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
+import { Datatable } from '~/app/shared/models/datatable.interface';
 import {
   DatatableCellTemplateName,
   DatatableColumn
@@ -30,7 +31,7 @@ export enum SortDirection {
   templateUrl: './datatable.component.html',
   styleUrls: ['./datatable.component.scss']
 })
-export class DatatableComponent implements OnInit, OnDestroy {
+export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   @ViewChild('iconTpl', { static: true })
   iconTpl?: TemplateRef<any>;
   @ViewChild('checkIconTpl', { static: true })
@@ -89,7 +90,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
   selectionType: 'single' | 'multi' | 'none' = 'none';
 
   @Input()
-  selected: Array<DatatableData> = [];
+  selected: DatatableData[] = [];
 
   @Output()
   loadData = new EventEmitter();
@@ -102,8 +103,9 @@ export class DatatableComponent implements OnInit, OnDestroy {
   public page = 1;
   public cellTemplates: Record<string, TemplateRef<any>> = {};
   public displayedColumns: string[] = [];
+  public isAllRowsSelected = false;
 
-  protected _data: Array<DatatableData> = [];
+  protected _data: DatatableData[] = [];
   protected subscriptions: Subscription = new Subscription();
 
   private sortableColumns: string[] = [];
@@ -118,6 +120,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
 
   set data(data: DatatableData[]) {
     this._data = data;
+    this.updateSelection();
   }
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
@@ -135,6 +138,18 @@ export class DatatableComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initTemplates();
     if (this.columns) {
+      // Add 'Checkbox' column if `selectionType` is `single` and `multi.
+      if (this.selectionType !== 'none') {
+        if (!_.find(this.columns, ['prop', this.identifier])) {
+          throw new Error(`Identifier "${this.identifier}" not found in defined columns.`);
+        }
+        this.columns.unshift({
+          name: '',
+          prop: '',
+          cellTemplateName: DatatableCellTemplateName.rowSelect
+        });
+      }
+
       // Sanitize the columns.
       _.forEach(this.columns, (column: DatatableColumn) => {
         _.defaultsDeep(column, {
@@ -145,29 +160,18 @@ export class DatatableComponent implements OnInit, OnDestroy {
           column.cellTemplate = this.cellTemplates[column.cellTemplateName];
           switch (column.cellTemplateName) {
             case 'actionMenu':
+            case 'rowSelect':
               column.name = '';
-              column.prop = '_action'; // Add a none existing name here.
+              column.prop = '';
               column.sortable = false;
               column.cols = 1;
               column.css = '';
+              column.align = 'center';
               break;
           }
         }
       });
 
-      if (this.selectionType !== 'none') {
-        if (!_.find(this.columns, ['prop', this.identifier])) {
-          throw new Error(`Identifier "${this.identifier}" not found in defined columns.`);
-        }
-        this.columns.unshift({
-          name: '',
-          prop: '_rowSelect',
-          cellTemplate: this.cellTemplates[DatatableCellTemplateName.rowSelect],
-          cols: 1,
-          sortable: false,
-          align: 'center'
-        });
-      }
       // Get the columns to be displayed.
       this.displayedColumns = _.map(this.columns, 'prop');
     }
@@ -217,7 +221,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
     if (column.pipe && _.isFunction(column.pipe.transform)) {
       value = column.pipe.transform(value);
     }
-    if (column.prop === '_rowSelect') {
+    if (column.cellTemplateName === DatatableCellTemplateName.rowSelect) {
       const item = _.find(this.selected, [this.identifier, row[this.identifier]]);
       if (item) {
         value = true;
@@ -227,7 +231,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
   }
 
   renderCellDisabled(row: DatatableData, column: DatatableColumn): any {
-    if (column.prop === '_rowSelect') {
+    if (column.cellTemplateName === DatatableCellTemplateName.rowSelect) {
       if (this.selectionType === 'single') {
         const item = _.find(this.selected, [this.identifier, row[this.identifier]]);
         if (!item && this.selected.length > 0) {
@@ -275,42 +279,72 @@ export class DatatableComponent implements OnInit, OnDestroy {
 
   reloadData(): void {
     this.loadData.emit();
-    this.updateSelection();
   }
 
   onPageChange(page: number): void {
     this.page = page;
+    this.clearSelection();
     // Note, the table will be re-rendered automatically because the
     // variable has been modified.
   }
 
   onPageSizeChange(pageSize: number): void {
     this.pageSize = pageSize;
+    this.clearSelection();
     // Note, the table will be re-rendered automatically because the
     // variable has been modified.
   }
 
-  onSelectionChange($event: any, row: DatatableData) {
-    if ($event.target.checked) {
-      this.selected.push(row);
+  onHeaderSelectRows(event: any): void {
+    if (this.isAllRowsSelected) {
+      this.selected.splice(0, this.selected.length);
     } else {
-      const selectedIndex = _.findIndex(this.selected, [this.identifier, row[this.identifier]]);
+      this.selected.splice(0, this.selected.length, ...this.filteredData);
+    }
+    this.selectionChange.emit(this.selected);
+    this.updateIsAllRowsSelected();
+  }
+
+  onSelectRow(row: DatatableData): void {
+    const selectedIndex = _.findIndex(this.selected, [this.identifier, row[this.identifier]]);
+    if (-1 === selectedIndex) {
+      switch (this.selectionType) {
+        case 'multi':
+          this.selected.push(row);
+          break;
+        default:
+          this.selected.splice(0, this.selected.length, row);
+          break;
+      }
+    } else {
       if (selectedIndex >= 0) {
         this.selected.splice(selectedIndex, 1);
       }
     }
     this.selectionChange.emit(this.selected);
+    this.updateIsAllRowsSelected();
+  }
+
+  clearSelection(): void {
+    this.selected.splice(0, this.selected.length);
+    this.updateIsAllRowsSelected();
   }
 
   updateSelection(): void {
-    const updatedSelection: Array<DatatableData> = [];
+    const newSelection: DatatableData[] = [];
     this.selected.forEach((selectedItem) => {
       const item = _.find(this.data, [this.identifier, selectedItem[this.identifier]]);
       if (item) {
-        updatedSelection.push(item);
+        newSelection.push(item);
       }
     });
-    this.selected.splice(0, this.selected.length, ...updatedSelection);
+    this.selected.splice(0, this.selected.length, ...newSelection);
+    this.updateIsAllRowsSelected();
+  }
+
+  private updateIsAllRowsSelected(): void {
+    this.isAllRowsSelected =
+      this.selected.length > 0 && this.selected.length === this._filteredData.length;
   }
 
   private getSortProp(column: DatatableColumn): string {
