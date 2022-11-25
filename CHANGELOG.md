@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Creating a bucket with spaces crashed the app (gh#aquarist-labs/s3gw#225). 
+- Fix URL in the dashboard buckets widget (gh#aquarist-labs/s3gw#240).
 
 ### Added
 
