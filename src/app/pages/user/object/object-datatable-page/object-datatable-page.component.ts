@@ -119,7 +119,6 @@ export class ObjectDatatablePageComponent implements OnInit {
         return;
       }
       this.bid = decodeURIComponent(value['bid']);
-      this.loadData();
     });
   }
 
@@ -135,7 +134,7 @@ export class ObjectDatatablePageComponent implements OnInit {
       )
       .subscribe({
         next: (objects: S3Objects) => {
-          _.merge(this.objects, objects);
+          this.objects = [...this.objects, ...objects];
         },
         complete: () => {
           this.pageStatus = PageStatus.ready;

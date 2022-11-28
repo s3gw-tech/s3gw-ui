@@ -28,14 +28,15 @@ tbody > tr {
   }
 }
 
-.btn.actions {
-  --bs-btn-color: var(--bs-primary);
-  --bs-btn-hover-bg: rgba(var(--bs-primary-rgb), 0.15);
-  --bs-btn-active-bg: rgba(var(--bs-primary-rgb), 0.15);
-  --bs-btn-active-border-color: transparent;
+.actions {
+  .search {
+    &.input-group {
+      width: inherit;
+    }
 
-  &:focus-visible {
-    --bs-btn-hover-color: var(--bs-primary);
+    .btn.btn-input-group {
+      --bs-btn-border-color: var(--bs-gray-400);
+    }
   }
 }
 

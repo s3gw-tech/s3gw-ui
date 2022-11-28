@@ -1,9 +1,32 @@
 <div class="actions d-flex align-items-center justify-content-start mb-3">
-  <ng-content select="s3gw-datatable-actions">
+  <ng-content class="custom"
+              select="s3gw-datatable-actions">
   </ng-content>
   <div class="flex-fill"></div>
+  <div *ngIf="hasSearchField"
+       class="search input-group">
+    <!--
+    <div class="input-group-text">
+      <i class="mdi-18px"
+         [class]="icons.search">
+      </i>
+    </div>
+    -->
+    <input class="form-control"
+           type="search"
+           [value]="searchFilter"
+           (input)="onSearchFilterChange($event)">
+    <button type="button"
+            class="btn btn-input-group"
+            ngbTooltip="{{ 'Clear' | transloco }}"
+            (click)="clearSearchFilter()">
+      <i class="mdi-18px"
+         [class]="icons.clear">
+      </i>
+    </button>
+  </div>
   <button type="button"
-          class="btn btn-light"
+          class="reload ms-2 btn btn-simple"
           (click)="reloadData()"
           ngbTooltip="{{ 'Reload' | transloco }}">
     <i [class]="icons.reload"></i>
@@ -17,7 +40,7 @@
           [class]="setHeaderClasses(column)"
           [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}"
           [hidden]="column.hidden"
-          (click)="updateSorting(column)">
+          (click)="onSortChange(column)">
         <span *ngIf="column.name">{{ column.name | transloco }}</span>
         <input *ngIf="selectionType === 'multi' && column.cellTemplateName === 'rowSelect'"
                type="checkbox"
@@ -58,7 +81,7 @@
     {{ selected.length }} {{ 'selected' | transloco }}
   </div>
   <div class="flex-fill"></div>
-  <div *ngIf="!hidePageSize"
+  <div *ngIf="hasPageSize"
        ngbDropdown>
     <button class="btn btn-outline-default mr-2"
             ngbDropdownToggle>
