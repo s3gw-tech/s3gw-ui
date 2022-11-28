@@ -2,7 +2,7 @@
   <ng-container [ngSwitch]="action.type">
     <ng-template [ngSwitchCase]="'button'">
       <button type="button"
-              class="btn btn-primary me-2"
+              class="btn btn-primary ms-2"
               ngbTooltip="{{ action.tooltip | transloco }}"
               (click)="onAction($event, action)">
         <i *ngIf="action.icon"
@@ -19,7 +19,7 @@
              multiple
              (change)="onAction($event, action)">
       <label for="file"
-             class="btn btn-primary me-2"
+             class="btn btn-primary ms-2"
              ngbTooltip="{{ action.tooltip | transloco }}">
         <i *ngIf="action.icon"
            [class]="action.icon">
@@ -29,7 +29,7 @@
     </ng-template>
 
     <ng-template [ngSwitchCase]="'divider'">
-      <div class="vr me-2"></div>
+      <div class="vr ms-2"></div>
     </ng-template>
   </ng-container>
 </ng-container>
