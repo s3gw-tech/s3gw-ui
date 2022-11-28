@@ -75,7 +75,7 @@ export class BucketDatatablePageComponent {
         cellTemplateName: DatatableCellTemplateName.button,
         cellTemplateConfig: {
           text: TEXT('Explore'),
-          class: 'btn-primary',
+          class: 'btn-outline-primary',
           url: '/objects/{{ Name }}'
         }
       },
