@@ -5,11 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.0] - unreleased
+## [0.9.0] - 2022-12-01
 
 ### Fixed
 
-- Creating a bucket with spaces crashed the app (gh#aquarist-labs/s3gw#225). 
+- Creating a bucket with spaces crashed the app (gh#aquarist-labs/s3gw#225).
 - Fix URL in the dashboard buckets widget (gh#aquarist-labs/s3gw#240).
 
 ### Added
@@ -90,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add the ability to configure the RGW AdminOps API at runtime via the
-  file `/assets/rgw_admin_ops.config.json`. 
+  file `/assets/rgw_admin_ops.config.json`.
 
 ## [0.2.0] - 2022-07-28
 
