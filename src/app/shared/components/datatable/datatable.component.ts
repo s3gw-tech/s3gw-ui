@@ -21,6 +21,7 @@ import {
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
+import { UserLocalStorageService } from '~/app/shared/services/user-local-storage.service';
 
 export enum SortDirection {
   ascending = 'asc',
@@ -55,7 +56,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   @Input()
   columns: DatatableColumn[] = [];
 
-  // Set to 0 to disable pagination.
+  // The default page size.
   @Input()
   pageSize = 25;
 
@@ -94,6 +95,9 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   selectionType: 'single' | 'multi' | 'none' = 'none';
 
   @Input()
+  stateId?: string;
+
+  @Input()
   selected: DatatableData[] = [];
 
   @Output()
@@ -116,7 +120,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
 
   private sortableColumns: string[] = [];
 
-  constructor(private ngZone: NgZone) {}
+  constructor(private ngZone: NgZone, private userLocalStorageService: UserLocalStorageService) {}
 
   @Input()
   get data(): DatatableData[] {
@@ -197,6 +201,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
       this.sortHeader = this.sortableColumns[0];
     }
     this.prepareColumnStyle();
+    this.restoreState();
     this.applyFilters();
   }
 
@@ -281,6 +286,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
       this.sortHeader = prop;
       this.sortDirection = SortDirection.ascending;
     }
+    this.saveState();
     this.applyFilters();
     this.updateSelection();
   }
@@ -293,6 +299,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
 
   onPageSizeChange(pageSize: number): void {
     this.pageSize = pageSize;
+    this.saveState();
     this.applyFilters();
     this.updateSelection();
   }
@@ -430,5 +437,41 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
 
   private appendCss(column: DatatableColumn, css: string) {
     column.css = column.css ? `${column.css} ${css}` : css;
+  }
+
+  private saveState(): void {
+    if (!this.stateId) {
+      return;
+    }
+    const settings: Record<string, any> = {
+      pageSize: this.pageSize
+    };
+    if (_.isString(this.sortHeader)) {
+      settings['sortHeader'] = this.sortHeader;
+    }
+    if (_.isString(this.sortDirection)) {
+      settings['sortDirection'] = this.sortDirection;
+    }
+    this.userLocalStorageService.set(`datatable_state_${this.stateId}`, JSON.stringify(settings));
+  }
+
+  private restoreState(): void {
+    if (!this.stateId) {
+      return;
+    }
+    const value = this.userLocalStorageService.get(`datatable_state_${this.stateId}`);
+    if (_.isString(value)) {
+      const settings: Record<string, any> = JSON.parse(value);
+      this.pageSize = settings['pageSize'];
+      if (_.isString(settings['sortHeader'])) {
+        this.sortHeader = settings['sortHeader'];
+      }
+      if (_.isString(settings['sortDirection'])) {
+        this.sortDirection =
+          settings['sortDirection'] === SortDirection.descending
+            ? SortDirection.descending
+            : SortDirection.ascending;
+      }
+    }
   }
 }

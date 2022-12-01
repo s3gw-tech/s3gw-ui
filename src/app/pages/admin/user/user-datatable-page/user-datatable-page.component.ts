@@ -18,10 +18,11 @@ import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
 import { AdminOpsUserService, User } from '~/app/shared/services/api/admin-ops-user.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.service';
+
+import { AuthSessionService } from '../../../../shared/services/auth-session.service';
 
 @Component({
   selector: 's3gw-user-datatable-page',
@@ -42,7 +43,7 @@ export class UserDatatablePageComponent {
   private firstLoadComplete = false;
 
   constructor(
-    private authStorageService: AuthStorageService,
+    private authSessionService: AuthSessionService,
     private modalDialogService: ModalDialogService,
     private notificationService: NotificationService,
     private router: Router,
@@ -60,7 +61,7 @@ export class UserDatatablePageComponent {
             {
               operator: 'ne',
               arg0: { prop: 'user_id' },
-              arg1: this.authStorageService.getUserId()!
+              arg1: this.authSessionService.getUserId()!
             }
           ]
         },
@@ -192,7 +193,7 @@ export class UserDatatablePageComponent {
         title: TEXT('Delete'),
         icon: this.icons.delete,
         // Make sure the logged-in user can't be deleted.
-        disabled: user.user_id === this.authStorageService.getUserId(),
+        disabled: user.user_id === this.authSessionService.getUserId(),
         callback: (data: DatatableData) => this.doDelete([data])
       }
     ];

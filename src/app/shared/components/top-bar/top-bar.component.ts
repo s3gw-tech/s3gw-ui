@@ -5,9 +5,10 @@ import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { ViewMode } from '~/app/shared/enum/view-mode.enum';
 import { AuthService } from '~/app/shared/services/api/auth.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { NavigationConfigService } from '~/app/shared/services/navigation-config.service';
+
+import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
   selector: 's3gw-top-bar',
@@ -26,13 +27,13 @@ export class TopBarComponent {
 
   constructor(
     private authService: AuthService,
-    private authStorageService: AuthStorageService,
+    private authSessionService: AuthSessionService,
     private dialogService: DialogService,
     private navigationConfigService: NavigationConfigService
   ) {
     this.viewMode = this.navigationConfigService.currentViewMode;
-    this.userId = this.authStorageService.getUserId();
-    this.isAdmin = this.authStorageService.isAdmin();
+    this.userId = this.authSessionService.getUserId();
+    this.isAdmin = this.authSessionService.isAdmin();
   }
 
   onToggleNavigation(): void {

@@ -1,6 +1,7 @@
 <s3gw-wrapper-status [actions]="pageActions"
                      [pageStatus]="pageStatus">
-  <s3gw-datatable [data]="keys"
+  <s3gw-datatable stateId="admin_user_keys"
+                  [data]="keys"
                   [columns]="datatableColumns"
                   [autoReload]="false"
                   (loadData)="loadData()">

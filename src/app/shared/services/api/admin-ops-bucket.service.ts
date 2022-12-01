@@ -8,7 +8,7 @@ import { Credentials } from '~/app/shared/models/credentials.type';
 import { AdminOpsUserService, Key } from '~/app/shared/services/api/admin-ops-user.service';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 
 export type Bucket = {
   /* eslint-disable @typescript-eslint/naming-convention */
@@ -51,7 +51,7 @@ export type Bucket = {
 })
 export class AdminOpsBucketService {
   constructor(
-    private authStorageService: AuthStorageService,
+    private authSessionService: AuthSessionService,
     private rgwService: RgwService,
     private s3BucketService: S3BucketService,
     private userService: AdminOpsUserService
@@ -61,7 +61,7 @@ export class AdminOpsBucketService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#get-bucket-info
    */
   public list(stats: boolean = false, uid: string = ''): Observable<Bucket[]> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = {
       stats
     };
@@ -99,7 +99,7 @@ export class AdminOpsBucketService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-bucket
    */
   public delete(bucket: string, purgeObjects: boolean = true): Observable<string> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: Record<string, any> = { bucket, 'purge-objects': purgeObjects };
     return this.rgwService
@@ -137,7 +137,7 @@ export class AdminOpsBucketService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#get-bucket-info
    */
   public get(bucket: string): Observable<Bucket> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = { bucket };
     return this.rgwService.get<Bucket>('admin/bucket', { credentials, params }).pipe(
       switchMap((resp: Bucket) =>
@@ -172,7 +172,7 @@ export class AdminOpsBucketService {
    * @private
    */
   private link(bucket: string, bucketId: string, uid: string): Observable<void> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = {
       bucket,
       // eslint-disable-next-line @typescript-eslint/naming-convention

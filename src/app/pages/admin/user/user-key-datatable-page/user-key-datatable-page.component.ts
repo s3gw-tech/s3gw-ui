@@ -19,9 +19,10 @@ import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.typ
 import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
 import { AdminOpsUserService, Key, User } from '~/app/shared/services/api/admin-ops-user.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
+
+import { AuthSessionService } from '../../../../shared/services/auth-session.service';
 
 @Component({
   selector: 's3gw-user-key-datatable-page',
@@ -43,7 +44,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
   private firstLoadComplete = false;
 
   constructor(
-    private authStorageService: AuthStorageService,
+    private authSessionService: AuthSessionService,
     private dialogService: DialogService,
     private modalDialogService: ModalDialogService,
     private route: ActivatedRoute,
@@ -116,7 +117,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
 
   onActionMenu(key: Key): DatatableRowAction[] {
     // Make sure the currently used key can't be deleted.
-    const credentials = this.authStorageService.getCredentials();
+    const credentials = this.authSessionService.getCredentials();
     const deletable = _.some(this.keys, ['secret_key', credentials.secretKey]);
     const result: DatatableRowAction[] = [
       {
