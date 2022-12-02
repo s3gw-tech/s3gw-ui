@@ -3,23 +3,23 @@ import { TestBed } from '@angular/core/testing';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { AdminOpsUserService } from '~/app/shared/services/api/admin-ops-user.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { TestingModule } from '~/app/testing.module';
 
 describe('AdminOpsUserService', () => {
   let service: AdminOpsUserService;
   let httpTesting: HttpTestingController;
-  let authStorageService: AuthStorageService;
+  let authSessionService: AuthSessionService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [AuthStorageService, AdminOpsUserService],
+      providers: [AuthSessionService, AdminOpsUserService],
       imports: [TestingModule]
     });
     service = TestBed.inject(AdminOpsUserService);
     httpTesting = TestBed.inject(HttpTestingController);
-    authStorageService = TestBed.inject(AuthStorageService);
-    authStorageService.set('foo', 'xyz', '123');
+    authSessionService = TestBed.inject(AuthSessionService);
+    authSessionService.set('foo', 'xyz', '123');
   });
 
   it('should be created', () => {

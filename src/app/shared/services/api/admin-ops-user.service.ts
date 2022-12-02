@@ -7,7 +7,7 @@ import { map, mergeMap } from 'rxjs/operators';
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { AuthResponse } from '~/app/shared/services/api/auth.service';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 
 export type User = {
   /* eslint-disable @typescript-eslint/naming-convention */
@@ -70,7 +70,7 @@ export type Quota = {
   providedIn: 'root'
 })
 export class AdminOpsUserService {
-  constructor(private authStorageService: AuthStorageService, private rgwService: RgwService) {}
+  constructor(private authSessionService: AuthSessionService, private rgwService: RgwService) {}
 
   /**
    * Check if the given credentials are valid and the user is allowed
@@ -92,7 +92,7 @@ export class AdminOpsUserService {
    * Get a list of user IDs.
    */
   public listIds(): Observable<string[]> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     return this.rgwService.get<string[]>('admin/metadata/user', { credentials });
   }
 
@@ -119,7 +119,7 @@ export class AdminOpsUserService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#create-user
    */
   public create(user: User): Observable<void> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = this.user2Params(user);
     return this.rgwService.put<void>('admin/user', { credentials, params });
   }
@@ -128,7 +128,7 @@ export class AdminOpsUserService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-user
    */
   public delete(uid: string): Observable<string> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = { uid };
     return this.rgwService.delete<void>('admin/user', { credentials, params }).pipe(map(() => uid));
   }
@@ -137,7 +137,7 @@ export class AdminOpsUserService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#modify-user
    */
   public update(user: Partial<User>): Observable<User> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = this.user2Params(user);
     return this.rgwService.post<User>('admin/user', { credentials, params });
   }
@@ -146,7 +146,7 @@ export class AdminOpsUserService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#get-user-info
    */
   public get(uid: string, stats: boolean = false): Observable<User> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = { uid, stats };
     return this.rgwService.get<User>('admin/user', { credentials, params });
   }
@@ -162,7 +162,7 @@ export class AdminOpsUserService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#create-key
    */
   public createKey(uid: string, key: Key): Observable<void> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = this.key2Params(uid, key);
     return this.rgwService.put<void>('admin/user?key', { credentials, params });
   }
@@ -175,7 +175,7 @@ export class AdminOpsUserService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-key
    */
   public deleteKey(uid: string, accessKey: string): Observable<void> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = new HttpParams({
       // eslint-disable-next-line @typescript-eslint/naming-convention
       fromObject: { uid, 'access-key': accessKey }
@@ -187,7 +187,7 @@ export class AdminOpsUserService {
    * https://docs.ceph.com/en/latest/radosgw/adminops/#quotas
    */
   updateQuota(uid: string, quota: Quota) {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = this.quota2Params(uid, quota);
     return this.rgwService.put('admin/user?quota', { credentials, params });
   }

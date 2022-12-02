@@ -7,7 +7,7 @@ import { Credentials } from '~/app/shared/models/credentials.type';
 import { AuthResponse } from '~/app/shared/services/api/auth.service';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { S3ClientService } from '~/app/shared/services/api/s3-client.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 
 export type S3UserStats = {
   /* eslint-disable @typescript-eslint/naming-convention */
@@ -26,7 +26,7 @@ export type S3UserStats = {
 })
 export class S3UserService {
   constructor(
-    private authStorageService: AuthStorageService,
+    private authSessionService: AuthSessionService,
     private rgwService: RgwService,
     private s3ClientService: S3ClientService
   ) {}
@@ -49,7 +49,7 @@ export class S3UserService {
    * https://docs.ceph.com/en/latest/radosgw/s3/serviceops/#get-usage-stats
    */
   public stats(): Observable<S3UserStats> {
-    const credentials: Credentials = this.authStorageService.getCredentials();
+    const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = { usage: '' };
     return this.rgwService.get<S3UserStats>('', { credentials, params });
   }

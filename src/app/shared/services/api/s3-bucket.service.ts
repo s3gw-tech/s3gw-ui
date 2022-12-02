@@ -8,7 +8,7 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { S3ClientService } from '~/app/shared/services/api/s3-client.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 
 export type S3Bucket = AWS.S3.Types.Bucket & {
   /* eslint-disable @typescript-eslint/naming-convention */
@@ -50,7 +50,7 @@ export type S3GetObjectOutput = AWS.S3.Types.GetObjectOutput & {
 })
 export class S3BucketService {
   constructor(
-    private authStorageService: AuthStorageService,
+    private authSessionService: AuthSessionService,
     private rgwService: RgwService,
     private s3ClientService: S3ClientService
   ) {}
@@ -90,7 +90,7 @@ export class S3BucketService {
    * @see https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#get-bucket
    */
   public get(bucket: AWS.S3.Types.BucketName, credentials?: Credentials): Observable<S3Bucket> {
-    credentials = credentials ?? this.authStorageService.getCredentials();
+    credentials = credentials ?? this.authSessionService.getCredentials();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: Record<string, any> = { 'max-keys': 0 };
     return this.rgwService.get<S3Bucket>(`${bucket}`, { credentials, params }).pipe(
@@ -162,7 +162,7 @@ export class S3BucketService {
     // );
     return this.rgwService
       .put<AWS.S3.Types.CreateBucketOutput>(bucket.Name!, {
-        credentials: credentials ?? this.authStorageService.getCredentials()
+        credentials: credentials ?? this.authSessionService.getCredentials()
       })
       .pipe(
         switchMap((resp: AWS.S3.Types.CreateBucketOutput) => {

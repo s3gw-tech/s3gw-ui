@@ -3,13 +3,14 @@ import { ToastrModule } from 'ngx-toastr';
 
 import { BucketFormPageComponent } from '~/app/pages/admin/bucket/bucket-form-page/bucket-form-page.component';
 import { UserPagesModule } from '~/app/pages/user/user-pages.module';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { TestingModule } from '~/app/testing.module';
+
+import { AuthSessionService } from '../../../../shared/services/auth-session.service';
 
 describe('BucketFormPageComponent', () => {
   let component: BucketFormPageComponent;
   let fixture: ComponentFixture<BucketFormPageComponent>;
-  let authStorageService: AuthStorageService;
+  let authSessionService: AuthSessionService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -19,8 +20,8 @@ describe('BucketFormPageComponent', () => {
   });
 
   beforeEach(() => {
-    authStorageService = TestBed.inject(AuthStorageService);
-    authStorageService.set('foo', 'bar', 'baz');
+    authSessionService = TestBed.inject(AuthSessionService);
+    authSessionService.set('foo', 'bar', 'baz');
     fixture = TestBed.createComponent(BucketFormPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

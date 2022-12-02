@@ -3,7 +3,7 @@ import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
 
 @Injectable({
@@ -13,7 +13,7 @@ export class S3ClientService {
   private clients: Map<string, AWS.S3> = new Map();
 
   constructor(
-    private authStorageService: AuthStorageService,
+    private authSessionService: AuthSessionService,
     private rgwServiceConfigService: RgwServiceConfigService
   ) {}
 
@@ -25,7 +25,7 @@ export class S3ClientService {
    * @private
    */
   public get(credentials?: Credentials): AWS.S3 {
-    credentials = credentials ?? this.authStorageService.getCredentials();
+    credentials = credentials ?? this.authSessionService.getCredentials();
     const key = Credentials.md5(credentials);
     let client: AWS.S3 | undefined = this.clients.get(key);
     if (_.isUndefined(client)) {

@@ -11,15 +11,16 @@ import * as _ from 'lodash';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
+
+import { AuthSessionService } from './auth-session.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HttpErrorInterceptorService implements HttpInterceptor {
   constructor(
-    private authStorageService: AuthStorageService,
+    private authSessionService: AuthSessionService,
     private notificationService: NotificationService,
     private router: Router
   ) {}
@@ -34,7 +35,7 @@ export class HttpErrorInterceptorService implements HttpInterceptor {
             case 401:
             case 403: // E.g. invalid access key.
               timeoutId = window.setTimeout(() => {
-                this.authStorageService.revoke();
+                this.authSessionService.revoke();
                 this.router.navigate(['/login']);
               }, 5);
               break;

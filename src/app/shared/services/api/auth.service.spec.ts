@@ -2,7 +2,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { AuthService } from '~/app/shared/services/api/auth.service';
-import { AuthStorageService } from '~/app/shared/services/auth-storage.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { TestingModule } from '~/app/testing.module';
 
 describe('AuthService', () => {
@@ -23,7 +23,7 @@ describe('AuthService', () => {
   });
 
   it('should call login', () => {
-    const authStorageService = TestBed.inject(AuthStorageService);
+    const authStorageService = TestBed.inject(AuthSessionService);
     jest.spyOn(authStorageService, 'set').mockImplementation();
     service.login('foo', 'bar').subscribe();
     const req = httpTesting.expectOne('/admin/user?access-key=foo');
@@ -34,7 +34,7 @@ describe('AuthService', () => {
   });
 
   it('should call logout', () => {
-    const authStorageService = TestBed.inject(AuthStorageService);
+    const authStorageService = TestBed.inject(AuthSessionService);
     jest.spyOn(authStorageService, 'revoke').mockImplementation();
     service.logout().subscribe();
     expect(authStorageService.revoke).toBeCalled();

@@ -6,7 +6,7 @@ import { Credentials } from '~/app/shared/models/credentials.type';
 @Injectable({
   providedIn: 'root'
 })
-export class AuthStorageService {
+export class AuthSessionService {
   constructor() {}
 
   /**
