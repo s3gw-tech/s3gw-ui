@@ -85,10 +85,10 @@ describe('DatatableComponent', () => {
 
   it('should reverse listing order if the current sorting header is clicked', () => {
     fixture.detectChanges();
-    component.updateSorting(columns[0]);
+    component.onSortChange(columns[0]);
     expect(component.sortDirection).toBe(SortDirection.descending);
     expect(component.filteredData).toEqual([data.c, data.b, data.a]);
-    component.updateSorting(columns[0]);
+    component.onSortChange(columns[0]);
     expect(component.sortDirection).toBe(SortDirection.ascending);
     expect(component.filteredData).toEqual([data.a, data.b, data.c]);
   });
@@ -96,7 +96,7 @@ describe('DatatableComponent', () => {
   it('should sort new sorting header always ascending first', () => {
     component.sortDirection = SortDirection.descending;
     fixture.detectChanges();
-    component.updateSorting(columns[1]);
+    component.onSortChange(columns[1]);
     expect(component.filteredData).toEqual([data.c, data.a, data.b]);
   });
 
@@ -146,7 +146,7 @@ describe('DatatableComponent', () => {
     component.columns[0].sortable = false;
     fixture.detectChanges();
     expect(component.sortHeader).toBe('bar');
-    component.updateSorting(columns[0]);
+    component.onSortChange(columns[0]);
     expect(component.sortHeader).toBe('bar');
   });
 

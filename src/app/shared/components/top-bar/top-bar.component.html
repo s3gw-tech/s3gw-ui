@@ -8,7 +8,7 @@
   <div class="title ms-2">s3gw</div>
   <div class="flex-fill"></div>
   <ng-container *ngIf="isAdmin">
-    <div class="form-check form-switch">
+    <div class="form-check form-switch me-2">
       <input class="form-check-input"
              type="checkbox"
              role="switch"
@@ -24,7 +24,7 @@
     <div class="ms-3 vr"></div>
   </ng-container>
   <div ngbDropdown>
-    <button class="btn btn-simple"
+    <button class="btn btn-simple ms-2"
             title="{{ 'Help' | transloco }}"
             ngbDropdownToggle>
       <i [class]="icons.help"></i>
@@ -51,7 +51,7 @@
   <div ngbDropdown
        display="dynamic"
        placement="bottom-right">
-    <button class="btn btn-simple"
+    <button class="btn btn-simple mx-2"
             ngbDropdownToggle>
       <i [class]="icons.user"></i>
     </button>

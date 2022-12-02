@@ -106,13 +106,38 @@ $pagination-padding-x: 0.5rem;
 
 //////////////////////////////////////////////////////////////////////////////
 // Button
-.btn-simple {
-  @extend .btn-link;
+button:disabled,
+[type='button']:disabled {
+  cursor: not-allowed;
+}
 
-  &:focus,
-  &.focus {
-    box-shadow: unset;
-  }
+.btn-simple {
+  @include button-variant(
+    // background
+    dc.$s3gw-color-transparent,
+    // border
+    dc.$s3gw-color-transparent,
+    // color
+    dc.$s3gw-color-black,
+    // hover-background
+    dc.$s3gw-color-cyan-blue-azure,
+    // hover-border
+    dc.$s3gw-color-cyan-blue-azure,
+    // hover-color
+    dc.$s3gw-color-white,
+    // active-background
+    dc.$s3gw-color-cyan-blue-azure,
+    // active-border
+    dc.$s3gw-color-cyan-blue-azure,
+    // active-color
+    dc.$s3gw-color-white,
+    // disabled-background
+    dc.$s3gw-color-gray-x11,
+    // disabled-border
+    dc.$s3gw-color-gray-x11
+  );
+
+  --bs-btn-focus-box-shadow: none;
 }
 
 .btn-primary {

@@ -2,14 +2,13 @@
 @use 'src/scss/defaults/fonts' as df;
 
 .wrapper {
-  .btn {
+  .btn.toggle {
+    border-width: 0;
     color: var(--bs-body-color);
+    height: 100%;
 
-    &.toggle {
-      height: 100%;
-    }
-
-    &.toggle:hover {
+    &:focus,
+    &:hover {
       background-color: dc.$s3gw-color-menu-item-selected-background;
     }
   }

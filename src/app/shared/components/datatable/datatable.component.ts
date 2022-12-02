@@ -13,6 +13,7 @@ import {
 import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
+import { Throttle } from '~/app/functions.helper';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { Datatable } from '~/app/shared/models/datatable.interface';
 import {
@@ -65,7 +66,10 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   sortDirection: SortDirection.ascending | SortDirection.descending = SortDirection.ascending;
 
   @Input()
-  hidePageSize = false;
+  hasPageSize = true;
+
+  @Input()
+  hasSearchField = true;
 
   // The auto-reload time in milliseconds. The load event will be fired
   // immediately. Set to `0` or `false` to disable this feature. Set the
@@ -104,12 +108,13 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   public cellTemplates: Record<string, TemplateRef<any>> = {};
   public displayedColumns: string[] = [];
   public isAllRowsSelected = false;
+  public searchFilter = '';
+  public filteredData: DatatableData[] = [];
 
   protected _data: DatatableData[] = [];
   protected subscriptions: Subscription = new Subscription();
 
   private sortableColumns: string[] = [];
-  private _filteredData: DatatableData[] = [];
 
   constructor(private ngZone: NgZone) {}
 
@@ -120,19 +125,15 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
 
   set data(data: DatatableData[]) {
     this._data = data;
+    this.applyFilters();
     this.updateSelection();
   }
 
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  get filteredData(): DatatableData[] {
-    const filtered = _.orderBy(this.data, [this.sortHeader], [this.sortDirection]).slice(
-      (this.page - 1) * this.pageSize,
-      (this.page - 1) * this.pageSize + this.pageSize
-    );
-    if (!_.isEqual(filtered, this._filteredData)) {
-      this._filteredData = filtered;
-    }
-    return this._filteredData;
+  @Throttle(1000)
+  onSearchFilterChange(event: Event): void {
+    this.searchFilter = (event.target as HTMLInputElement).value;
+    this.applyFilters();
+    this.updateSelection();
   }
 
   ngOnInit(): void {
@@ -196,6 +197,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
       this.sortHeader = this.sortableColumns[0];
     }
     this.prepareColumnStyle();
+    this.applyFilters();
   }
 
   ngOnDestroy(): void {
@@ -242,22 +244,6 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     return false;
   }
 
-  updateSorting(c: DatatableColumn): void {
-    const prop = this.getSortProp(c);
-    if (!this.sortableColumns.includes(prop)) {
-      return;
-    }
-    if (prop === this.sortHeader) {
-      this.sortDirection =
-        this.sortDirection === SortDirection.descending
-          ? SortDirection.ascending
-          : SortDirection.descending;
-    } else {
-      this.sortHeader = prop;
-      this.sortDirection = SortDirection.ascending;
-    }
-  }
-
   setHeaderClasses(column: DatatableColumn): string {
     let css = column.css || '';
     if (column.sortable !== true) {
@@ -281,18 +267,40 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     this.loadData.emit();
   }
 
+  onSortChange(c: DatatableColumn): void {
+    const prop = this.getSortProp(c);
+    if (!this.sortableColumns.includes(prop)) {
+      return;
+    }
+    if (prop === this.sortHeader) {
+      this.sortDirection =
+        this.sortDirection === SortDirection.descending
+          ? SortDirection.ascending
+          : SortDirection.descending;
+    } else {
+      this.sortHeader = prop;
+      this.sortDirection = SortDirection.ascending;
+    }
+    this.applyFilters();
+    this.updateSelection();
+  }
+
   onPageChange(page: number): void {
     this.page = page;
-    this.clearSelection();
-    // Note, the table will be re-rendered automatically because the
-    // variable has been modified.
+    this.applyFilters();
+    this.updateSelection();
   }
 
   onPageSizeChange(pageSize: number): void {
     this.pageSize = pageSize;
-    this.clearSelection();
-    // Note, the table will be re-rendered automatically because the
-    // variable has been modified.
+    this.applyFilters();
+    this.updateSelection();
+  }
+
+  clearSearchFilter(): void {
+    this.searchFilter = '';
+    this.applyFilters();
+    this.updateSelection();
   }
 
   onHeaderSelectRows(event: any): void {
@@ -333,7 +341,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   updateSelection(): void {
     const newSelection: DatatableData[] = [];
     this.selected.forEach((selectedItem) => {
-      const item = _.find(this.data, [this.identifier, selectedItem[this.identifier]]);
+      const item = _.find(this.filteredData, [this.identifier, selectedItem[this.identifier]]);
       if (item) {
         newSelection.push(item);
       }
@@ -342,9 +350,43 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     this.updateIsAllRowsSelected();
   }
 
+  private applyFilters(): void {
+    // Filter the data according the following rules:
+    // 1. Order the data according the given criteria (column sorting).
+    // 2. Get the data that is displayed on the given page (pagination).
+    // 3. Apply the given search filter.
+    const filteredData = _.orderBy(this.data, [this.sortHeader], [this.sortDirection])
+      .slice((this.page - 1) * this.pageSize, (this.page - 1) * this.pageSize + this.pageSize)
+      .filter((o: DatatableData) =>
+        _.some(this.columns, (column: DatatableColumn) => {
+          let value = _.get(o, column.prop);
+          if (!_.isUndefined(column.pipe)) {
+            value = column.pipe.transform(value);
+          }
+          if (value === '' || _.isUndefined(value) || _.isNull(value)) {
+            return false;
+          }
+          if (_.isObjectLike(value)) {
+            value = JSON.stringify(value);
+          } else if (_.isArray(value)) {
+            value = _.join(value, ' ');
+          } else if (_.isNumber(value) || _.isBoolean(value)) {
+            value = value.toString();
+          }
+          return _.includes(_.lowerCase(value), _.lowerCase(this.searchFilter));
+        })
+      );
+    if (
+      filteredData.length !== this.filteredData.length ||
+      !_.isEqual(filteredData, this.filteredData)
+    ) {
+      this.filteredData = filteredData;
+    }
+  }
+
   private updateIsAllRowsSelected(): void {
     this.isAllRowsSelected =
-      this.selected.length > 0 && this.selected.length === this._filteredData.length;
+      this.selected.length > 0 && this.selected.length === this.filteredData.length;
   }
 
   private getSortProp(column: DatatableColumn): string {
