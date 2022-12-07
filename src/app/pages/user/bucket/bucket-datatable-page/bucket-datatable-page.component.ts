@@ -123,7 +123,7 @@ export class BucketDatatablePageComponent {
         title: TEXT('Edit'),
         icon: this.icons.edit,
         callback: () => {
-          this.router.navigate([`/user/buckets/edit/${bucket.Name}`]);
+          this.router.navigate([`/buckets/edit/${bucket.Name}`]);
         }
       },
       {
