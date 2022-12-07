@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.10.0] - unreleased
 
+### Fixed
+
+- Editing buckets in user mode is not possible (gh#aquarist-labs/s3gw#262).
+
 ### Added
 
 - Add search field to data tables (gh#aquarist-labs/s3gw#157).
