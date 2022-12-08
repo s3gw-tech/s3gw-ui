@@ -3,8 +3,36 @@
               select="s3gw-datatable-actions">
   </ng-content>
   <div class="flex-fill"></div>
+  <div ngbDropdown>
+    <button class="btn btn-simple"
+            ngbDropdownToggle
+            ngbTooltip="{{ 'Show/Hide columns' | transloco }}">
+      <i [class]="icons.table"></i>
+    </button>
+    <div ngbDropdownMenu>
+      <ng-container *ngFor="let column of columns">
+        <button *ngIf="column.name"
+                ngbDropdownItem
+                (click)="onToggleColumn(column)">
+          <i *ngIf="column.hidden"
+             [class]="icons.checkboxBlank">
+          </i>
+          <i *ngIf="!column.hidden"
+             [class]="icons.checkboxMarked">
+          </i>
+          <span>{{ column.name | transloco }}</span>
+        </button>
+      </ng-container>
+    </div>
+  </div>
+  <button type="button"
+          class="reload btn btn-simple ms-2"
+          (click)="reloadData()"
+          ngbTooltip="{{ 'Reload' | transloco }}">
+    <i [class]="icons.reload"></i>
+  </button>
   <div *ngIf="hasSearchField"
-       class="search input-group">
+       class="search input-group ms-2">
     <!--
     <div class="input-group-text">
       <i class="mdi-18px"
@@ -25,18 +53,13 @@
       </i>
     </button>
   </div>
-  <button type="button"
-          class="reload ms-2 btn btn-simple"
-          (click)="reloadData()"
-          ngbTooltip="{{ 'Reload' | transloco }}">
-    <i [class]="icons.reload"></i>
-  </button>
 </div>
 <table class="table table-hover border-top border-start border-end">
   <thead class="table-light">
-    <tr class="d-flex">
+    <tr>
       <th *ngFor="let column of columns"
           scope="col"
+          [width]="column.width"
           [class]="setHeaderClasses(column)"
           [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}"
           [hidden]="column.hidden"
@@ -55,7 +78,6 @@
   </thead>
   <tbody>
     <tr *ngFor="let row of filteredData"
-        class="d-flex"
         [ngClass]="{'selected': selected.includes(row)}">
       <td *ngFor="let column of columns"
           [class]="column.css"

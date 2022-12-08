@@ -109,39 +109,6 @@ describe('DatatableComponent', () => {
     fh.expectTextToBe('.sort-header.asc', 'Bar');
   });
 
-  it('should calculate the columns if not set', () => {
-    fixture.detectChanges();
-    expect(component.columns[0].cols).toBe(6);
-    expect(component.columns[0].css).toBe('s3gw-text-no-overflow col-6');
-    expect(component.columns[1].cols).toBe(6);
-    expect(component.columns[1].css).toBe('s3gw-text-no-overflow flex-fill');
-  });
-
-  it('should use column style in template', () => {
-    fh.expectTextToBe('th.col-6', 'Foo');
-    fh.expectTextsToBe('td.col-6', ['a', 'b', 'c']);
-    fh.expectTextToBe('th.flex-fill', 'Bar');
-    fh.expectTextsToBe('td.flex-fill', ['2', '3', '1']);
-  });
-
-  it('should not override col wide if set', () => {
-    component.columns[1].cols = 5;
-    fixture.detectChanges();
-    expect(component.columns[0].cols).toBe(7);
-    expect(component.columns[0].css).toBe('s3gw-text-no-overflow flex-fill');
-    expect(component.columns[1].cols).toBe(5);
-    expect(component.columns[1].css).toBe('s3gw-text-no-overflow col-5');
-  });
-
-  it('should throw error if more than 12 cols need to be used', () => {
-    component.columns[1].cols = 12;
-    expect(() => fixture.detectChanges()).toThrow(
-      new Error(
-        'Only 12 cols can be used in one row by Bootstrap, please redefine the "DatatableColumn.cols" values'
-      )
-    );
-  });
-
   it('should not sort not sortable columns', () => {
     component.columns[0].sortable = false;
     fixture.detectChanges();
@@ -153,15 +120,7 @@ describe('DatatableComponent', () => {
   it('should not override a given css style for the column', () => {
     component.columns[0].css = 'custom-style';
     fixture.detectChanges();
-    expect(component.columns[0].css).toBe('s3gw-text-no-overflow custom-style col-6');
-  });
-
-  it('should enlarge the first highest col setting if set cols are less than or equal to 12', () => {
-    component.columns[0].cols = 6;
-    component.columns[1].cols = 3;
-    fixture.detectChanges();
-    expect(component.columns[0].css).toBe('s3gw-text-no-overflow flex-fill');
-    expect(component.columns[1].css).toBe('s3gw-text-no-overflow col-3');
+    expect(component.columns[0].css).toBe('s3gw-text-no-overflow custom-style');
   });
 
   it('should use a different compare property', () => {

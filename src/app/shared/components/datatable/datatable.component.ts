@@ -110,7 +110,6 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   public icons = Icon;
   public page = 1;
   public cellTemplates: Record<string, TemplateRef<any>> = {};
-  public displayedColumns: string[] = [];
   public isAllRowsSelected = false;
   public searchFilter = '';
   public filteredData: DatatableData[] = [];
@@ -158,6 +157,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
       // Sanitize the columns.
       _.forEach(this.columns, (column: DatatableColumn) => {
         _.defaultsDeep(column, {
+          hidden: false,
           sortable: true
         });
         column.css = ['s3gw-text-no-overflow', column.css].join(' ').trim();
@@ -169,16 +169,13 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
               column.name = '';
               column.prop = '';
               column.sortable = false;
-              column.cols = 1;
+              column.width = '70px';
               column.css = '';
               column.align = 'center';
               break;
           }
         }
       });
-
-      // Get the columns to be displayed.
-      this.displayedColumns = _.map(this.columns, 'prop');
     }
     if (_.isInteger(this.autoReload) && this.autoReload > 0) {
       this.ngZone.runOutsideAngular(() => {
@@ -200,7 +197,6 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     if (!this.sortHeader && this.sortableColumns.length > 0) {
       this.sortHeader = this.sortableColumns[0];
     }
-    this.prepareColumnStyle();
     this.restoreState();
     this.applyFilters();
   }
@@ -289,6 +285,11 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     this.saveState();
     this.applyFilters();
     this.updateSelection();
+  }
+
+  onToggleColumn(column: DatatableColumn): void {
+    column.hidden = !column.hidden;
+    this.saveState();
   }
 
   onPageChange(page: number): void {
@@ -400,41 +401,6 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     return column.compareProp || column.prop;
   }
 
-  private prepareColumnStyle() {
-    const customCols = this.columns.filter((c) => c.cols);
-    const availableCols = 12 - _.sumBy(customCols, (c) => c.cols as number);
-    const columnsToChange = this.columns.length - customCols.length;
-
-    this.colSanityCheck(availableCols, columnsToChange);
-    const autoColLength = columnsToChange === 0 ? 0 : Math.round(availableCols / columnsToChange);
-    const flexFillIndex = this.findFlexFillIndex(customCols, columnsToChange);
-    this.columns.forEach((column, index) => {
-      if (!column.cols) {
-        column.cols = autoColLength;
-      }
-      this.appendCss(column, index === flexFillIndex ? 'flex-fill' : `col-${column.cols}`);
-    });
-  }
-
-  private colSanityCheck(availableCols: number, columnsToChange: number) {
-    if (availableCols < 0 || (availableCols === 0 && columnsToChange >= 1)) {
-      throw new Error(
-        'Only 12 cols can be used in one row by Bootstrap, please redefine the "DatatableColumn.cols" values'
-      );
-    }
-  }
-
-  private findFlexFillIndex(customCols: DatatableColumn[], columnsToChange: number): number {
-    return customCols.length === 0
-      ? this.columns.length - 1
-      : columnsToChange === 0
-      ? _.findIndex(
-          this.columns,
-          customCols.reduce((p, c) => (p.cols! < c.cols! ? c : p))
-        )
-      : _.findLastIndex(this.columns, (c) => !c.cols);
-  }
-
   private appendCss(column: DatatableColumn, css: string) {
     column.css = column.css ? `${column.css} ${css}` : css;
   }
@@ -443,7 +409,15 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     if (!this.stateId) {
       return;
     }
+    const columnsConfig: Record<string, any>[] = [];
+    _.forEach(_.filter(this.columns, 'name'), (column: DatatableColumn) => {
+      columnsConfig.push({
+        name: column.name,
+        hidden: column.hidden
+      });
+    });
     const settings: Record<string, any> = {
+      columns: columnsConfig,
       pageSize: this.pageSize
     };
     if (_.isString(this.sortHeader)) {
@@ -472,6 +446,12 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
             ? SortDirection.descending
             : SortDirection.ascending;
       }
+      _.forEach(settings['columns'], (columnConfig: Record<string, any>) => {
+        const column = _.find(this.columns, ['name', _.get(columnConfig, 'name')]);
+        if (column) {
+          _.merge(column, columnConfig);
+        }
+      });
     }
   }
 }

@@ -54,7 +54,7 @@ export enum DatatableCellTemplateName {
 }
 
 export type DatatableColumn = {
-  cols?: number;
+  width?: number | string;
   css?: string;
   name: string;
   prop: string;

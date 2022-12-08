@@ -11,8 +11,8 @@ export enum Icon {
   check = 'mdi mdi-check',
   plus = 'mdi mdi-plus',
   minus = 'mdi mdi-minus',
-  checkboxBlank = 'mdi mdi-checkbox-blank',
-  checkboxMarked = 'mdi mdi-checkbox-marked',
+  checkboxBlank = 'mdi mdi-checkbox-blank-outline',
+  checkboxMarked = 'mdi mdi-checkbox-outline',
   edit = 'mdi mdi-pencil',
   delete = 'mdi mdi-delete',
   details = 'mdi mdi-eye',
@@ -29,5 +29,6 @@ export enum Icon {
   upload = 'mdi mdi-upload',
   create = 'mdi mdi-plus',
   clear = 'mdi mdi-close',
-  search = 'mdi mdi-magnify'
+  search = 'mdi mdi-magnify',
+  table = 'mdi mdi-table'
 }
