@@ -20,6 +20,9 @@ export class TopBarComponent implements OnDestroy {
   @Output()
   readonly toggleNavigation = new EventEmitter<any>();
 
+  @Output()
+  readonly toggleNotifications = new EventEmitter<any>();
+
   public userId: string | null;
   public isAdmin: boolean;
   public viewMode: ViewMode = ViewMode.user;
@@ -45,12 +48,19 @@ export class TopBarComponent implements OnDestroy {
     this.subscription?.unsubscribe();
   }
 
-  onToggleNavigation(): void {
+  onToggleNavigation(event: Event): void {
+    event.stopPropagation();
     this.toggleNavigation.emit();
+  }
+
+  onToggleNotifications(event: Event): void {
+    event.stopPropagation();
+    this.toggleNotifications.emit();
   }
 
   onToggleViewMode(event: Event): void {
     const checked: boolean = (event.target as HTMLInputElement).checked;
+    event.stopPropagation();
     this.navigationConfigService.setViewMode(checked ? ViewMode.admin : ViewMode.user, true);
   }
 

@@ -1,0 +1,14 @@
+@use 'src/scss/defaults/variables' as dv;
+
+:host {
+  background-color: var(--bs-body-bg);
+  width: 100%;
+  height: 100%;
+}
+
+.toolbar {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--bs-border-color);
+  height: dv.$s3gw-site-header-height;
+}

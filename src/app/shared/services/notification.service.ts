@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import { ToastrService } from 'ngx-toastr';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 import { translate } from '~/app/i18n.helper';
 
@@ -17,11 +18,32 @@ export type NotificationConfig = {
   duration?: number;
 };
 
+export class Notification {
+  private static nextId = 1;
+  public readonly id: number;
+  public readonly timestamp: string;
+
+  constructor(
+    public readonly type: NotificationType = NotificationType.info,
+    public message?: string,
+    public title?: string
+  ) {
+    this.id = Notification.nextId++;
+    this.timestamp = new Date().toJSON();
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
-  constructor(private toastrService: ToastrService) {}
+  public readonly notifications$: Observable<Notification[]>;
+
+  private notificationsSource = new BehaviorSubject<Notification[]>([]);
+
+  constructor(private toastrService: ToastrService) {
+    this.notifications$ = this.notificationsSource.asObservable();
+  }
 
   /**
    * Shorthand to show an information notification.
@@ -79,6 +101,12 @@ export class NotificationService {
   show(message: string, title?: string, config?: NotificationConfig): number {
     config = _.defaultsDeep(config || {}, { type: NotificationType.info, duration: 5000 });
     return window.setTimeout(() => {
+      const notification: Notification = new Notification(
+        config!.type as NotificationType,
+        message,
+        title
+      );
+      this.add(notification);
       this.toastrService[config!.type!](translate(message), title, {
         timeOut: config!.duration
       });
@@ -93,5 +121,19 @@ export class NotificationService {
    */
   cancel(id: number): void {
     window.clearTimeout(id);
+  }
+
+  add(notification: Notification): void {
+    const notifications = this.getAll();
+    notifications.push(notification);
+    this.notificationsSource.next(notifications);
+  }
+
+  getAll(): Notification[] {
+    return this.notificationsSource.value;
+  }
+
+  removeAll(): void {
+    this.notificationsSource.next([]);
   }
 }

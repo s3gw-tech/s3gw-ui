@@ -1,7 +1,7 @@
 <div class="wrapper h-100 d-flex flex-row justify-content-start align-items-center">
   <button class="btn btn-simple rounded-0 toggle"
           title="{{ 'Toggle navigation' | transloco }}"
-          (click)="onToggleNavigation()">
+          (click)="onToggleNavigation($event)">
     <i class="mdi mdi-menu"></i>
   </button>
   <div class="logo ms-2"></div>
@@ -23,6 +23,11 @@
     </div>
     <div class="ms-3 vr"></div>
   </ng-container>
+  <button class="btn btn-simple mx-2"
+          title="{{ 'Notifications' | transloco }}"
+          (click)="onToggleNotifications($event)">
+    <i [class]="icons.bell"></i>
+  </button>
   <div ngbDropdown>
     <button class="btn btn-simple ms-2"
             title="{{ 'Help' | transloco }}"

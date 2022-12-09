@@ -17,6 +17,7 @@ import { LanguageButtonComponent } from '~/app/shared/components/language-button
 import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { NavigationBarComponent } from '~/app/shared/components/navigation-bar/navigation-bar.component';
 import { NavigationBarItemComponent } from '~/app/shared/components/navigation-bar/navigation-bar-item/navigation-bar-item.component';
+import { NotificationBarComponent } from '~/app/shared/components/notification-bar/notification-bar.component';
 import { PageActionsComponent } from '~/app/shared/components/page-actions/page-actions.component';
 import { PageTitleComponent } from '~/app/shared/components/page-title/page-title.component';
 import { PageWrapperComponent } from '~/app/shared/components/page-wrapper/page-wrapper.component';
@@ -44,7 +45,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     PageTitleComponent,
     DatatableActionsComponent,
     PageActionsComponent,
-    TagsInputComponent
+    TagsInputComponent,
+    NotificationBarComponent
   ],
   exports: [
     AlertPanelComponent,
@@ -62,7 +64,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     PageTitleComponent,
     DatatableActionsComponent,
     PageActionsComponent,
-    TagsInputComponent
+    TagsInputComponent,
+    NotificationBarComponent
   ],
   imports: [
     BlockUIModule,

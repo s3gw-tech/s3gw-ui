@@ -1,10 +1,11 @@
 @use 'src/scss/defaults/variables' as dv;
 
 $navigation-width: 230px;
+$notifications-width: 350px;
 
 .main-layout {
   display: grid;
-  grid-template-areas: 'header header' 'sidebar main' 'footer footer';
+  grid-template-areas: 'header header' 'navigation main' 'footer footer';
   grid-template-columns: $navigation-width auto;
   grid-template-rows: dv.$s3gw-site-header-height auto 0;
   height: 100vh;
@@ -18,16 +19,35 @@ $navigation-width: 230px;
     border-bottom-color: var(--bs-border-color);
     display: flex;
     grid-area: header;
-    height: dv.$s3gw-site-header-height;
   }
 
   aside {
-    border-right-width: 1px;
-    border-right-style: solid;
-    border-right-color: var(--bs-border-color);
     display: flex;
-    grid-area: sidebar;
     overflow-y: auto;
+
+    &.navigation {
+      border-right-width: 1px;
+      border-right-style: solid;
+      border-right-color: var(--bs-border-color);
+      grid-area: navigation;
+    }
+
+    &.notifications {
+      border-width: 1px;
+      border-style: solid;
+      border-color: var(--bs-border-color);
+      position: fixed;
+      bottom: 0;
+      width: $notifications-width;
+      right: -$notifications-width;
+      top: calc(#{dv.$s3gw-site-header-height} - 1px);
+      transition: right 0.3s;
+      z-index: 1000;
+
+      &.visible {
+        right: 0;
+      }
+    }
   }
 
   &.collapsed {
