@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add search field to data tables (gh#aquarist-labs/s3gw#157).
 - Display progress while bootstrapping the app (gh#aquarist-labs/s3gw#247).
 - Make datatable pagination settings persistent (gh#aquarist-labs/s3gw#242).
+- Add ability to show/hide columns (gh#aquarist-labs/s3gw#65).
 
 ## [0.9.0] - 2022-12-01
 
