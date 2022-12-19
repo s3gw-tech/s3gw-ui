@@ -17,6 +17,12 @@ jobs:
       - name: Checkout S3GW UI
         uses: actions/checkout@v3
 
+      - name: Set up node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+
       - name: Install Dependencies
         run: npm ci
 
@@ -30,6 +36,12 @@ jobs:
 
       - name: Checkout S3GW UI
         uses: actions/checkout@v3
+
+      - name: Set up node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
 
       - name: Install Dependencies
         run: npm ci
