@@ -11,6 +11,12 @@
       {{ title | transloco }}
       <hr>
     </div>
+    <div *ngIf="!error && !firstLoadComplete && loading"
+         class="card-content d-flex h-100 flex-column justify-content-between placeholder-glow">
+      <div class="placeholder placeholder-sm w-50"></div>
+      <div class="placeholder placeholder-sm w-100"></div>
+      <div class="placeholder placeholder-sm w-75"></div>
+    </div>
     <div *ngIf="!error && firstLoadComplete"
          class="card-content">
       <ng-content></ng-content>
