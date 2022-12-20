@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Editing buckets in user mode is not possible (gh#aquarist-labs/s3gw#262).
+- A page reload does not re-enable the 'administration' switch (gh#aquarist-labs/s3gw#284).
 
 ### Added
 

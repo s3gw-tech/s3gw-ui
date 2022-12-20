@@ -1,86 +1,86 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
+import { Event, NavigationEnd, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
+import * as _ from 'lodash';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { ViewMode } from '~/app/shared/enum/view-mode.enum';
-import { NavigationItem } from '~/app/shared/models/navigation-item.type';
-
-type NavigationConfigs = {
-  [mode: string]: {
-    // The URL that is called whenever the view mode is changed.
-    startUrl: string;
-    items: {
-      text: string;
-      icon: string;
-      url: string;
-    }[];
-  };
-};
+import { NavigationConfig } from '~/app/shared/models/navigation-config.type';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NavigationConfigService {
-  public readonly config$: Observable<NavigationItem[]>;
+  public readonly config$: Observable<NavigationConfig>;
 
-  private viewMode: ViewMode = ViewMode.user;
-  private itemsSource: BehaviorSubject<NavigationItem[]>;
-  private configs: NavigationConfigs = {
-    admin: {
-      startUrl: '/admin/dashboard',
-      items: [
-        {
-          text: TEXT('Dashboard'),
-          icon: Icon.apps,
-          url: '/admin/dashboard'
-        },
-        {
-          text: TEXT('Users'),
-          icon: Icon.users,
-          url: '/admin/users'
-        },
-        {
-          text: TEXT('Buckets'),
-          icon: Icon.bucket,
-          url: '/admin/buckets'
-        }
-      ]
-    },
-    user: {
-      startUrl: '/dashboard',
-      items: [
-        {
-          text: TEXT('Dashboard'),
-          icon: Icon.apps,
-          url: '/dashboard'
-        },
-        {
-          text: TEXT('Buckets'),
-          icon: Icon.bucket,
-          url: '/buckets'
-        }
-      ]
-    }
-  };
+  private itemsSource: BehaviorSubject<NavigationConfig>;
 
   constructor(private router: Router) {
-    this.itemsSource = new BehaviorSubject<NavigationItem[]>([]);
+    this.itemsSource = new BehaviorSubject<NavigationConfig>(this.getConfig(ViewMode.user));
     this.config$ = this.itemsSource.asObservable();
-    this.setViewMode(this.viewMode, false);
+    this.router.events
+      .pipe(filter((event: Event) => event instanceof NavigationEnd))
+      .subscribe((event: Event) => {
+        const url = (event as NavigationEnd).url;
+        this.setViewMode(_.startsWith(url, '/admin') ? ViewMode.admin : ViewMode.user);
+      });
   }
 
   get currentViewMode(): ViewMode {
-    return this.viewMode;
+    const config: NavigationConfig = this.itemsSource.value;
+    return config.viewMode;
   }
 
-  setViewMode(viewMode: ViewMode, navigate: boolean = true): void {
-    this.viewMode = viewMode;
-    this.itemsSource.next(this.configs[this.viewMode].items);
+  setViewMode(viewMode: ViewMode, navigate: boolean = false): void {
+    this.itemsSource.next(this.getConfig(viewMode));
     if (navigate) {
-      const url = this.configs[this.viewMode].startUrl;
-      this.router.navigate([url]);
+      const config: NavigationConfig = this.itemsSource.value;
+      this.router.navigate([config.startUrl]);
     }
+  }
+
+  private getConfig(viewMode: ViewMode): NavigationConfig {
+    const configs: NavigationConfig[] = [
+      {
+        viewMode: ViewMode.admin,
+        startUrl: '/admin/dashboard',
+        items: [
+          {
+            text: TEXT('Dashboard'),
+            icon: Icon.apps,
+            url: '/admin/dashboard'
+          },
+          {
+            text: TEXT('Users'),
+            icon: Icon.users,
+            url: '/admin/users'
+          },
+          {
+            text: TEXT('Buckets'),
+            icon: Icon.bucket,
+            url: '/admin/buckets'
+          }
+        ]
+      },
+      {
+        viewMode: ViewMode.user,
+        startUrl: '/dashboard',
+        items: [
+          {
+            text: TEXT('Dashboard'),
+            icon: Icon.apps,
+            url: '/dashboard'
+          },
+          {
+            text: TEXT('Buckets'),
+            icon: Icon.bucket,
+            url: '/buckets'
+          }
+        ]
+      }
+    ];
+    return _.find(configs, ['viewMode', viewMode])!;
   }
 }
