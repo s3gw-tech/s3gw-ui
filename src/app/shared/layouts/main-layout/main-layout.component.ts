@@ -1,6 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 
+import { NavigationConfig } from '~/app/shared/models/navigation-config.type';
 import { NavigationItem } from '~/app/shared/models/navigation-item.type';
 import { NavigationConfigService } from '~/app/shared/services/navigation-config.service';
 
@@ -17,7 +18,7 @@ export class MainLayoutComponent implements OnDestroy {
 
   constructor(private navigationConfigService: NavigationConfigService) {
     this.subscription = navigationConfigService.config$.subscribe(
-      (items) => (this.navigationItems = items)
+      (config: NavigationConfig) => (this.navigationItems = config.items)
     );
   }
 
