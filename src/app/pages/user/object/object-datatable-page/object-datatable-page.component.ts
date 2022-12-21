@@ -9,6 +9,7 @@ import { finalize } from 'rxjs/operators';
 
 import { format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
+import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { Datatable } from '~/app/shared/models/datatable.interface';
@@ -19,8 +20,10 @@ import {
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
+import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
+import { LocaleDatePipe } from '~/app/shared/pipes/locale-date.pipe';
 import {
   S3BucketService,
   S3DeleteObjectOutput,
@@ -29,6 +32,7 @@ import {
   S3Objects,
   S3UploadProgress
 } from '~/app/shared/services/api/s3-bucket.service';
+import { DialogService } from '~/app/shared/services/dialog.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.service';
@@ -54,6 +58,8 @@ export class ObjectDatatablePageComponent implements OnInit {
 
   constructor(
     private bytesToSizePipe: BytesToSizePipe,
+    private dialogService: DialogService,
+    private localeDatePipe: LocaleDatePipe,
     private modalDialogService: ModalDialogService,
     private notificationService: NotificationService,
     private route: ActivatedRoute,
@@ -149,6 +155,11 @@ export class ObjectDatatablePageComponent implements OnInit {
   onActionMenu(object: S3Object): DatatableRowAction[] {
     const result: DatatableRowAction[] = [
       {
+        title: TEXT('Details'),
+        icon: this.icons.details,
+        callback: (data: DatatableData) => this.doDetails([data])
+      },
+      {
         title: TEXT('Download'),
         icon: this.icons.download,
         callback: (data: DatatableData) => this.doDownload([data])
@@ -163,6 +174,62 @@ export class ObjectDatatablePageComponent implements OnInit {
       }
     ];
     return result;
+  }
+
+  private doDetails(selected: DatatableData[]): void {
+    const data: DatatableData = selected[0];
+    this.s3bucketService
+      .getObject(this.bid, data['Key'], undefined, {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        Range: 'bytes=0-0' // Do not get the object content, only the information.
+        /* eslint-enable @typescript-eslint/naming-convention */
+      })
+      .subscribe((object: S3GetObjectOutput) => {
+        this.dialogService.open(DeclarativeFormModalComponent, undefined, {
+          formConfig: {
+            title: TEXT('Details'),
+            fields: [
+              {
+                type: 'text',
+                name: 'name',
+                label: TEXT('Name'),
+                value: object.Key,
+                readonly: true
+              },
+              {
+                type: 'text',
+                name: 'size',
+                label: TEXT('Size'),
+                value: this.bytesToSizePipe.transform(data['Size']),
+                readonly: true
+              },
+              {
+                type: 'text',
+                name: 'lastModified',
+                label: TEXT('Last Modified'),
+                value: this.localeDatePipe.transform(data['LastModified'], 'datetime'),
+                readonly: true
+              },
+              {
+                type: 'text',
+                name: 'eTag',
+                label: TEXT('ETag'),
+                value: _.trim(object.ETag, '"'),
+                readonly: true
+              },
+              {
+                type: 'text',
+                name: 'contentType',
+                label: TEXT('Content-Type'),
+                value: object.ContentType,
+                readonly: true
+              }
+            ]
+          },
+          submitButtonVisible: false,
+          cancelButtonText: TEXT('Close')
+        } as DeclarativeFormModalConfig);
+      });
   }
 
   private doDownload(selected: DatatableData[]): void {

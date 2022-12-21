@@ -386,19 +386,22 @@ export class S3BucketService {
    * @param key The object key.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
+   * @param optionalParams Optional parameters.
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObject-property
    */
   public getObject(
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
-    credentials?: Credentials
+    credentials?: Credentials,
+    optionalParams?: Partial<AWS.S3.Types.GetObjectRequest>
   ): Observable<S3GetObjectOutput> {
     const params: AWS.S3.Types.GetObjectRequest = {
       /* eslint-disable @typescript-eslint/naming-convention */
       Bucket: bucket,
-      Key: key
+      Key: key,
       /* eslint-enable @typescript-eslint/naming-convention */
+      ...optionalParams
     };
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
