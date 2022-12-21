@@ -35,7 +35,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
     private s3BucketService: S3BucketService,
     private router: Router
   ) {
-    this.createForm(this.router.url.startsWith(`/user/buckets/edit`));
+    this.createForm(this.router.url.startsWith(`/buckets/edit`));
   }
 
   ngOnInit(): void {
