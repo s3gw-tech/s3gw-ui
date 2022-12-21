@@ -27,7 +27,8 @@ export type FormFieldConfig = {
     | 'binary'
     | 'container'
     | 'divider'
-    | 'paragraph';
+    | 'paragraph'
+    | 'tags';
   label?: string;
   value?: any;
   placeholder?: string;

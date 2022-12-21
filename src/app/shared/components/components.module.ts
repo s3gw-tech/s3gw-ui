@@ -21,6 +21,7 @@ import { PageActionsComponent } from '~/app/shared/components/page-actions/page-
 import { PageTitleComponent } from '~/app/shared/components/page-title/page-title.component';
 import { PageWrapperComponent } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { SubmitButtonComponent } from '~/app/shared/components/submit-button/submit-button.component';
+import { TagsInputComponent } from '~/app/shared/components/tags-input/tags-input.component';
 import { TopBarComponent } from '~/app/shared/components/top-bar/top-bar.component';
 import { DirectivesModule } from '~/app/shared/directives/directives.module';
 import { PipesModule } from '~/app/shared/pipes/pipes.module';
@@ -42,7 +43,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     DashboardWidgetComponent,
     PageTitleComponent,
     DatatableActionsComponent,
-    PageActionsComponent
+    PageActionsComponent,
+    TagsInputComponent
   ],
   exports: [
     AlertPanelComponent,
@@ -59,7 +61,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     DashboardWidgetComponent,
     PageTitleComponent,
     DatatableActionsComponent,
-    PageActionsComponent
+    PageActionsComponent,
+    TagsInputComponent
   ],
   imports: [
     BlockUIModule,

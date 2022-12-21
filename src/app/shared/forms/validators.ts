@@ -18,6 +18,14 @@ import { ConstraintService } from '~/app/shared/services/constraint.service';
 
 const isEmptyInputValue = (value: any): boolean => _.isNull(value) || value.length === 0;
 
+const getControlName = (control: AbstractControl): string | undefined => {
+  if (!control || !control.parent) {
+    return undefined;
+  }
+  const keys: string[] = _.keys(control.parent.controls);
+  return keys.find((key: string) => control === _.get(control.parent!.controls, key));
+};
+
 export type ApiFn = (value: any) => Observable<boolean>;
 
 /**
@@ -130,6 +138,9 @@ export class S3gwValidators {
     const props = ConstraintService.getProps(constraint);
     return (control: AbstractControl): ValidationErrors | null => {
       if (!hasSubscribed && control.parent) {
+        // Do not subscribe to changes of the own control.
+        _.pull(props, getControlName(control));
+        // Subscribe to changes of all involved fields.
         props.forEach((key) => {
           control.parent!.get(key)!.valueChanges.subscribe(() => {
             control.updateValueAndValidity({ emitEvent: false });

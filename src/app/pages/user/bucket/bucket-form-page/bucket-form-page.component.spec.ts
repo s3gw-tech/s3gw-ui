@@ -1,11 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ToastrModule } from 'ngx-toastr';
 
-import { BucketFormPageComponent } from '~/app/pages/admin/bucket/bucket-form-page/bucket-form-page.component';
+import { BucketFormPageComponent } from '~/app/pages/user/bucket/bucket-form-page/bucket-form-page.component';
 import { UserPagesModule } from '~/app/pages/user/user-pages.module';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { TestingModule } from '~/app/testing.module';
-
-import { AuthSessionService } from '../../../../shared/services/auth-session.service';
 
 describe('BucketFormPageComponent', () => {
   let component: BucketFormPageComponent;

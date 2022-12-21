@@ -11,9 +11,8 @@ import * as _ from 'lodash';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
-
-import { AuthSessionService } from './auth-session.service';
 
 @Injectable({
   providedIn: 'root'

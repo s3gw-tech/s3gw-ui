@@ -7,10 +7,14 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { AdminOpsUserService, Key } from '~/app/shared/services/api/admin-ops-user.service';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
-import { S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
+import {
+  S3Bucket,
+  S3BucketAttributes,
+  S3BucketService
+} from '~/app/shared/services/api/s3-bucket.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 
-export type Bucket = {
+export type Bucket = BucketExtraAttributes & {
   /* eslint-disable @typescript-eslint/naming-convention */
   id: string;
   bucket: string;
@@ -39,8 +43,12 @@ export type Bucket = {
     max_size_kb: number;
     max_objects: number;
   };
-  versioning?: boolean;
   /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+type BucketExtraAttributes = {
+  tags?: AWS.S3.Types.TagSet;
+  versioning?: boolean;
 };
 
 /**
@@ -75,7 +83,7 @@ export class AdminOpsBucketService {
     return this.list(true, uid).pipe(map((buckets: Bucket[]) => buckets.length));
   }
 
-  public create(bucket: Bucket): Observable<AWS.S3.Types.CreateBucketOutput> {
+  public create(bucket: Bucket): Observable<S3Bucket> {
     // To create a new bucket the following steps are necessary:
     // 1. Get the credentials of the specified bucket owner.
     // 2. Create the bucket using these credentials.
@@ -86,7 +94,8 @@ export class AdminOpsBucketService {
           {
             /* eslint-disable @typescript-eslint/naming-convention */
             Name: bucket.bucket,
-            Versioning: bucket.versioning
+            Versioning: bucket.versioning,
+            TagSet: bucket.tags
             /* eslint-enable @typescript-eslint/naming-convention */
           },
           credentials
@@ -113,15 +122,26 @@ export class AdminOpsBucketService {
     return this.get(bucket.bucket!).pipe(
       switchMap((currentBucket: Bucket) => {
         const sources = [];
-        // Need to update the `owner` of the bucket?
+        // Need to update the `owner` of the bucket? Note, this needs to be
+        // done before the bucket is updated because the S3 API is called
+        // with the new owner credentials.
         if (_.isString(bucket.owner) && bucket.owner !== currentBucket.owner) {
           currentBucket.owner = bucket.owner;
           sources.push(this.link(bucket.bucket!, bucket.id!, bucket.owner));
         }
-        // Need to update the `versioning` flag?
-        if (_.isBoolean(bucket.versioning) && bucket.versioning !== currentBucket.versioning) {
-          currentBucket.versioning = bucket.versioning;
-          sources.push(this.setVersioning(bucket.bucket!, bucket.versioning, bucket.owner!));
+        // Update various bucket information that are not available via the
+        // Admin Ops API.
+        if (
+          !_.isEqual(bucket.tags, currentBucket.tags) ||
+          !_.isEqual(bucket.versioning, currentBucket.versioning)
+        ) {
+          if (!_.isEqual(bucket.tags, currentBucket.tags)) {
+            currentBucket.tags = bucket.tags;
+          }
+          if (!_.isEqual(bucket.versioning, currentBucket.versioning)) {
+            currentBucket.versioning = bucket.versioning;
+          }
+          sources.push(this.setAttributes(bucket, bucket.owner!));
         }
         // Execute all observables one after the other in series. Return
         // the bucket object with the modified properties.
@@ -141,9 +161,9 @@ export class AdminOpsBucketService {
     const params: Record<string, any> = { bucket };
     return this.rgwService.get<Bucket>('admin/bucket', { credentials, params }).pipe(
       switchMap((resp: Bucket) =>
-        this.isVersioning(resp.bucket, resp.owner).pipe(
-          map((enabled: boolean) => {
-            resp.versioning = enabled;
+        this.getAttributes(resp.bucket, resp.owner).pipe(
+          map((attr: BucketExtraAttributes) => {
+            _.merge(resp, attr);
             return resp;
           })
         )
@@ -183,39 +203,53 @@ export class AdminOpsBucketService {
   }
 
   /**
-   * Helper function to get the versioning state of the bucket from the
-   * specified user.
+   * Helper function to get additional bucket information that are not available
+   * via the Admin Ops API.
    *
    * @param bucket The name of the bucket.
    * @param uid The ID of the user.
    *
    * @private
    */
-  private isVersioning(bucket: string, uid: string): Observable<boolean> {
+  private getAttributes(bucket: string, uid: string): Observable<BucketExtraAttributes> {
     return this.userService.getKey(uid).pipe(
       switchMap((key: Key) => {
         const credentials: Credentials = Credentials.fromKey(key);
-        return this.s3BucketService.isVersioning(bucket, credentials);
+        return this.s3BucketService.getAttributes(bucket, credentials).pipe(
+          map((resp: S3BucketAttributes) => {
+            return {
+              tags: resp.TagSet,
+              versioning: resp.Versioning
+            };
+          })
+        );
       })
     );
   }
 
   /**
-   * Helper function to set the versioning state of the bucket from the
-   * specified user.
+   * Helper function to set additional bucket information that are not available
+   * via the Admin Ops API.
    *
-   * @param bucket The name of the bucket.
-   * @param enabled Set to `true` to enable the versioning of the bucket,
-   *   otherwise `false`.
+   * @param bucket The bucket data.
    * @param uid The ID of the user.
    *
    * @private
    */
-  private setVersioning(bucket: string, enabled: boolean, uid: string): Observable<void> {
+  private setAttributes(bucket: Partial<Bucket>, uid: string): Observable<S3Bucket> {
     return this.userService.getKey(uid).pipe(
       switchMap((key: Key) => {
         const credentials: Credentials = Credentials.fromKey(key);
-        return this.s3BucketService.setVersioning(bucket, enabled, credentials);
+        return this.s3BucketService.update(
+          {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            Name: bucket.bucket!,
+            TagSet: bucket.tags,
+            Versioning: bucket.versioning
+            /* eslint-enable @typescript-eslint/naming-convention */
+          },
+          credentials
+        );
       })
     );
   }

@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.10.0] - unreleased
+## [0.11.0] - unreleased
+
+### Added
+
+- Add tags support for buckets (gh#aquarist-labs/s3gw#285).
+
+## [0.10.0] - 2022-12-22
 
 ### Fixed
 
@@ -14,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Editing buckets in `user` mode is not possible because form is in
   `Create` mode only (gh#aquarist-labs/s3gw#290).
 
-UI: 
 ### Added
 
 - Add search field to data tables (gh#aquarist-labs/s3gw#157).

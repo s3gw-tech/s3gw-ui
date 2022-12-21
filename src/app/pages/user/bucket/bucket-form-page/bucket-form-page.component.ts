@@ -12,7 +12,7 @@ import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.co
 import { S3gwValidators } from '~/app/shared/forms/validators';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { IsDirty } from '~/app/shared/models/is-dirty.interface';
-import { S3Bucket, S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
+import { S3BucketAttributes, S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
 
 @Component({
   selector: 's3gw-bucket-form-page',
@@ -46,8 +46,8 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
       }
       const bid = decodeURIComponent(value['bid']);
       this.pageStatus = PageStatus.loading;
-      this.s3BucketService.get(bid).subscribe({
-        next: (bucket: S3Bucket) => {
+      this.s3BucketService.getAttributes(bid).subscribe({
+        next: (bucket: S3BucketAttributes) => {
           this.pageStatus = PageStatus.ready;
           this.form.patchValues(bucket, false);
         },
@@ -112,13 +112,32 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           label: TEXT('Versioning'),
           hint: TEXT('Enable versioning for the objects in this bucket.'),
           value: false
+        },
+        {
+          type: 'tags',
+          name: 'TagSet',
+          label: TEXT('Tags'),
+          value: [],
+          validators: {
+            constraint: {
+              constraint: {
+                operator: 'le',
+                arg0: {
+                  operator: 'length',
+                  arg0: { prop: 'TagSet' }
+                },
+                arg1: 10
+              },
+              errorMessage: TEXT('Only up to 10 tags are allowed.')
+            }
+          }
         }
       ]
     };
   }
 
   private createBucket(): void {
-    const bucket: S3Bucket = this.form.values as S3Bucket;
+    const bucket: S3BucketAttributes = this.form.values as S3BucketAttributes;
     this.pageStatus = PageStatus.saving;
     this.s3BucketService.create(bucket).subscribe({
       next: () => {
@@ -135,7 +154,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
   }
 
   private updateBucket(): void {
-    const bucket: Partial<S3Bucket> = this.form.values;
+    const bucket: Partial<S3BucketAttributes> = this.form.values;
     this.pageStatus = PageStatus.saving;
     this.s3BucketService.update(bucket).subscribe({
       next: () => {

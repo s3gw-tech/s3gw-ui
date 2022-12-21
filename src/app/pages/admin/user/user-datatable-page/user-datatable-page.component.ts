@@ -18,11 +18,10 @@ import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
 import { AdminOpsUserService, User } from '~/app/shared/services/api/admin-ops-user.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.service';
-
-import { AuthSessionService } from '../../../../shared/services/auth-session.service';
 
 @Component({
   selector: 's3gw-user-datatable-page',

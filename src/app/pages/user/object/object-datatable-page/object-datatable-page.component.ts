@@ -27,6 +27,7 @@ import { LocaleDatePipe } from '~/app/shared/pipes/locale-date.pipe';
 import {
   S3BucketService,
   S3DeleteObjectOutput,
+  S3GetObjectAttributesOutput,
   S3GetObjectOutput,
   S3Object,
   S3Objects,
@@ -159,6 +160,11 @@ export class ObjectDatatablePageComponent implements OnInit {
         icon: this.icons.details,
         callback: (data: DatatableData) => this.doDetails([data])
       },
+      // {
+      //   title: TEXT('Tags'),
+      //   icon: this.icons.tags,
+      //   callback: (data: DatatableData) => this.doTags([data])
+      // },
       {
         title: TEXT('Download'),
         icon: this.icons.download,
@@ -178,13 +184,11 @@ export class ObjectDatatablePageComponent implements OnInit {
 
   private doDetails(selected: DatatableData[]): void {
     const data: DatatableData = selected[0];
+    this.blockUI.start(translate(TEXT('Please wait, fetching object details ...')));
     this.s3bucketService
-      .getObject(this.bid, data['Key'], undefined, {
-        /* eslint-disable @typescript-eslint/naming-convention */
-        Range: 'bytes=0-0' // Do not get the object content, only the information.
-        /* eslint-enable @typescript-eslint/naming-convention */
-      })
-      .subscribe((object: S3GetObjectOutput) => {
+      .getObjectAttributes(this.bid, data['Key'])
+      .pipe(finalize(() => this.blockUI.stop()))
+      .subscribe((resp: S3GetObjectAttributesOutput) => {
         this.dialogService.open(DeclarativeFormModalComponent, undefined, {
           formConfig: {
             title: TEXT('Details'),
@@ -193,7 +197,7 @@ export class ObjectDatatablePageComponent implements OnInit {
                 type: 'text',
                 name: 'name',
                 label: TEXT('Name'),
-                value: object.Key,
+                value: resp.Key,
                 readonly: true
               },
               {
@@ -214,14 +218,14 @@ export class ObjectDatatablePageComponent implements OnInit {
                 type: 'text',
                 name: 'eTag',
                 label: TEXT('ETag'),
-                value: _.trim(object.ETag, '"'),
+                value: _.trim(resp.ETag, '"'),
                 readonly: true
               },
               {
                 type: 'text',
                 name: 'contentType',
                 label: TEXT('Content-Type'),
-                value: object.ContentType,
+                value: resp.ContentType,
                 readonly: true
               }
             ]
@@ -231,6 +235,8 @@ export class ObjectDatatablePageComponent implements OnInit {
         } as DeclarativeFormModalConfig);
       });
   }
+
+  private doTags(selected: DatatableData[]): void {}
 
   private doDownload(selected: DatatableData[]): void {
     const sources: Observable<S3GetObjectOutput>[] = [];

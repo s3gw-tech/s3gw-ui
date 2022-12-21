@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 
-import { AuthSessionService } from './auth-session.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 
 @Injectable({
   providedIn: 'root'

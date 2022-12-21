@@ -19,10 +19,9 @@ import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.typ
 import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
 import { AdminOpsUserService, Key, User } from '~/app/shared/services/api/admin-ops-user.service';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
-
-import { AuthSessionService } from '../../../../shared/services/auth-session.service';
 
 @Component({
   selector: 's3gw-user-key-datatable-page',

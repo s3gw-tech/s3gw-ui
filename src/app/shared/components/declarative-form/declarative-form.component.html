@@ -405,6 +405,42 @@
               </div>
             </div>
           </ng-template>
+
+          <ng-template [ngSwitchCase]="'tags'">
+            <div class="col form-field mb-2"
+                 [class]="field.groupClass">
+              <div class="input-group">
+                <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
+                  <s3gw-tags-input class="form-control"
+                                   [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                                   [id]="field.name"
+                                   [formControlName]="field.name"
+                                   [attr.readonly]="field.readonly"
+                                   [required]="field.validators?.required!"
+                                   [autofocus]="field.autofocus">
+                  </s3gw-tags-input>
+                  <label *ngIf="field.label"
+                         class="form-label"
+                         [for]="field.name"
+                         [ngClass]="{'required': !field.readonly && field.validators?.required!}">
+                    {{ field.label | transloco }}
+                  </label>
+                </div>
+              </div>
+              <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
+                     class="form-text text-muted"
+                     [innerHTML]="field.hint | transloco | sanitize:'html'">
+              </small>
+              <span *ngIf="showError(field.name, frm, 'required')"
+                    class="invalid-feedback"
+                    transloco="This field is required.">
+              </span>
+              <span *ngIf="showError(field.name, frm, 'custom')"
+                    class="invalid-feedback">
+                {{ formGroup.getError('custom', field.name) | transloco }}
+              </span>
+            </div>
+          </ng-template>
         </ng-container>
       </ng-template>
     </ng-container>
@@ -415,7 +451,7 @@
         <ng-container [ngSwitch]="button.type">
           <ng-template [ngSwitchCase]="'default'">
             <button type="button"
-                    class="btn btn-outline-primary m-1"
+                    class="btn btn-outline-primary ms-2"
                     [class]="button.class"
                     (click)="onButtonClick(button)">
               {{ button.text! | transloco }}
@@ -423,7 +459,7 @@
           </ng-template>
 
           <ng-template [ngSwitchCase]="'submit'">
-            <s3gw-submit-button class="m-1"
+            <s3gw-submit-button class="ms-2"
                                 [form]="formGroup"
                                 [formId]="config.id"
                                 (buttonClick)="onButtonClick(button)">

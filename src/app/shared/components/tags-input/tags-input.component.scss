@@ -1,0 +1,17 @@
+.mdi.mdi-18px {
+  &:active {
+    filter: brightness(90%);
+    backdrop-filter: brightness(90%);
+  }
+
+  &::before {
+    top: 1px;
+  }
+}
+
+.tags {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 0.5rem;
+}
