@@ -67,6 +67,7 @@ export class TagsInputComponent implements ControlValueAccessor {
           newValue.push(result);
           this.value = newValue;
           this.onChange(this.value);
+          this.onTouched();
         }
       },
       {
@@ -102,5 +103,6 @@ export class TagsInputComponent implements ControlValueAccessor {
   removeTag(tag: AWS.S3.Types.Tag): void {
     this.value = _.reject(this.value, { ...tag });
     this.onChange(this.value);
+    this.onTouched();
   }
 }
