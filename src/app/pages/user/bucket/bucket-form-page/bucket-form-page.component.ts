@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
+import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { Observable, of, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -9,9 +10,11 @@ import { map, switchMap } from 'rxjs/operators';
 import { extractErrorCode, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
+import { Icon } from '~/app/shared/enum/icon.enum';
 import { S3gwValidators } from '~/app/shared/forms/validators';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { IsDirty } from '~/app/shared/models/is-dirty.interface';
+import { PageAction } from '~/app/shared/models/page-action.type';
 import { S3BucketAttributes, S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
 
 @Component({
@@ -23,6 +26,8 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
   @ViewChild(DeclarativeFormComponent, { static: false })
   form!: DeclarativeFormComponent;
 
+  public bid: AWS.S3.Types.BucketName = '';
+  public pageActions: PageAction[];
   public pageStatus: PageStatus = PageStatus.none;
   public loadingErrorText: string = TEXT('Failed to load bucket.');
   public savingErrorText: string = TEXT('Failed to save bucket.');
@@ -36,6 +41,14 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
     private router: Router
   ) {
     this.createForm(this.router.url.startsWith(`/buckets/edit`));
+    this.pageActions = [
+      {
+        type: 'button',
+        text: TEXT('Explore'),
+        icon: Icon.folderOpen,
+        callback: () => this.router.navigate([`/objects/${this.bid}`])
+      }
+    ];
   }
 
   ngOnInit(): void {
@@ -44,9 +57,9 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
         this.pageStatus = PageStatus.ready;
         return;
       }
-      const bid = decodeURIComponent(value['bid']);
+      this.bid = decodeURIComponent(value['bid']);
       this.pageStatus = PageStatus.loading;
-      this.s3BucketService.getAttributes(bid).subscribe({
+      this.s3BucketService.getAttributes(this.bid).subscribe({
         next: (bucket: S3BucketAttributes) => {
           this.pageStatus = PageStatus.ready;
           this.form.patchValues(bucket, false);

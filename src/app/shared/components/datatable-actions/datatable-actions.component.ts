@@ -55,9 +55,9 @@ export class DatatableActionsComponent {
     return false;
   }
 
-  onAction(action: DatatableAction): void {
+  onAction(event: Event, action: DatatableAction): void {
     if (this.table && _.isFunction(action.callback)) {
-      action.callback(this.table);
+      action.callback(event, this.table);
     }
   }
 }

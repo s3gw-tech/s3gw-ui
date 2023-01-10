@@ -26,13 +26,13 @@
     </div>
   </div>
   <button type="button"
-          class="reload btn btn-simple ms-2"
+          class="reload btn btn-simple"
           (click)="reloadData()"
           ngbTooltip="{{ 'Reload' | transloco }}">
     <i [class]="icons.reload"></i>
   </button>
   <div *ngIf="hasSearchField"
-       class="search input-group ms-2">
+       class="search input-group">
     <!--
     <div class="input-group-text">
       <i class="mdi-18px"

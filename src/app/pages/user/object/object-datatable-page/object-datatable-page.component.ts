@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Params } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
@@ -64,10 +64,17 @@ export class ObjectDatatablePageComponent implements OnInit {
     private modalDialogService: ModalDialogService,
     private notificationService: NotificationService,
     private route: ActivatedRoute,
+    private router: Router,
     private rxjsUiHelperService: RxjsUiHelperService,
     private s3bucketService: S3BucketService
   ) {
     this.datatableActions = [
+      {
+        type: 'file',
+        text: TEXT('Upload'),
+        icon: this.icons.upload,
+        callback: (event: Event) => this.doUpload((event.target as HTMLInputElement).files)
+      },
       {
         type: 'button',
         text: TEXT('Download'),
@@ -75,7 +82,7 @@ export class ObjectDatatablePageComponent implements OnInit {
         enabledConstraints: {
           minSelected: 1
         },
-        callback: (table: Datatable) => this.doDownload(table.selected)
+        callback: (event: Event, table: Datatable) => this.doDownload(table.selected)
       },
       {
         type: 'button',
@@ -84,7 +91,7 @@ export class ObjectDatatablePageComponent implements OnInit {
         enabledConstraints: {
           minSelected: 1
         },
-        callback: (table: Datatable) => this.doDelete(table.selected)
+        callback: (event: Event, table: Datatable) => this.doDelete(table.selected)
       }
     ];
     this.datatableColumns = [
@@ -111,10 +118,10 @@ export class ObjectDatatablePageComponent implements OnInit {
     ];
     this.pageActions = [
       {
-        type: 'file',
-        text: TEXT('Upload'),
-        icon: this.icons.upload,
-        callback: (event: Event) => this.doUpload((event.target as HTMLInputElement).files)
+        type: 'button',
+        text: TEXT('Edit'),
+        icon: Icon.edit,
+        callback: () => this.router.navigate([`/buckets/edit/${this.bid}`])
       }
     ];
   }

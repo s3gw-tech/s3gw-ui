@@ -64,7 +64,7 @@ export class UserDatatablePageComponent {
             }
           ]
         },
-        callback: (table: Datatable) => this.doDelete(table.selected)
+        callback: (event: Event, table: Datatable) => this.doDelete(table.selected)
       }
     ];
     this.datatableColumns = [

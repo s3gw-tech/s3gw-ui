@@ -14,7 +14,7 @@ export class PageActionsComponent {
 
   constructor() {}
 
-  onAction(event: any, action: PageAction): void {
+  onAction(event: Event, action: PageAction): void {
     if (_.isFunction(action.callback)) {
       action.callback(event);
     }
