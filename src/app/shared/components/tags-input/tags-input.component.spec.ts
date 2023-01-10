@@ -1,21 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ComponentsModule } from '~/app/shared/components/components.module';
-import { SubmitButtonComponent } from '~/app/shared/components/submit-button/submit-button.component';
+import { TagsInputComponent } from '~/app/shared/components/tags-input/tags-input.component';
 
-describe('SubmitButtonComponent', () => {
-  let component: SubmitButtonComponent;
-  let fixture: ComponentFixture<SubmitButtonComponent>;
+describe('TagsInputComponent', () => {
+  let component: TagsInputComponent;
+  let fixture: ComponentFixture<TagsInputComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SubmitButtonComponent],
+      declarations: [TagsInputComponent],
       imports: [ComponentsModule]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SubmitButtonComponent);
+    fixture = TestBed.createComponent(TagsInputComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

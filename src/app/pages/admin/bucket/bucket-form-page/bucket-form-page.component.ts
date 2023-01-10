@@ -152,6 +152,25 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           label: TEXT('Versioning'),
           hint: TEXT('Enable versioning for the objects in this bucket.'),
           value: false
+        },
+        {
+          type: 'tags',
+          name: 'tags',
+          label: TEXT('Tags'),
+          value: [],
+          validators: {
+            constraint: {
+              constraint: {
+                operator: 'le',
+                arg0: {
+                  operator: 'length',
+                  arg0: { prop: 'tags' }
+                },
+                arg1: 10
+              },
+              errorMessage: TEXT('Only up to 10 tags are allowed.')
+            }
+          }
         }
       ]
     };

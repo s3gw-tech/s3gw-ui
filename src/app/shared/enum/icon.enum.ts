@@ -29,6 +29,8 @@ export enum Icon {
   upload = 'mdi mdi-upload',
   create = 'mdi mdi-plus',
   clear = 'mdi mdi-close',
+  close = 'mdi mdi-window-close',
   search = 'mdi mdi-magnify',
-  table = 'mdi mdi-table'
+  table = 'mdi mdi-table',
+  tags = 'mdi mdi-tag-multiple'
 }

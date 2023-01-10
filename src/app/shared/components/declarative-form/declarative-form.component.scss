@@ -10,6 +10,10 @@
     }
   }
 
+  .form-floating > s3gw-tags-input.form-control {
+    height: unset;
+  }
+
   .form-floating > .form-control:focus ~ .form-label,
   .form-floating > .form-select:focus ~ .form-label {
     opacity: initial;

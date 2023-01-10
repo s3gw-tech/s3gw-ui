@@ -171,7 +171,11 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
     if (field.type === 'binary' && _.isNumber(value)) {
       value = bytesToSize(field.value);
     }
-    return new FormControl(value, validators, asyncValidator);
+    return new FormControl(
+      { value, disabled: _.defaultTo(field.readonly, false) },
+      validators,
+      asyncValidator
+    );
   }
 
   ngOnInit(): void {

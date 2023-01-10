@@ -3,9 +3,8 @@ import { ToastrModule } from 'ngx-toastr';
 
 import { AdminPagesModule } from '~/app/pages/admin/admin-pages.module';
 import { BucketFormPageComponent } from '~/app/pages/admin/bucket/bucket-form-page/bucket-form-page.component';
+import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { TestingModule } from '~/app/testing.module';
-
-import { AuthSessionService } from '../../../../shared/services/auth-session.service';
 
 describe('BucketFormPageComponent', () => {
   let component: BucketFormPageComponent;
