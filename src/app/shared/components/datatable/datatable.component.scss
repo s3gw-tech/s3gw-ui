@@ -29,9 +29,14 @@ tbody > tr {
 }
 
 .actions {
+  display: grid;
+  gap: 0.5rem;
+  grid-auto-flow: column;
+
   .search {
     &.input-group {
       width: inherit;
+      flex-wrap: nowrap;
     }
 
     .btn.btn-input-group {
