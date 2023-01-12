@@ -33,5 +33,6 @@ export enum Icon {
   close = 'mdi mdi-window-close',
   search = 'mdi mdi-magnify',
   table = 'mdi mdi-table',
-  tags = 'mdi mdi-tag-multiple'
+  tags = 'mdi mdi-tag-multiple',
+  bell = 'mdi mdi-bell'
 }

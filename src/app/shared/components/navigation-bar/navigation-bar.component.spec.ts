@@ -10,6 +10,7 @@ describe('NavigationBarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      declarations: [NavigationBarComponent],
       imports: [ComponentsModule, TestingModule]
     }).compileComponents();
   });

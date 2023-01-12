@@ -1,7 +1,10 @@
 @use 'src/scss/defaults/colors' as dc;
 @use 'src/scss/defaults/fonts' as df;
+@use 'src/scss/defaults/variables' as dv;
 
 .wrapper {
+  height: dv.$s3gw-site-header-height;
+
   .btn.toggle {
     border-width: 0;
     color: var(--bs-body-color);

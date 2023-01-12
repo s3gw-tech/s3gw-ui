@@ -1,0 +1,34 @@
+<div class="toolbar p-2 d-flex flex-row align-items-center">
+  <button class="btn btn-simple"
+          title="{{ 'Dismiss all' | transloco }}"
+          [disabled]="!notifications.length"
+          (click)="onDismissAll()">
+    <i [class]="icons.delete"></i>
+  </button>
+</div>
+<ul class="list-group list-group-flush">
+  <li *ngFor="let notification of notifications"
+      class="list-group-item px-4">
+    <h5>
+      <i *ngIf="notification.type === 'info'"
+         [class]="icons.info"
+         class="s3gw-color-info">
+      </i>
+      <i *ngIf="notification.type === 'error'"
+         [class]="icons.danger"
+         class="s3gw-color-danger">
+      </i>
+      <i *ngIf="notification.type === 'success'"
+         [class]="icons.success"
+         class="s3gw-color-success">
+      </i>
+      <i *ngIf="notification.type === 'warning'"
+         [class]="icons.warning"
+         class="s3gw-color-warning">
+      </i>
+      {{ notification.title }}
+    </h5>
+    <div>{{ notification.message }}</div>
+    <small>{{ notification.timestamp | localeDate:'relative' }}</small>
+  </li>
+</ul>

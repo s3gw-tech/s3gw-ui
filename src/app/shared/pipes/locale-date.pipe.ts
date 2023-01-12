@@ -1,6 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import * as _ from 'lodash';
+
+dayjs.extend(relativeTime);
 
 @Pipe({
   name: 'localeDate',
@@ -19,7 +22,7 @@ export class LocaleDatePipe implements PipeTransform {
    */
   transform(
     value: Date | string | number,
-    format?: 'date' | 'time' | 'datetime',
+    format?: 'date' | 'time' | 'datetime' | 'relative',
     options?: any
   ): any {
     if (!(_.isString(value) || _.isDate(value) || _.isNumber(value))) {
@@ -34,12 +37,19 @@ export class LocaleDatePipe implements PipeTransform {
     if (!date.isValid()) {
       return '';
     }
-    return this.toLocaleString(date.toDate(), format);
+    return this.toLocaleString(date.toDate(), format, options);
   }
 
-  toLocaleString(date: Date, format?: 'date' | 'time' | 'datetime'): string {
+  toLocaleString(
+    date: Date,
+    format?: 'date' | 'time' | 'datetime' | 'relative',
+    options?: any
+  ): string {
     let result;
     switch (format) {
+      case 'relative':
+        result = dayjs(date).fromNow(options);
+        break;
       case 'datetime':
         result = date.toLocaleString();
         break;

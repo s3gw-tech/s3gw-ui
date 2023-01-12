@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ToastrModule } from 'ngx-toastr';
 
 import { MainLayoutComponent } from '~/app/shared/layouts/main-layout/main-layout.component';
 import { SharedModule } from '~/app/shared/shared.module';
@@ -10,7 +11,7 @@ describe('MainLayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SharedModule, TestingModule]
+      imports: [SharedModule, ToastrModule.forRoot(), TestingModule]
     }).compileComponents();
   });
 
