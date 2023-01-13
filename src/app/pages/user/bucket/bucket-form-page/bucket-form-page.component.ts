@@ -27,7 +27,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
   form!: DeclarativeFormComponent;
 
   public bid: AWS.S3.Types.BucketName = '';
-  public pageActions: PageAction[];
+  public pageActions: PageAction[] = [];
   public pageStatus: PageStatus = PageStatus.none;
   public loadingErrorText: string = TEXT('Failed to load bucket.');
   public savingErrorText: string = TEXT('Failed to save bucket.');
@@ -41,14 +41,6 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
     private router: Router
   ) {
     this.createForm(this.router.url.startsWith(`/buckets/edit`));
-    this.pageActions = [
-      {
-        type: 'button',
-        text: TEXT('Explore'),
-        icon: Icon.folderOpen,
-        callback: () => this.router.navigate([`/objects/${this.bid}`])
-      }
-    ];
   }
 
   ngOnInit(): void {
@@ -58,6 +50,14 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
         return;
       }
       this.bid = decodeURIComponent(value['bid']);
+      this.pageActions = [
+        {
+          type: 'button',
+          text: TEXT('Explore'),
+          icon: Icon.folderOpen,
+          callback: () => this.router.navigate([`/objects/${this.bid}`])
+        }
+      ];
       this.pageStatus = PageStatus.loading;
       this.s3BucketService.getAttributes(this.bid).subscribe({
         next: (bucket: S3BucketAttributes) => {
