@@ -81,3 +81,18 @@ export function Throttle(wait: number) {
     return descriptor;
   };
 }
+
+/**
+ * Compare the specified values.
+ *
+ * @param value The value to compare.
+ * @param other The other value to compare.
+ * @return Returns `true` if the values are equivalent, else `false`.
+ *   Note, `true` will be returned if one of the values is `undefined`.
+ */
+export const isEqualOrUndefined = (value: any, other: any) => {
+  if (_.isUndefined(value) || _.isUndefined(other)) {
+    return true;
+  }
+  return _.isEqual(value, other);
+};
