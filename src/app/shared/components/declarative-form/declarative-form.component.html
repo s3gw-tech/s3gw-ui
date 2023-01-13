@@ -364,6 +364,7 @@
           <ng-template [ngSwitchCase]="'container'">
             <div class="row">
               <div *ngFor="let innerField of field.fields"
+                   class="col"
                    [style.width.%]="innerField.flex ? innerField.flex : ''">
                 <ng-container [ngTemplateOutlet]="renderFormField"
                               [ngTemplateOutletContext]="{ $implicit: innerField }">

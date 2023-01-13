@@ -272,6 +272,43 @@ export class ObjectDatatablePageComponent implements OnInit {
                 value: _.trim(resp.ETag, '"'),
                 readonly: true
               },
+              // {
+              //   type: 'select',
+              //   name: 'legalHold',
+              //   label: TEXT('Legal Hold'),
+              //   value: _.defaultTo(resp.ObjectLockLegalHoldStatus, 'OFF'),
+              //   readonly: true,
+              //   options: {
+              //     /* eslint-disable @typescript-eslint/naming-convention */
+              //     ON: TEXT('On'),
+              //     OFF: TEXT('Off')
+              //     /* eslint-enable @typescript-eslint/naming-convention */
+              //   }
+              // },
+              {
+                type: 'select',
+                name: 'retentionMode',
+                label: TEXT('Retention Mode'),
+                value: _.defaultTo(resp.ObjectLockMode, 'NONE'),
+                readonly: true,
+                options: {
+                  /* eslint-disable @typescript-eslint/naming-convention */
+                  NONE: TEXT('None'),
+                  GOVERNANCE: TEXT('Governance'),
+                  COMPLIANCE: TEXT('Compliance')
+                  /* eslint-enable @typescript-eslint/naming-convention */
+                }
+              },
+              {
+                type: 'text',
+                name: 'retainUntil',
+                label: TEXT('Retain Until'),
+                value: this.localeDatePipe.transform(
+                  _.defaultTo(resp.ObjectLockRetainUntilDate, ''),
+                  'datetime'
+                ),
+                readonly: true
+              },
               {
                 type: 'text',
                 name: 'contentType',
