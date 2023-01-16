@@ -329,7 +329,7 @@ export class S3BucketService {
       this.s3ClientService.get(credentials).getBucketTagging(params).promise()
     ).pipe(
       catchError((err) => {
-        if (err.code === 'NoSuchTagSet') {
+        if (['NoSuchTagSetError', 'NoSuchTagSet'].includes(err.code)) {
           return of({
             /* eslint-disable @typescript-eslint/naming-convention */
             TagSet: []
@@ -612,7 +612,7 @@ export class S3BucketService {
       this.s3ClientService.get(credentials).getObjectTagging(params).promise()
     ).pipe(
       catchError((err) => {
-        if (err.code === 'NoSuchTagSet') {
+        if (['NoSuchTagSetError', 'NoSuchTagSet'].includes(err.code)) {
           return of({
             /* eslint-disable @typescript-eslint/naming-convention */
             TagSet: []
