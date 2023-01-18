@@ -180,7 +180,8 @@ export class BucketDatatablePageComponent {
             }
           )
           .subscribe({
-            complete: () => this.loadData()
+            complete: () => this.loadData(),
+            error: () => this.loadData()
           });
       }
     );
