@@ -223,7 +223,11 @@ export class S3BucketService {
           sources.push(this.setVersioning(bucket.Name!, bucket.Versioning, credentials));
         }
         // Update the tags?
-        if (_.isArray(bucket.TagSet) && !_.isEqual(bucket.TagSet, currentBucket.TagSet)) {
+        if (
+          _.isArray(bucket.TagSet) &&
+          !(_.isUndefined(currentBucket.TagSet) && !bucket.TagSet.length) &&
+          !_.isEqual(bucket.TagSet, currentBucket.TagSet)
+        ) {
           currentBucket.TagSet = bucket.TagSet;
           sources.push(this.setTagging(bucket.Name!, bucket.TagSet, credentials));
         }
