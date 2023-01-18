@@ -4,9 +4,10 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { Observable } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 
+import { format } from '~/app/functions.helper';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { Datatable } from '~/app/shared/models/datatable.interface';
@@ -150,7 +151,19 @@ export class BucketDatatablePageComponent {
       () => {
         const sources: Observable<AWS.S3.Types.BucketName>[] = [];
         _.forEach(selected, (data: DatatableData) => {
-          sources.push(this.s3bucketService.delete(data['Name']));
+          sources.push(
+            this.s3bucketService.delete(data['Name']).pipe(
+              catchError((err) => {
+                if (err.code === 'BucketNotEmpty') {
+                  this.notificationService.showError(
+                    format(TEXT('The bucket {{ name }} is not empty.'), { name: data['Name'] }),
+                    TEXT('Delete bucket')
+                  );
+                }
+                return throwError(err);
+              })
+            )
+          );
         });
         this.rxjsUiHelperService
           .concat<AWS.S3.Types.BucketName>(
