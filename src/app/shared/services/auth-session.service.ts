@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import * as _ from 'lodash';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
@@ -7,7 +8,7 @@ import { Credentials } from '~/app/shared/models/credentials.type';
   providedIn: 'root'
 })
 export class AuthSessionService {
-  constructor() {}
+  constructor(private router: Router) {}
 
   /**
    * Store various authentication related information in session storage.
@@ -51,5 +52,10 @@ export class AuthSessionService {
 
   isAdmin(): boolean {
     return sessionStorage.getItem('isAdmin') === 'yes';
+  }
+
+  logout(): void {
+    this.revoke();
+    this.router.navigate(['/login']);
   }
 }

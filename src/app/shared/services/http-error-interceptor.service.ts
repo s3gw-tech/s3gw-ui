@@ -6,7 +6,6 @@ import {
   HttpRequest
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import * as _ from 'lodash';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -20,8 +19,7 @@ import { NotificationService } from '~/app/shared/services/notification.service'
 export class HttpErrorInterceptorService implements HttpInterceptor {
   constructor(
     private authSessionService: AuthSessionService,
-    private notificationService: NotificationService,
-    private router: Router
+    private notificationService: NotificationService
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -34,8 +32,7 @@ export class HttpErrorInterceptorService implements HttpInterceptor {
             case 401:
             case 403: // E.g. invalid access key.
               timeoutId = window.setTimeout(() => {
-                this.authSessionService.revoke();
-                this.router.navigate(['/login']);
+                this.authSessionService.logout();
               }, 5);
               break;
             default:
