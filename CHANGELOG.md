@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add tags support for buckets (gh#aquarist-labs/s3gw#285).
 - Add notification sidebar (gh#aquarist-labs/s3gw#172).
+- Add option to remove buckets objects before deleting a bucket
+  in the administrator view.
 
 ## [0.10.0] - 2022-12-22
 

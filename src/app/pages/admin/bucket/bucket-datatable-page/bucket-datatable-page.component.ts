@@ -3,9 +3,10 @@ import { Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { Observable } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { EMPTY, Observable, throwError } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 
+import { format } from '~/app/functions.helper';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { Datatable } from '~/app/shared/models/datatable.interface';
@@ -137,7 +138,7 @@ export class BucketDatatablePageComponent {
   }
 
   private doDelete(selected: DatatableData[]): void {
-    this.modalDialogService.confirmation<Bucket>(
+    this.modalDialogService.confirmDeletion<Bucket>(
       selected as Bucket[],
       'danger',
       {
@@ -146,27 +147,48 @@ export class BucketDatatablePageComponent {
         plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> buckets?')
       },
       () => {
-        const sources: Observable<string>[] = [];
-        _.forEach(selected, (data: DatatableData) => {
-          sources.push(this.bucketService.delete(data['bucket']));
-        });
-        this.rxjsUiHelperService
-          .concat<string>(
-            sources,
-            {
-              start: TEXT('Please wait, deleting {{ total }} bucket(s) ...'),
-              next: TEXT(
-                'Please wait, deleting bucket {{ current }} of {{ total }} ({{ percent }}%) ...'
+        this.modalDialogService.yesNo(
+          TEXT('Do you want to remove the buckets objects before deletion?'),
+          (purgeObjects: boolean) => {
+            const sources: Observable<string>[] = [];
+            _.forEach(selected, (data: DatatableData) => {
+              sources.push(
+                this.bucketService.delete(data['bucket'], purgeObjects).pipe(
+                  catchError((err) => {
+                    if (err.error?.Code === 'BucketNotEmpty') {
+                      err.preventDefault?.();
+                      this.notificationService.showError(
+                        format(TEXT('The bucket {{ name }} is not empty.'), {
+                          name: data['bucket']
+                        }),
+                        TEXT('Delete bucket')
+                      );
+                      return EMPTY;
+                    }
+                    return throwError(err);
+                  })
+                )
+              );
+            });
+            this.rxjsUiHelperService
+              .concat<string>(
+                sources,
+                {
+                  start: TEXT('Please wait, deleting {{ total }} bucket(s) ...'),
+                  next: TEXT(
+                    'Please wait, deleting bucket {{ current }} of {{ total }} ({{ percent }}%) ...'
+                  )
+                },
+                {
+                  next: TEXT('Bucket {{ name }} has been deleted.'),
+                  nextFmtArgs: (name: string) => ({ name })
+                }
               )
-            },
-            {
-              next: TEXT('Bucket {{ name }} has been deleted.'),
-              nextFmtArgs: (name: string) => ({ name })
-            }
-          )
-          .subscribe({
-            complete: () => this.loadData()
-          });
+              .subscribe({
+                complete: () => this.loadData()
+              });
+          }
+        );
       }
     );
   }

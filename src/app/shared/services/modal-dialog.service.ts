@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
 
@@ -13,7 +14,7 @@ export class ModalDialogService {
   constructor(private dialogService: DialogService) {}
 
   /**
-   * Display a modal confirmation dialog.
+   * Display of a modal dialog used to delete things.
    *
    * @param objects The list of objects that are affected by the action.
    * @param severity The severity of the question.
@@ -21,7 +22,7 @@ export class ModalDialogService {
    * @param callback The function that is executed if the confirmation
    *   was successful.
    */
-  confirmation<T>(
+  confirmDeletion<T>(
     objects: T[],
     severity: 'info' | 'warning' | 'danger' | 'question' = 'question',
     question: {
@@ -30,13 +31,13 @@ export class ModalDialogService {
       plural?: string;
     },
     callback: () => void
-  ): void {
+  ): NgbModalRef {
     _.defaults(question, {
       singular: TEXT('Do you really want to delete the item?'),
       singularFmtArgs: () => ({}),
       plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> items?')
     });
-    this.dialogService.open(
+    return this.dialogService.open(
       ModalComponent,
       (res: boolean) => {
         if (res === true) {
@@ -54,5 +55,35 @@ export class ModalDialogService {
             : format(question.singular!, question.singularFmtArgs!(objects[0]))
       } as ModalConfig
     );
+  }
+
+  /**
+   * Display a simple `Yes` or `No` modal dialog.
+   *
+   * @param message The message to be shown.
+   * @param callback The function that is executed after the dialog
+   *  has been confirmed.
+   */
+  yesNo(message: string, callback?: (result: boolean) => void): NgbModalRef {
+    return this.dialogService.open(ModalComponent, callback, {
+      type: 'yesNo',
+      severity: 'question',
+      message
+    } as ModalConfig);
+  }
+
+  /**
+   * Display a simple `Yes` or `No` modal dialog with the severity `Danger`.
+   *
+   * @param message The message to be shown.
+   * @param callback The function that is executed after the dialog
+   *  has been confirmed.
+   */
+  yesNoDanger(message: string, callback?: (result: boolean) => void): NgbModalRef {
+    return this.dialogService.open(ModalComponent, callback, {
+      type: 'yesNo',
+      severity: 'danger',
+      message
+    } as ModalConfig);
   }
 }
