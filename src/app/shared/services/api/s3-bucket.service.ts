@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 import { Injectable } from '@angular/core';
 import * as AWS from 'aws-sdk';
 import { saveAs } from 'file-saver';
@@ -9,6 +10,30 @@ import { Credentials } from '~/app/shared/models/credentials.type';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { S3ClientService } from '~/app/shared/services/api/s3-client.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
+
+// eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
+function CatchAuthErrors() {
+  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    const originalFn = descriptor.value;
+    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+    descriptor.value = function (...args: any[]) {
+      // @ts-ignore
+      const result: Observable<any> = originalFn.apply(this, args);
+      return result.pipe(
+        catchError((err) => {
+          if (
+            ['CredentialsError', 'InvalidAccessKeyId', 'SignatureDoesNotMatch'].includes(err.code)
+          ) {
+            // @ts-ignore
+            this.authSessionService.logout();
+          }
+          return throwError(err);
+        })
+      );
+    };
+    return descriptor;
+  };
+}
 
 export type S3Bucket = AWS.S3.Types.Bucket;
 
@@ -97,6 +122,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listBuckets-property
    */
+  @CatchAuthErrors()
   public list(credentials?: Credentials): Observable<AWS.S3.Types.Buckets> {
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
@@ -110,6 +136,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
+  @CatchAuthErrors()
   public count(credentials?: Credentials): Observable<number> {
     return this.list(credentials).pipe(map((resp: AWS.S3.Types.Buckets) => resp.length));
   }
@@ -123,6 +150,7 @@ export class S3BucketService {
    *
    * @see https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#get-bucket
    */
+  @CatchAuthErrors()
   public get(bucket: AWS.S3.Types.BucketName, credentials?: Credentials): Observable<S3Bucket> {
     credentials = credentials ?? this.authSessionService.getCredentials();
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -138,6 +166,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
+  @CatchAuthErrors()
   public getAttributes(
     bucket: AWS.S3.Types.BucketName,
     credentials?: Credentials
@@ -168,6 +197,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#headBucket-property
    */
+  @CatchAuthErrors()
   public exists(bucket: AWS.S3.Types.BucketName, credentials?: Credentials): Observable<boolean> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const params: AWS.S3.Types.HeadBucketRequest = { Bucket: bucket };
@@ -194,6 +224,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#createBucket-property
    */
+  @CatchAuthErrors()
   public create(bucket: S3BucketAttributes, credentials?: Credentials): Observable<S3Bucket> {
     credentials = credentials ?? this.authSessionService.getCredentials();
     return this.rgwService
@@ -248,6 +279,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteBucket-property
    */
+  @CatchAuthErrors()
   public delete(
     bucket: AWS.S3.Types.BucketName,
     credentials?: Credentials
@@ -269,6 +301,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getBucketVersioning-property
    */
+  @CatchAuthErrors()
   public getVersioning(
     bucket: AWS.S3.Types.BucketName,
     credentials?: Credentials
@@ -292,6 +325,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketVersioning-property
    */
+  @CatchAuthErrors()
   public setVersioning(
     bucket: AWS.S3.Types.BucketName,
     enabled: boolean = false,
@@ -319,6 +353,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getBucketTagging-property
    */
+  @CatchAuthErrors()
   public getTagging(
     bucket: AWS.S3.Types.BucketName,
     credentials?: Credentials
@@ -356,6 +391,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketTagging-property
    */
+  @CatchAuthErrors()
   public setTagging(
     bucket: AWS.S3.Types.BucketName,
     tags: AWS.S3.Types.TagSet,
@@ -382,6 +418,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectsV2-property
    */
+  @CatchAuthErrors()
   public listObjects(
     bucket: AWS.S3.Types.BucketName,
     credentials?: Credentials
@@ -417,6 +454,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteObject-property
    */
+  @CatchAuthErrors()
   public deleteObject(
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
@@ -440,6 +478,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
    */
+  @CatchAuthErrors()
   public uploadObject(
     bucket: AWS.S3.Types.BucketName,
     file: File,
@@ -492,6 +531,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObject-property
    */
+  @CatchAuthErrors()
   public getObject(
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
@@ -523,6 +563,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#headObject-property
    */
+  @CatchAuthErrors()
   public headObject(
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
@@ -551,6 +592,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
+  @CatchAuthErrors()
   public getObjectAttributes(
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
@@ -600,6 +642,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObjectTagging-property
    */
+  @CatchAuthErrors()
   public getObjectTagging(
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
@@ -641,6 +684,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObjectTagging-property
    */
+  @CatchAuthErrors()
   public setObjectTagging(
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
