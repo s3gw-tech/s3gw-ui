@@ -164,7 +164,7 @@ export class UserKeyDatatablePageComponent implements OnInit {
         icon: this.icons.delete,
         disabled: deletable,
         callback: (data: DatatableData) => {
-          this.modalDialogService.confirmation<Key>(
+          this.modalDialogService.confirmDeletion<Key>(
             [key],
             'danger',
             {

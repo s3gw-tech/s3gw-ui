@@ -2,13 +2,12 @@ import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import { Subscription } from 'rxjs';
 
-import { ModalComponent } from '~/app/shared/components/modal/modal.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { ViewMode } from '~/app/shared/enum/view-mode.enum';
 import { NavigationConfig } from '~/app/shared/models/navigation-config.type';
 import { AuthService } from '~/app/shared/services/api/auth.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
-import { DialogService } from '~/app/shared/services/dialog.service';
+import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NavigationConfigService } from '~/app/shared/services/navigation-config.service';
 
 @Component({
@@ -34,7 +33,7 @@ export class TopBarComponent implements OnDestroy {
   constructor(
     private authService: AuthService,
     private authSessionService: AuthSessionService,
-    private dialogService: DialogService,
+    private modalDialogService: ModalDialogService,
     private navigationConfigService: NavigationConfigService
   ) {
     this.userId = this.authSessionService.getUserId();
@@ -65,18 +64,10 @@ export class TopBarComponent implements OnDestroy {
   }
 
   onLogout(): void {
-    this.dialogService.open(
-      ModalComponent,
-      (res: boolean) => {
-        if (res) {
-          this.authService.logout().subscribe();
-        }
-      },
-      {
-        type: 'yesNo',
-        icon: 'question',
-        message: TEXT('Do you really want to log out?')
+    this.modalDialogService.yesNo(TEXT('Do you really want to log out?'), (res: boolean) => {
+      if (res) {
+        this.authService.logout().subscribe();
       }
-    );
+    });
   }
 }

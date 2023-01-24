@@ -200,7 +200,7 @@ export class UserDatatablePageComponent {
   }
 
   private doDelete(selected: DatatableData[]): void {
-    this.modalDialogService.confirmation<User>(
+    this.modalDialogService.confirmDeletion<User>(
       selected as User[],
       'danger',
       {

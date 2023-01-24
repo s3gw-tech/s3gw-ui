@@ -22,7 +22,7 @@ export class RxjsUiHelperService {
    * - Update the progress message (count, percentage) after each
    *   processed observable.
    * - Create a notification for each processed observable.
-   * - Unblock the UI at the end.
+   * - Unblock the UI on success or failure.
    *
    * @param sources The observables to process.
    * @param messages The templates that are used to format the messages

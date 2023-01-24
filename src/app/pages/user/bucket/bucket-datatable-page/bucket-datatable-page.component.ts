@@ -140,7 +140,7 @@ export class BucketDatatablePageComponent {
   }
 
   private doDelete(selected: DatatableData[]): void {
-    this.modalDialogService.confirmation<S3Bucket>(
+    this.modalDialogService.confirmDeletion<S3Bucket>(
       selected as S3Bucket[],
       'danger',
       {

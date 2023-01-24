@@ -302,7 +302,7 @@ export class ObjectDatatablePageComponent implements OnInit {
   }
 
   private doDelete(selected: DatatableData[]): void {
-    this.modalDialogService.confirmation<S3Object>(
+    this.modalDialogService.confirmDeletion<S3Object>(
       selected as S3Object[],
       'danger',
       {
