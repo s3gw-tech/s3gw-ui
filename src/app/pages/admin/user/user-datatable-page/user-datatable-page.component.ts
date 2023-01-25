@@ -70,7 +70,8 @@ export class UserDatatablePageComponent {
     this.datatableColumns = [
       {
         name: TEXT('User ID'),
-        prop: 'user_id'
+        prop: 'user_id',
+        css: 'text-break'
       },
       {
         name: TEXT('Full Name'),
