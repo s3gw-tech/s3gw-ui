@@ -7,9 +7,46 @@
                   [data]="objects"
                   [columns]="datatableColumns"
                   [autoReload]="false"
+                  (rowSelection)="onRowSelection($event)"
                   (loadData)="loadData()">
     <s3gw-datatable-actions [actions]="datatableActions"
                             [table]="table">
     </s3gw-datatable-actions>
+    <s3gw-datatable-custom-top>
+      <div class="d-flex flex-row align-items-center justify-content-start">
+        <button type="button"
+                class="btn btn-link text-decoration-none"
+                ngbTooltip="{{ 'Root' | transloco }}"
+                (click)="prefixParts.length && onPrefixSelect(0)">
+          <i [class]="icons.home"></i>
+        </button>
+        <span *ngIf="prefixParts.length">{{ delimiter }}</span>
+        <ng-container *ngFor="let prefixPart of prefixParts; let index = index; let last = last">
+          <button type="button"
+                  class="btn btn-link text-decoration-none"
+                  (click)="!last && onPrefixSelect(index + 1)">
+            <span>{{ prefixPart }}</span>
+          </button>
+          <span *ngIf="!last">{{ delimiter }}</span>
+        </ng-container>
+      </div>
+    </s3gw-datatable-custom-top>
   </s3gw-datatable>
 </s3gw-wrapper-status>
+
+<ng-template #nameColumnTpl
+             let-value="value"
+             let-row="row">
+  <i *ngIf="'OBJECT' === row.Type"
+     class="text-primary"
+     [class]="icons.file">
+  </i>
+  <i *ngIf="'FOLDER' === row.Type"
+     class="text-primary"
+     [class]="icons.folder">
+  </i>
+  <span class="ms-1"
+        [title]="value">
+    {{ value }}
+  </span>
+</ng-template>

@@ -1,17 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { merge, Observable } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { merge, Observable, of, timer } from 'rxjs';
+import { finalize, map, switchMap } from 'rxjs/operators';
 
 import { bytesToSize, format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
+import { S3gwValidators } from '~/app/shared/forms/validators';
 import { Datatable } from '~/app/shared/models/datatable.interface';
 import { DatatableAction } from '~/app/shared/models/datatable-action.type';
 import {
@@ -20,6 +22,7 @@ import {
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
+import { DeclarativeFormValues } from '~/app/shared/models/declarative-form-config.type';
 import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
 import { LocaleDatePipe } from '~/app/shared/pipes/locale-date.pipe';
@@ -46,13 +49,17 @@ export class ObjectDatatablePageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
+  @ViewChild('nameColumnTpl', { static: true })
+  nameColumnTpl?: TemplateRef<any>;
+
   public datatableActions: DatatableAction[];
   public bid: AWS.S3.Types.BucketName = '';
   public objects: S3Objects = [];
-  public datatableColumns: DatatableColumn[];
+  public datatableColumns: DatatableColumn[] = [];
   public icons = Icon;
   public pageActions: PageAction[];
   public pageStatus: PageStatus = PageStatus.none;
+  public prefixParts: string[] = [];
 
   private firstLoadComplete = false;
 
@@ -64,9 +71,15 @@ export class ObjectDatatablePageComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private rxjsUiHelperService: RxjsUiHelperService,
-    private s3bucketService: S3BucketService
+    private s3BucketService: S3BucketService
   ) {
     this.datatableActions = [
+      {
+        type: 'button',
+        text: TEXT('Folder'),
+        icon: this.icons.folderPlus,
+        callback: (event: Event) => this.doCreateFolder()
+      },
       {
         type: 'file',
         text: TEXT('Upload'),
@@ -92,11 +105,33 @@ export class ObjectDatatablePageComponent implements OnInit {
         callback: (event: Event, table: Datatable) => this.doDelete(table.selected)
       }
     ];
+    this.pageActions = [
+      {
+        type: 'button',
+        text: TEXT('Edit'),
+        icon: Icon.edit,
+        callback: () => this.router.navigate([`/buckets/edit/${this.bid}`])
+      }
+    ];
+  }
+
+  get delimiter(): string {
+    return this.s3BucketService.delimiter;
+  }
+
+  ngOnInit(): void {
     this.datatableColumns = [
       {
         name: TEXT('Name'),
+        prop: 'Name',
+        css: 'text-break',
+        cellTemplate: this.nameColumnTpl
+      },
+      {
+        name: TEXT('Key'),
         prop: 'Key',
-        css: 'text-break'
+        css: 'text-break',
+        hidden: true
       },
       {
         name: TEXT('Size'),
@@ -115,17 +150,6 @@ export class ObjectDatatablePageComponent implements OnInit {
         cellTemplateConfig: this.onActionMenu.bind(this)
       }
     ];
-    this.pageActions = [
-      {
-        type: 'button',
-        text: TEXT('Edit'),
-        icon: Icon.edit,
-        callback: () => this.router.navigate([`/buckets/edit/${this.bid}`])
-      }
-    ];
-  }
-
-  ngOnInit(): void {
     this.route.params.subscribe((value: Params) => {
       if (!_.has(value, 'bid')) {
         this.pageStatus = PageStatus.ready;
@@ -138,8 +162,8 @@ export class ObjectDatatablePageComponent implements OnInit {
   loadData(): void {
     this.objects = [];
     this.pageStatus = !this.firstLoadComplete ? PageStatus.loading : PageStatus.reloading;
-    this.s3bucketService
-      .listObjects(this.bid)
+    this.s3BucketService
+      .listObjects(this.bid, this.s3BucketService.buildPrefix(this.prefixParts, true))
       .pipe(
         finalize(() => {
           this.firstLoadComplete = true;
@@ -159,39 +183,59 @@ export class ObjectDatatablePageComponent implements OnInit {
       });
   }
 
+  onPrefixSelect(index: number): void {
+    this.prefixParts = this.prefixParts.slice(0, index);
+    this.loadData();
+  }
+
+  onRowSelection(event: any): void {
+    const [row, column] = [...event] as [S3Object, DatatableColumn];
+    // Process row selection if:
+    // - it's a folder
+    // - the action or checkbox column is not clicked
+    if ('FOLDER' === row.Type && '' !== column.name) {
+      this.prefixParts = this.s3BucketService.splitKey(row.Key!);
+      this.loadData();
+    }
+  }
+
   onActionMenu(object: S3Object): DatatableRowAction[] {
-    const result: DatatableRowAction[] = [
-      {
-        title: TEXT('Details'),
-        icon: this.icons.details,
-        callback: (data: DatatableData) => this.doDetails([data])
-      },
-      // {
-      //   title: TEXT('Tags'),
-      //   icon: this.icons.tags,
-      //   callback: (data: DatatableData) => this.doTags([data])
-      // },
-      {
-        title: TEXT('Download'),
-        icon: this.icons.download,
-        callback: (data: DatatableData) => this.doDownload([data])
-      },
-      {
-        type: 'divider'
-      },
-      {
+    const result: DatatableRowAction[] = [];
+    if ('OBJECT' === object.Type) {
+      result.push(
+        {
+          title: TEXT('Details'),
+          icon: this.icons.details,
+          callback: (data: DatatableData) => this.doDetails([data])
+        },
+        {
+          title: TEXT('Download'),
+          icon: this.icons.download,
+          callback: (data: DatatableData) => this.doDownload([data])
+        },
+        {
+          type: 'divider'
+        },
+        {
+          title: TEXT('Delete'),
+          icon: this.icons.delete,
+          callback: (data: DatatableData) => this.doDelete([data])
+        }
+      );
+    } else {
+      result.push({
         title: TEXT('Delete'),
         icon: this.icons.delete,
         callback: (data: DatatableData) => this.doDelete([data])
-      }
-    ];
+      });
+    }
     return result;
   }
 
   private doDetails(selected: DatatableData[]): void {
     const data: DatatableData = selected[0];
     this.blockUI.start(translate(TEXT('Please wait, fetching object details ...')));
-    this.s3bucketService
+    this.s3BucketService
       .getObjectAttributes(this.bid, data['Key'])
       .pipe(finalize(() => this.blockUI.stop()))
       .subscribe((resp: S3GetObjectAttributesOutput) => {
@@ -242,12 +286,10 @@ export class ObjectDatatablePageComponent implements OnInit {
       });
   }
 
-  private doTags(selected: DatatableData[]): void {}
-
   private doDownload(selected: DatatableData[]): void {
     const sources: Observable<S3GetObjectOutput>[] = [];
     _.forEach(selected, (data: DatatableData) =>
-      sources.push(this.s3bucketService.downloadObject(this.bid, data['Key']))
+      sources.push(this.s3BucketService.downloadObject(this.bid, data['Key']))
     );
     // Download the files in parallel.
     merge(...sources).subscribe();
@@ -262,8 +304,8 @@ export class ObjectDatatablePageComponent implements OnInit {
         total: fileList.length
       })
     );
-    this.s3bucketService
-      .uploadObjects(this.bid, fileList)
+    this.s3BucketService
+      .uploadObjects(this.bid, fileList, this.s3BucketService.buildPrefix(this.prefixParts))
       .pipe(finalize(() => this.blockUI.stop()))
       .subscribe({
         next: (progress: S3UploadProgress) => {
@@ -312,7 +354,14 @@ export class ObjectDatatablePageComponent implements OnInit {
       () => {
         const sources: Observable<S3DeleteObjectOutput>[] = [];
         _.forEach(selected, (data: DatatableData) => {
-          sources.push(this.s3bucketService.deleteObject(this.bid, data['Key']));
+          switch (data['Type']) {
+            case 'FOLDER':
+              sources.push(this.s3BucketService.deleteObjects(this.bid, data['Key']));
+              break;
+            case 'OBJECT':
+              sources.push(this.s3BucketService.deleteObject(this.bid, data['Key']));
+              break;
+          }
         });
         this.rxjsUiHelperService
           .concat<S3DeleteObjectOutput>(
@@ -333,5 +382,57 @@ export class ObjectDatatablePageComponent implements OnInit {
           });
       }
     );
+  }
+
+  private doCreateFolder(): void {
+    this.dialogService.open(
+      DeclarativeFormModalComponent,
+      (result: DeclarativeFormValues | boolean) => {
+        if (result !== false) {
+          const values = result as DeclarativeFormValues;
+          const newPathParts = this.s3BucketService.splitKey(values['path']);
+          this.prefixParts.push(...newPathParts);
+          this.objects = [];
+        }
+      },
+      {
+        formConfig: {
+          title: TEXT('Create a new folder'),
+          fields: [
+            {
+              type: 'text',
+              name: 'path',
+              label: TEXT('Path'),
+              value: '',
+              validators: {
+                required: true,
+                custom: S3gwValidators.objectKey(),
+                asyncCustom: this.uniqueObjectKey()
+              }
+            }
+          ]
+        },
+        submitButtonText: TEXT('Create')
+      } as DeclarativeFormModalConfig
+    );
+  }
+
+  private uniqueObjectKey(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      if (control.pristine || _.isEmpty(control.value)) {
+        return of(null);
+      }
+      const key = this.s3BucketService.buildKey(control.value, this.prefixParts);
+      return timer(200).pipe(
+        switchMap(() => this.s3BucketService.existsObject(this.bid, key)),
+        map((resp: boolean) => {
+          if (!resp) {
+            return null;
+          } else {
+            return { custom: TEXT('The path already exists.') };
+          }
+        })
+      );
+    };
   }
 }
