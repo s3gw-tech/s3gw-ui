@@ -23,10 +23,9 @@ describe('UserStatsTotalBytesComponent', () => {
     component.loadData = () =>
       of({
         /* eslint-disable @typescript-eslint/naming-convention */
-        Summary: {},
-        TotalBytes: 4096,
-        TotalBytesRounded: 1,
-        TotalEntries: 5
+        Entries: [],
+        Summary: [-1, 1000, -1, -1, -1, 122028, 147456, 10],
+        CapacityUsed: []
         /* eslint-enable @typescript-eslint/naming-convention */
       });
     fixture.detectChanges();
