@@ -33,7 +33,7 @@
     "@angular/router": "~13.3.12",
     "@fontsource/lato": "^4.5.10",
     "@fontsource/roboto-mono": "^4.5.10",
-    "@mdi/font": "6.9.96",
+    "@mdi/font": "^7.1.96",
     "@ng-bootstrap/ng-bootstrap": "^12.1.2",
     "@ngneat/transloco": "^4.2.2",
     "aws-sdk": "^2.1300.0",
