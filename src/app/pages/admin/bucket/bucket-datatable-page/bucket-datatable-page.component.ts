@@ -62,7 +62,8 @@ export class BucketDatatablePageComponent {
     this.datatableColumns = [
       {
         name: TEXT('Name'),
-        prop: 'bucket'
+        prop: 'bucket',
+        css: 'text-break'
       },
       {
         name: TEXT('Owner'),

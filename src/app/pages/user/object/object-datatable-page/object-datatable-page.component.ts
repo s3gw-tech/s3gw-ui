@@ -97,7 +97,8 @@ export class ObjectDatatablePageComponent implements OnInit {
     this.datatableColumns = [
       {
         name: TEXT('Name'),
-        prop: 'Key'
+        prop: 'Key',
+        css: 'text-break'
       },
       {
         name: TEXT('Size'),
