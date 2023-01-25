@@ -6,7 +6,7 @@ import { bytesToSize } from '~/app/functions.helper';
   name: 'bytesToSize'
 })
 export class BytesToSizePipe implements PipeTransform {
-  transform(value: null | number | string): string {
+  transform(value: undefined | null | number | string): string {
     return bytesToSize(value);
   }
 }

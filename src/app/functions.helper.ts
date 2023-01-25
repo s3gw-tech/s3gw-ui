@@ -28,8 +28,8 @@ export const toBytes = (value: number | string): number | null => {
  * @param value The value to convert.
  * @returns Returns The converted value, e.g. '4 MiB'.
  */
-export const bytesToSize = (value: null | number | string): string => {
-  if (_.isNull(value) || [0, '0', ''].includes(value)) {
+export const bytesToSize = (value: undefined | null | number | string): string => {
+  if (_.isUndefined(value) || _.isNull(value) || [0, '0', ''].includes(value)) {
     return '0 B';
   }
   const bytes = _.toNumber(value);
