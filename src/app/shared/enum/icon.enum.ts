@@ -34,5 +34,6 @@ export enum Icon {
   search = 'mdi mdi-magnify',
   table = 'mdi mdi-table',
   tags = 'mdi mdi-tag-multiple',
-  bell = 'mdi mdi-bell'
+  bell = 'mdi mdi-bell',
+  sum = 'mdi mdi-sigma'
 }
