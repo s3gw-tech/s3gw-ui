@@ -11,10 +11,9 @@ import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 
 export type S3UserStats = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  Summary: object;
-  TotalBytes: number;
-  TotalBytesRounded: number;
-  TotalEntries: number;
+  Entries: any[];
+  Summary: number[];
+  CapacityUsed: any[];
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 

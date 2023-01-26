@@ -258,3 +258,8 @@
     {{ column.cellTemplateConfig?.text }}
   </button>
 </ng-template>
+
+<ng-template #binaryUnitTpl
+             let-value="value">
+  <span>{{ value | bytesToSize | notAvailable }}</span>
+</ng-template>

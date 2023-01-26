@@ -7,7 +7,7 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { merge, Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
-import { format } from '~/app/functions.helper';
+import { bytesToSize, format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
@@ -22,7 +22,6 @@ import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
 import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
-import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { LocaleDatePipe } from '~/app/shared/pipes/locale-date.pipe';
 import {
   S3BucketService,
@@ -58,7 +57,6 @@ export class ObjectDatatablePageComponent implements OnInit {
   private firstLoadComplete = false;
 
   constructor(
-    private bytesToSizePipe: BytesToSizePipe,
     private dialogService: DialogService,
     private localeDatePipe: LocaleDatePipe,
     private modalDialogService: ModalDialogService,
@@ -102,7 +100,7 @@ export class ObjectDatatablePageComponent implements OnInit {
       {
         name: TEXT('Size'),
         prop: 'Size',
-        pipe: this.bytesToSizePipe
+        cellTemplateName: DatatableCellTemplateName.binaryUnit
       },
       {
         name: TEXT('Last Modified'),
@@ -211,7 +209,7 @@ export class ObjectDatatablePageComponent implements OnInit {
                 type: 'text',
                 name: 'size',
                 label: TEXT('Size'),
-                value: this.bytesToSizePipe.transform(data['Size']),
+                value: bytesToSize(data['Size']),
                 readonly: true
               },
               {

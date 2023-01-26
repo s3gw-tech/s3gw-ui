@@ -5,8 +5,8 @@
        [class]="icons.sum">
     </i>
     <div class="d-grid gap-0">
-      <div>{{ "Total Bytes" | transloco }}</div>
-      <div class="fs-3 fw-bold">{{ data?.TotalBytes | bytesToSize }}</div>
+      <div>{{ "Used Capacity" | transloco }}</div>
+      <div class="fs-3 fw-bold">{{ data?.Summary?.[5] | bytesToSize | notAvailable }}</div>
     </div>
   </div>
 </s3gw-dashboard-widget>
