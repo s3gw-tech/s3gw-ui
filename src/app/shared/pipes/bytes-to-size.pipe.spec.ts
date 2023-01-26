@@ -7,6 +7,18 @@ describe('BytesToSizePipe', () => {
     expect(pipe).toBeTruthy();
   });
 
+  it('should not transforms null', () => {
+    expect(pipe.transform(null)).toBeNull();
+  });
+
+  it('should not transforms undefined', () => {
+    expect(pipe.transform(undefined)).toBeUndefined();
+  });
+
+  it('should not transforms empty string', () => {
+    expect(pipe.transform('')).toBe('');
+  });
+
   it('transforms 0 bytes', () => {
     expect(pipe.transform(0)).toBe('0 B');
   });

@@ -50,7 +50,9 @@ export enum DatatableCellTemplateName {
   //     url: string;
   //   }
   // }
-  button = 'button'
+  button = 'button',
+  // Convert a number of bytes into the highest possible binary unit.
+  binaryUnit = 'binaryUnit'
 }
 
 export type DatatableColumn = {

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Known Issues
 
 - It is not possible to remove all tags (gh#aquarist-labs/s3gw#314).
+- It is not possible to change the bucket owner (gh#aquarist-labs/s3gw#86).
 
 ## [0.10.0] - 2022-12-22
 
