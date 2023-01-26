@@ -140,7 +140,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           label: TEXT('Owner'),
           hint: TEXT('The owner of the bucket.'),
           value: '',
-          autofocus: editing,
+          readonly: editing,
           options: this.ownerOptions,
           validators: {
             required: true
