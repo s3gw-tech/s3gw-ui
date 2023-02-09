@@ -1,3 +1,4 @@
+import { Injector } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -15,6 +16,7 @@ import validator from 'validator';
 import { format } from '~/app/functions.helper';
 import { Constraint } from '~/app/shared/models/constraint.type';
 import { ConstraintService } from '~/app/shared/services/constraint.service';
+import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
 
 const isEmptyInputValue = (value: any): boolean => _.isNull(value) || value.length === 0;
 
@@ -50,7 +52,7 @@ export class S3gwValidators {
    * Validator to check if the input is a valid IP-address or FQDN.
    *
    * @returns a validator function. The function returns the error `hostAddress` if the
-   * validation fails, otherwise `null`.
+   *   validation fails, otherwise `null`.
    */
   static hostAddress(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -159,7 +161,7 @@ export class S3gwValidators {
    * @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
    *
    * @returns a validator function. The function returns the error `custom` if the
-   * validation fails, otherwise `null`.
+   *   validation fails, otherwise `null`.
    */
   static bucketName(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -213,6 +215,52 @@ export class S3gwValidators {
       if (_.endsWith(control.value, '-s3alias')) {
         return {
           custom: TEXT('The value must not end with the suffix -s3alias.')
+        };
+      }
+      return null;
+    };
+  }
+
+  /**
+   * Validator to check if the given object key is valid.
+   *
+   * @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
+   *
+   * @returns a validator function. The function returns the error `custom` if the
+   *   validation fails, otherwise `null`.
+   */
+  static objectKey(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (_.isEmpty(control.value)) {
+        return null;
+      }
+      if (control.value.length > 1024) {
+        return { custom: format(TEXT('Maximum length is {{ num }} characters.'), { num: 1024 }) };
+      }
+      const injector = Injector.create([
+        { provide: RgwServiceConfigService, useClass: RgwServiceConfigService, deps: [] }
+      ]);
+      const rgwServiceConfigService = injector.get(RgwServiceConfigService);
+      const parts: string[] = _.split(
+        _.trim(control.value, rgwServiceConfigService.config.delimiter),
+        rgwServiceConfigService.config.delimiter
+      );
+      _.remove(parts, _.isEmpty);
+      const valid = _.every(parts, (part: string) =>
+        /^[0-9a-zA-Z!_*'()&$@=;/:+ ,?.-]+$/.test(part)
+      );
+      if (!valid) {
+        return {
+          custom: TEXT(
+            format(
+              TEXT(
+                "The value contains invalid characters. Only letters, numbers, blanks, !_*'()&$@=;/:+,?.- and the delimiter {{ delimiter }} are allowed."
+              ),
+              {
+                delimiter: rgwServiceConfigService.config.delimiter
+              }
+            )
+          )
         };
       }
       return null;

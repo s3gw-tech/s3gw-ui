@@ -228,4 +228,40 @@ describe('GlassValidators', () => {
       expect(control?.errors?.['custom']).toBe('The value must not end with the suffix -s3alias.');
     });
   });
+
+  describe('objectKey', () => {
+    let control: AbstractControl | null;
+
+    beforeEach(() => {
+      control = formGroup.get('x');
+      control?.setValidators(S3gwValidators.objectKey());
+    });
+
+    it('should validate object key [1]', () => {
+      control?.setValue('4my-organization');
+      expect(control?.valid).toBeTruthy();
+    });
+
+    it('should validate object key [2]', () => {
+      control?.setValue('my.great_photos-2014/jan/myvacation.jpg');
+      expect(control?.valid).toBeTruthy();
+    });
+
+    it('should validate object key [3]', () => {
+      control?.setValue('videos/2014/birthday/video1.wmv');
+      expect(control?.valid).toBeTruthy();
+    });
+
+    it('should not validate object key [1]', () => {
+      control?.setValue('a'.repeat(1025));
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toMatch(/^Maximum length is/);
+    });
+
+    it('should not validate object key [2]', () => {
+      control?.setValue('videos>/2014%/[birthday/video1#.wmv');
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors?.['custom']).toMatch(/^The value contains invalid characters./);
+    });
+  });
 });

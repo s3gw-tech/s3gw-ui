@@ -22,7 +22,10 @@ export enum Icon {
   apps = 'mdi mdi-apps',
   dotsVertical = 'mdi mdi-dots-vertical',
   show = 'mdi mdi-eye',
+  file = 'mdi mdi-file',
+  folder = 'mdi mdi-folder',
   folderOpen = 'mdi mdi-folder-open',
+  folderPlus = 'mdi mdi-folder-plus',
   download = 'mdi mdi-download',
   chevronUp = 'mdi mdi-chevron-up',
   chevronDown = 'mdi mdi-chevron-down',
@@ -35,5 +38,6 @@ export enum Icon {
   table = 'mdi mdi-table',
   tags = 'mdi mdi-tag-multiple',
   bell = 'mdi mdi-bell',
-  sum = 'mdi mdi-sigma'
+  sum = 'mdi mdi-sigma',
+  home = 'mdi mdi-home'
 }

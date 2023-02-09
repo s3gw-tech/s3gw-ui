@@ -1,17 +1,19 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import * as _ from 'lodash';
 import { EMPTY, Observable } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 
 type RgwServiceConfig = {
   url: string;
+  delimiter: string;
 };
 
 @Injectable({
   providedIn: 'root'
 })
 export class RgwServiceConfigService {
-  private _config: RgwServiceConfig = { url: '' };
+  private _config: RgwServiceConfig = { url: '', delimiter: '/' };
 
   constructor(private http: HttpClient) {}
 
@@ -27,7 +29,7 @@ export class RgwServiceConfigService {
     // Try to load the configuration file containing the information
     // to access the RGW.
     return this.http
-      .get<RgwServiceConfig>('assets/rgw_service.config.json', {
+      .get<Partial<RgwServiceConfig>>('assets/rgw_service.config.json', {
         headers: {
           /* eslint-disable @typescript-eslint/naming-convention */
           'Cache-Control': 'no-cache',
@@ -40,12 +42,13 @@ export class RgwServiceConfigService {
           err.preventDefault?.();
           return EMPTY;
         }),
-        tap((config: RgwServiceConfig) => {
+        map((config: Partial<RgwServiceConfig>) => {
           // Make sure the environment variable has been replaced by a real URL.
-          if (config.url !== '$RGW_SERVICE_URL') {
-            // eslint-disable-next-line no-underscore-dangle
-            this._config.url = config.url;
+          if (config.url === '$RGW_SERVICE_URL') {
+            config.url = ''; // Reset to default value.
           }
+          // eslint-disable-next-line no-underscore-dangle
+          return _.merge(this._config, config);
         })
       );
   }

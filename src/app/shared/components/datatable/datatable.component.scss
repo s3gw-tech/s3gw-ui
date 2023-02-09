@@ -15,6 +15,11 @@ td {
     &::after {
       display: none;
     }
+
+    &.btn:hover,
+    &.btn:focus {
+      background-color: rgba(dc.$s3gw-color-magical-merlin, 0.15);
+    }
   }
 }
 

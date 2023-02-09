@@ -106,6 +106,9 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   loadData = new EventEmitter();
 
   @Output()
+  rowSelection = new EventEmitter<[DatatableData, DatatableColumn]>();
+
+  @Output()
   selectionChange = new EventEmitter<DatatableData[]>();
 
   // Internal
@@ -324,7 +327,8 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     this.updateIsAllRowsSelected();
   }
 
-  onSelectRow(row: DatatableData): void {
+  onSelectRow(row: DatatableData, column: DatatableColumn): void {
+    this.rowSelection.emit([row, column]);
     const selectedIndex = _.findIndex(this.selected, [this.identifier, row[this.identifier]]);
     if (-1 === selectedIndex) {
       switch (this.selectionType) {
