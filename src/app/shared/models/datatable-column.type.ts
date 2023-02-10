@@ -52,7 +52,9 @@ export enum DatatableCellTemplateName {
   // }
   button = 'button',
   // Convert a number of bytes into the highest possible binary unit.
-  binaryUnit = 'binaryUnit'
+  binaryUnit = 'binaryUnit',
+  // Display an icon beside the text to copy it into the clipboard.
+  copyToClipboard = 'copyToClipboard'
 }
 
 export type DatatableColumn = {

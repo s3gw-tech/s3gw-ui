@@ -1,4 +1,5 @@
 /* eslint-disable no-underscore-dangle */
+import { Clipboard } from '@angular/cdk/clipboard';
 import {
   Component,
   EventEmitter,
@@ -54,6 +55,8 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   buttonTpl?: TemplateRef<any>;
   @ViewChild('binaryUnitTpl', { static: true })
   binaryUnitTpl?: TemplateRef<any>;
+  @ViewChild('copyToClipboardTpl', { static: true })
+  copyToClipboardTpl?: TemplateRef<any>;
 
   @Input()
   columns: DatatableColumn[] = [];
@@ -124,7 +127,11 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
 
   private sortableColumns: string[] = [];
 
-  constructor(private ngZone: NgZone, private userLocalStorageService: UserLocalStorageService) {}
+  constructor(
+    private clipboard: Clipboard,
+    private ngZone: NgZone,
+    private userLocalStorageService: UserLocalStorageService
+  ) {}
 
   @Input()
   get data(): DatatableData[] {
@@ -221,7 +228,8 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
       badge: this.badgeTpl!,
       localeDateTime: this.localeDateTimeTpl!,
       button: this.buttonTpl!,
-      binaryUnit: this.binaryUnitTpl!
+      binaryUnit: this.binaryUnitTpl!,
+      copyToClipboard: this.copyToClipboardTpl!
     };
   }
 
@@ -309,6 +317,11 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     this.saveState();
     this.applyFilters();
     this.updateSelection();
+  }
+
+  onCopyToClipboard(event: Event, value: any): void {
+    event.stopPropagation();
+    this.clipboard.copy(value);
   }
 
   clearSearchFilter(): void {

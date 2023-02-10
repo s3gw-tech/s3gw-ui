@@ -131,7 +131,8 @@ export class ObjectDatatablePageComponent implements OnInit {
         name: TEXT('Key'),
         prop: 'Key',
         css: 'text-break',
-        hidden: true
+        hidden: true,
+        cellTemplateName: DatatableCellTemplateName.copyToClipboard
       },
       {
         name: TEXT('Size'),
