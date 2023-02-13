@@ -39,5 +39,6 @@ export enum Icon {
   tags = 'mdi mdi-tag-multiple',
   bell = 'mdi mdi-bell',
   sum = 'mdi mdi-sigma',
-  home = 'mdi mdi-home'
+  home = 'mdi mdi-home',
+  copy = 'mdi mdi-content-copy'
 }
