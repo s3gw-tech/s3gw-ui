@@ -1,0 +1,22 @@
+.prefixes {
+  direction: rtl;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 0;
+}
+
+.prefix-part {
+  text-decoration: none;
+  cursor: default;
+
+  &:not(.last) {
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

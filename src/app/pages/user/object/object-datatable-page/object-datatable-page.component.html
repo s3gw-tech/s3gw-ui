@@ -13,22 +13,34 @@
                             [table]="table">
     </s3gw-datatable-actions>
     <s3gw-datatable-custom-top>
-      <div class="d-flex flex-row align-items-center justify-content-start">
+      <div class="border d-flex flex-row align-items-center">
         <button type="button"
-                class="btn btn-link text-decoration-none"
-                ngbTooltip="{{ 'Root' | transloco }}"
-                (click)="prefixParts.length && onPrefixSelect(0)">
-          <i [class]="icons.home"></i>
+                class="btn btn-light rounded-0"
+                (click)="prefixParts.length && onPrefixSelect(-1)">
+          <i [class]="icons.chevronLeft"></i>
         </button>
-        <span *ngIf="prefixParts.length">{{ delimiter }}</span>
-        <ng-container *ngFor="let prefixPart of prefixParts; let index = index; let last = last">
-          <button type="button"
-                  class="btn btn-link text-decoration-none"
-                  (click)="!last && onPrefixSelect(index + 1)">
-            <span>{{ prefixPart }}</span>
-          </button>
-          <span *ngIf="!last">{{ delimiter }}</span>
-        </ng-container>
+        <a class="prefix-part ms-2"
+           [ngbTooltip]="bid"
+           (click)="prefixParts.length && onPrefixSelect(0)">
+          <i [class]="icons.home"></i>
+        </a>
+        <span *ngIf="prefixParts.length > 0"
+              class="delimiter mx-1">
+          {{ delimiter }}
+        </span>
+        <div class="prefixes me-3">
+          <ng-container *ngFor="let prefixPart of prefixParts; let index = index; let last = last">
+            <a class="prefix-part"
+               [ngClass]="{'last': last}"
+               (click)="!last && onPrefixSelect(index + 1)">
+              <span>{{ prefixPart }}</span>
+            </a>
+            <span *ngIf="!last"
+                  class="delimiter mx-1">
+              {{ delimiter }}
+            </span>
+          </ng-container>
+        </div>
       </div>
     </s3gw-datatable-custom-top>
   </s3gw-datatable>
