@@ -23,7 +23,7 @@ export enum Icon {
   dotsVertical = 'mdi mdi-dots-vertical',
   show = 'mdi mdi-eye',
   file = 'mdi mdi-file',
-  folder = 'mdi mdi-folder',
+  folder = 'mdi mdi-folder-open',
   folderOpen = 'mdi mdi-folder-open',
   folderPlus = 'mdi mdi-folder-plus',
   download = 'mdi mdi-download',
