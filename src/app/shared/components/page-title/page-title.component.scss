@@ -3,10 +3,5 @@ h1 {
 
   a {
     color: var(--bs-primary);
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 }

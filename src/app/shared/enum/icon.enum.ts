@@ -27,6 +27,7 @@ export enum Icon {
   folderOpen = 'mdi mdi-folder-open',
   folderPlus = 'mdi mdi-folder-plus',
   download = 'mdi mdi-download',
+  chevronLeft = 'mdi mdi-chevron-left',
   chevronUp = 'mdi mdi-chevron-up',
   chevronDown = 'mdi mdi-chevron-down',
   cog = 'mdi mdi-cog',

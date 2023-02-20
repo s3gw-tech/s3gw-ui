@@ -49,6 +49,16 @@ $placeholder-opacity-max: 0.2;
 @import '~bootstrap/scss/bootstrap';
 
 //////////////////////////////////////////////////////////////////////////////
+// Text
+.text-decoration-hover-underline {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // Table
 .table-light {
   --bs-table-bg: #{$table-hover-bg};
