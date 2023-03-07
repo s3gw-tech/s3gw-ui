@@ -6,6 +6,7 @@ import * as _ from 'lodash';
 import { defer, forkJoin, from, merge, Observable, of, Subscriber, throwError } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 
+import { isEqualOrUndefined } from '~/app/functions.helper';
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { S3ClientService } from '~/app/shared/services/api/s3-client.service';
@@ -38,12 +39,23 @@ function CatchAuthErrors() {
 
 export type S3Bucket = AWS.S3.Types.Bucket;
 
-export type S3BucketAttributes = S3Bucket & {
+export type S3BucketObjectLockConfiguration = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  TagSet?: AWS.S3.Types.TagSet;
-  Versioning?: boolean;
+  ObjectLockEnabled?: boolean;
+  RetentionEnabled?: boolean;
+  RetentionMode?: AWS.S3.Types.ObjectLockRetentionMode;
+  RetentionValidity?: number;
+  RetentionUnit?: 'Days' | 'Years';
   /* eslint-enable @typescript-eslint/naming-convention */
 };
+
+export type S3BucketAttributes = S3Bucket &
+  S3BucketObjectLockConfiguration & {
+    /* eslint-disable @typescript-eslint/naming-convention */
+    TagSet?: AWS.S3.Types.TagSet;
+    VersioningEnabled?: boolean;
+    /* eslint-enable @typescript-eslint/naming-convention */
+  };
 
 export type S3Object = AWS.S3.Types.Object & {
   /* eslint-disable @typescript-eslint/naming-convention */
@@ -56,6 +68,18 @@ export type S3Objects = S3Object[];
 
 export type S3UploadProgress = AWS.S3.Types.ManagedUpload.Progress & {
   sendData: AWS.S3.Types.ManagedUpload.SendData;
+};
+
+export type S3GetObjectLockConfigurationOutput = S3BucketObjectLockConfiguration & {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Bucket: AWS.S3.Types.BucketName;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+export type S3PutObjectLockConfigurationOutput = AWS.S3.Types.PutObjectLockConfigurationOutput & {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Bucket: AWS.S3.Types.BucketName;
+  /* eslint-enable @typescript-eslint/naming-convention */
 };
 
 export type S3GetBucketTaggingOutput = AWS.S3.Types.GetBucketTaggingOutput & {
@@ -108,6 +132,13 @@ export type S3GetObjectAttributesOutput = S3HeadObjectOutput &
   };
 
 export type S3PutObjectOutput = AWS.S3.Types.PutObjectOutput & {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Bucket: AWS.S3.Types.BucketName;
+  Key: AWS.S3.Types.ObjectKey;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+export type S3GetObjectRetentionOutput = AWS.S3.Types.GetObjectRetentionOutput & {
   /* eslint-disable @typescript-eslint/naming-convention */
   Bucket: AWS.S3.Types.BucketName;
   Key: AWS.S3.Types.ObjectKey;
@@ -242,14 +273,16 @@ export class S3BucketService {
     return forkJoin({
       bucket: this.get(bucket, credentials),
       versioning: this.getVersioning(bucket, credentials),
-      tagging: this.getTagging(bucket, credentials)
+      tagging: this.getTagging(bucket, credentials),
+      locking: this.getObjectLocking(bucket, credentials)
     }).pipe(
       map((resp) => {
         return {
           /* eslint-disable @typescript-eslint/naming-convention */
           ...resp.bucket,
           ...resp.tagging,
-          Versioning: resp.versioning
+          VersioningEnabled: resp.versioning,
+          ...resp.locking
           /* eslint-enable @typescript-eslint/naming-convention */
         };
       })
@@ -273,9 +306,9 @@ export class S3BucketService {
       this.s3ClientService.get(credentials).headBucket(params).promise()
     ).pipe(
       map(() => true),
-      catchError((error) => {
-        if (_.isFunction(error.preventDefault)) {
-          error.preventDefault();
+      catchError((err) => {
+        if (_.isFunction(err.preventDefault)) {
+          err.preventDefault();
         }
         return of(false);
       })
@@ -294,8 +327,13 @@ export class S3BucketService {
   @CatchAuthErrors()
   public create(bucket: S3BucketAttributes, credentials?: Credentials): Observable<S3Bucket> {
     credentials = credentials ?? this.authSessionService.getCredentials();
+    let headers: Record<string, any> | undefined;
+    if (bucket.ObjectLockEnabled) {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      headers = { 'x-amz-bucket-object-lock-enabled': 'true' };
+    }
     return this.rgwService
-      .put<AWS.S3.Types.CreateBucketOutput>(bucket.Name!, { credentials })
+      .put<AWS.S3.Types.CreateBucketOutput>(bucket.Name!, { credentials, headers })
       .pipe(switchMap(() => this.update(bucket, credentials)));
   }
 
@@ -312,22 +350,41 @@ export class S3BucketService {
   ): Observable<S3Bucket> {
     // First get the original bucket data to find out what needs to be
     // updated.
-    return this.get(bucket.Name!, credentials).pipe(
+    return this.getAttributes(bucket.Name!, credentials).pipe(
       switchMap((currentBucket: S3BucketAttributes) => {
         const sources = [];
-        // Update the `versioning` flag?
-        if (_.isBoolean(bucket.Versioning) && bucket.Versioning !== currentBucket.Versioning) {
-          currentBucket.Versioning = bucket.Versioning;
-          sources.push(this.setVersioning(bucket.Name!, bucket.Versioning, credentials));
+        // Update versioning?
+        if (!isEqualOrUndefined(bucket.VersioningEnabled, currentBucket.VersioningEnabled)) {
+          currentBucket.VersioningEnabled = bucket.VersioningEnabled;
+          sources.push(this.setVersioning(bucket.Name!, bucket.VersioningEnabled, credentials));
         }
         // Update the tags?
-        if (
-          _.isArray(bucket.TagSet) &&
-          !(_.isUndefined(currentBucket.TagSet) && !bucket.TagSet.length) &&
-          !_.isEqual(bucket.TagSet, currentBucket.TagSet)
-        ) {
+        if (_.isArray(bucket.TagSet) && !isEqualOrUndefined(bucket.TagSet, currentBucket.TagSet)) {
           currentBucket.TagSet = bucket.TagSet;
           sources.push(this.setTagging(bucket.Name!, bucket.TagSet, credentials));
+        }
+        // Update object locking?
+        if (
+          currentBucket.ObjectLockEnabled === true &&
+          (!isEqualOrUndefined(bucket.RetentionEnabled, currentBucket.RetentionEnabled) ||
+            !isEqualOrUndefined(bucket.RetentionMode, currentBucket.RetentionMode) ||
+            !isEqualOrUndefined(bucket.RetentionValidity, currentBucket.RetentionValidity) ||
+            !isEqualOrUndefined(bucket.RetentionUnit, currentBucket.RetentionUnit))
+        ) {
+          const objectLockConfiguration: S3BucketObjectLockConfiguration = {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            ObjectLockEnabled: true,
+            RetentionEnabled: true,
+            RetentionMode: bucket.RetentionMode,
+            RetentionValidity: bucket.RetentionValidity,
+            RetentionUnit: bucket.RetentionUnit
+            /* eslint-enable @typescript-eslint/naming-convention */
+          };
+          currentBucket.RetentionEnabled = bucket.RetentionEnabled;
+          currentBucket.RetentionMode = bucket.RetentionMode;
+          currentBucket.RetentionValidity = bucket.RetentionValidity;
+          currentBucket.RetentionUnit = bucket.RetentionUnit;
+          sources.push(this.setObjectLocking(bucket.Name!, objectLockConfiguration, credentials));
         }
         if (sources.length) {
           return forkJoin(sources).pipe(map(() => currentBucket));
@@ -357,6 +414,98 @@ export class S3BucketService {
       // Note, we need to convert the hot promise to a cold observable.
       this.s3ClientService.get(credentials).deleteBucket(params).promise()
     ).pipe(map(() => bucket));
+  }
+
+  /**
+   * Get the Object Lock configuration for the specified bucket.
+   *
+   * @param bucket The name of the bucket.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   */
+  public getObjectLocking(
+    bucket: AWS.S3.Types.BucketName,
+    credentials?: Credentials
+  ): Observable<S3GetObjectLockConfigurationOutput> {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const params: AWS.S3.Types.GetBucketVersioningRequest = { Bucket: bucket };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).getObjectLockConfiguration(params).promise()
+    ).pipe(
+      catchError((err) => {
+        if (err.code === 'ObjectLockConfigurationNotFoundError') {
+          return of({
+            /* eslint-disable @typescript-eslint/naming-convention */
+            ObjectLockConfiguration: { ObjectLockEnabled: 'Disabled' }
+            /* eslint-enable @typescript-eslint/naming-convention */
+          });
+        }
+        return throwError(err);
+      }),
+      map((resp: AWS.S3.Types.GetObjectLockConfigurationOutput) => {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        return {
+          Bucket: bucket,
+          ObjectLockEnabled: resp.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled',
+          RetentionEnabled: _.isString(resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Mode),
+          RetentionMode: resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Mode,
+          RetentionValidity:
+            resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Days ||
+            resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Years,
+          RetentionUnit: _.isNumber(resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Years)
+            ? 'Years'
+            : 'Days'
+          /* eslint-enable @typescript-eslint/naming-convention */
+        };
+      })
+    );
+  }
+
+  /**
+   * Places an Object Lock configuration on the specified bucket.
+   *
+   * @param bucket The name of the bucket.
+   * @param objectLockConfiguration The Object Lock configuration.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObjectLockConfiguration-property
+   */
+  public setObjectLocking(
+    bucket: AWS.S3.Types.BucketName,
+    objectLockConfiguration: S3BucketObjectLockConfiguration,
+    credentials?: Credentials
+  ): Observable<S3PutObjectLockConfigurationOutput> {
+    const params: AWS.S3.Types.PutObjectLockConfigurationRequest = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: bucket,
+      ObjectLockConfiguration: {
+        ObjectLockEnabled: 'Enabled',
+        Rule: {
+          DefaultRetention: {
+            Mode: objectLockConfiguration.RetentionMode,
+            Days:
+              'Days' === objectLockConfiguration.RetentionUnit
+                ? objectLockConfiguration.RetentionValidity
+                : undefined,
+            Years:
+              'Years' === objectLockConfiguration.RetentionUnit
+                ? objectLockConfiguration.RetentionValidity
+                : undefined
+          }
+        }
+      }
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).putObjectLockConfiguration(params).promise()
+    ).pipe(
+      map((resp: AWS.S3.Types.PutObjectLockConfigurationOutput) =>
+        _.merge(resp, _.pick(params, ['Bucket']))
+      )
+    );
   }
 
   /**
@@ -425,11 +574,8 @@ export class S3BucketService {
     bucket: AWS.S3.Types.BucketName,
     credentials?: Credentials
   ): Observable<S3GetBucketTaggingOutput> {
-    const params: AWS.S3.Types.GetBucketTaggingRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket
-      /* eslint-enable @typescript-eslint/naming-convention */
-    };
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const params: AWS.S3.Types.GetBucketTaggingRequest = { Bucket: bucket };
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
       this.s3ClientService.get(credentials).getBucketTagging(params).promise()
@@ -795,10 +941,22 @@ export class S3BucketService {
   ): Observable<S3GetObjectAttributesOutput> {
     return forkJoin({
       object: this.headObject(bucket, key, undefined, credentials),
-      tagging: this.getObjectTagging(bucket, key, credentials)
+      tagging: this.getObjectTagging(bucket, key, credentials),
+      // Get the object's retention settings in a separate request
+      // because there seem to be a bug in the headObject function,
+      // check https://github.com/aws/aws-sdk-js/issues/4362 for
+      // more details.
+      retention: this.getObjectRetention(bucket, key, credentials)
     }).pipe(
       map((resp) => {
-        return { ...resp.object, ...resp.tagging };
+        return {
+          ...resp.object,
+          ...resp.tagging,
+          /* eslint-disable @typescript-eslint/naming-convention */
+          ObjectLockMode: resp.retention.Retention?.Mode,
+          ObjectLockRetainUntilDate: resp.retention.Retention?.RetainUntilDate
+          /* eslint-enable @typescript-eslint/naming-convention */
+        };
       })
     );
   }
@@ -864,6 +1022,45 @@ export class S3BucketService {
         return throwError(err);
       }),
       map((resp: AWS.S3.Types.GetObjectTaggingOutput) => _.merge(resp, params))
+    );
+  }
+
+  /**
+   * Retrieves an object's retention settings.
+   * Note, a `ObjectLockConfigurationNotFoundError` is caught and handled properly.
+   *
+   * @param bucket The name of the bucket.
+   * @param key The object key.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObjectRetention-property
+   */
+  @CatchAuthErrors()
+  public getObjectRetention(
+    bucket: AWS.S3.Types.BucketName,
+    key: AWS.S3.ObjectKey,
+    credentials?: Credentials
+  ): Observable<S3GetObjectRetentionOutput> {
+    const params: AWS.S3.Types.GetObjectRetentionRequest = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: bucket,
+      Key: key
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).getObjectRetention(params).promise()
+    ).pipe(
+      catchError((err) => {
+        if (['ObjectLockConfigurationNotFoundError'].includes(err.code)) {
+          return of({});
+        }
+        return throwError(err);
+      }),
+      map((resp: AWS.S3.Types.GetObjectRetentionOutput) => {
+        return _.merge(resp, params);
+      })
     );
   }
 

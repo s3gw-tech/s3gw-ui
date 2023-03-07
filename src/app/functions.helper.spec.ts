@@ -1,4 +1,4 @@
-import { bytesToSize, format, toBytes } from '~/app/functions.helper';
+import { bytesToSize, format, isEqualOrUndefined, toBytes } from '~/app/functions.helper';
 
 describe('functions.helper', () => {
   it('should convert value to bytes [1]', () => {
@@ -53,5 +53,21 @@ describe('functions.helper', () => {
     expect(format('foo {{ x.y.z }} {{ a }}', { a: 'baz', x: { y: { z: 'bar' } } })).toBe(
       'foo bar baz'
     );
+  });
+
+  it('should isEqualOrUndefined [1]', () => {
+    expect(isEqualOrUndefined('foo', undefined)).toBeTruthy();
+  });
+
+  it('should isEqualOrUndefined [2]', () => {
+    expect(isEqualOrUndefined(undefined, 'bar')).toBeTruthy();
+  });
+
+  it('should isEqualOrUndefined [3]', () => {
+    expect(isEqualOrUndefined('bar', 'bar')).toBeTruthy();
+  });
+
+  it('should isEqualOrUndefined [4]', () => {
+    expect(isEqualOrUndefined('foo', 'bar')).toBeFalsy();
   });
 });

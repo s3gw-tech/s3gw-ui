@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import { concat, Observable, of, toArray } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 
+import { isEqualOrUndefined } from '~/app/functions.helper';
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { AdminOpsUserService, Key } from '~/app/shared/services/api/admin-ops-user.service';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
@@ -47,8 +48,15 @@ export type Bucket = BucketExtraAttributes & {
 };
 
 type BucketExtraAttributes = {
+  /* eslint-disable @typescript-eslint/naming-convention */
   tags?: AWS.S3.Types.TagSet;
-  versioning?: boolean;
+  versioning_enabled?: boolean;
+  object_lock_enabled?: boolean;
+  retention_enabled?: boolean;
+  retention_mode?: AWS.S3.Types.ObjectLockRetentionMode;
+  retention_validity?: number;
+  retention_unit?: 'Days' | 'Years';
+  /* eslint-enable @typescript-eslint/naming-convention */
 };
 
 /**
@@ -94,7 +102,8 @@ export class AdminOpsBucketService {
           {
             /* eslint-disable @typescript-eslint/naming-convention */
             Name: bucket.bucket,
-            Versioning: bucket.versioning,
+            VersioningEnabled: bucket.versioning_enabled,
+            ObjectLockEnabled: bucket.object_lock_enabled,
             TagSet: bucket.tags
             /* eslint-enable @typescript-eslint/naming-convention */
           },
@@ -132,14 +141,33 @@ export class AdminOpsBucketService {
         // Update various bucket information that are not available via the
         // Admin Ops API.
         if (
-          !_.isEqual(bucket.tags, currentBucket.tags) ||
-          !_.isEqual(bucket.versioning, currentBucket.versioning)
+          !isEqualOrUndefined(bucket.tags, currentBucket.tags) ||
+          !isEqualOrUndefined(bucket.versioning_enabled, currentBucket.versioning_enabled) ||
+          !isEqualOrUndefined(bucket.retention_enabled, currentBucket.retention_enabled) ||
+          !isEqualOrUndefined(bucket.retention_mode, currentBucket.retention_mode) ||
+          !isEqualOrUndefined(bucket.retention_validity, currentBucket.retention_validity) ||
+          !isEqualOrUndefined(bucket.retention_unit, currentBucket.retention_unit)
         ) {
-          if (!_.isEqual(bucket.tags, currentBucket.tags)) {
+          // Update the tags?
+          if (!isEqualOrUndefined(bucket.tags, currentBucket.tags)) {
             currentBucket.tags = bucket.tags;
           }
-          if (!_.isEqual(bucket.versioning, currentBucket.versioning)) {
-            currentBucket.versioning = bucket.versioning;
+          // Update versioning?
+          if (!isEqualOrUndefined(bucket.versioning_enabled, currentBucket.versioning_enabled)) {
+            currentBucket.versioning_enabled = bucket.versioning_enabled;
+          }
+          // Update object locking?
+          if (
+            currentBucket.object_lock_enabled === true &&
+            (!_.isEqual(bucket.retention_enabled, currentBucket.retention_enabled) ||
+              !_.isEqual(bucket.retention_mode, currentBucket.retention_mode) ||
+              !_.isEqual(bucket.retention_validity, currentBucket.retention_validity) ||
+              !_.isEqual(bucket.retention_unit, currentBucket.retention_unit))
+          ) {
+            currentBucket.retention_enabled = bucket.retention_enabled;
+            currentBucket.retention_mode = bucket.retention_mode;
+            currentBucket.retention_validity = bucket.retention_validity;
+            currentBucket.retention_unit = bucket.retention_unit;
           }
           sources.push(this.setAttributes(bucket, bucket.owner!));
         }
@@ -218,8 +246,15 @@ export class AdminOpsBucketService {
         return this.s3BucketService.getAttributes(bucket, credentials).pipe(
           map((resp: S3BucketAttributes) => {
             return {
+              /* eslint-disable @typescript-eslint/naming-convention */
               tags: resp.TagSet,
-              versioning: resp.Versioning
+              versioning_enabled: resp.VersioningEnabled,
+              object_lock_enabled: resp.ObjectLockEnabled,
+              retention_enabled: resp.RetentionEnabled,
+              retention_mode: resp.RetentionMode,
+              retention_validity: resp.RetentionValidity,
+              retention_unit: resp.RetentionUnit
+              /* eslint-enable @typescript-eslint/naming-convention */
             };
           })
         );
@@ -245,7 +280,12 @@ export class AdminOpsBucketService {
             /* eslint-disable @typescript-eslint/naming-convention */
             Name: bucket.bucket!,
             TagSet: bucket.tags,
-            Versioning: bucket.versioning
+            VersioningEnabled: bucket.versioning_enabled,
+            ObjectLockEnabled: bucket.object_lock_enabled,
+            RetentionEnabled: bucket.retention_enabled,
+            RetentionMode: bucket.retention_mode,
+            RetentionValidity: bucket.retention_validity,
+            RetentionUnit: bucket.retention_unit
             /* eslint-enable @typescript-eslint/naming-convention */
           },
           credentials

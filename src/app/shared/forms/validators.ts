@@ -18,7 +18,8 @@ import { Constraint } from '~/app/shared/models/constraint.type';
 import { ConstraintService } from '~/app/shared/services/constraint.service';
 import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
 
-const isEmptyInputValue = (value: any): boolean => _.isNull(value) || value.length === 0;
+const isEmptyInputValue = (value: any): boolean =>
+  value == null || ((typeof value === 'string' || Array.isArray(value)) && value.length === 0);
 
 const getControlName = (control: AbstractControl): string | undefined => {
   if (!control || !control.parent) {

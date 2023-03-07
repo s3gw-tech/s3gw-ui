@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.13.0]
 
+### Added
+
+- Add support for bucket object locking (gh#aquarist-labs/s3gw#313).
+
 ### Changed
 
 - Improve the object browser navigation bar.

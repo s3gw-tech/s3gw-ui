@@ -26,7 +26,6 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
   @ViewChild(DeclarativeFormComponent, { static: false })
   form!: DeclarativeFormComponent;
 
-  public bid: AWS.S3.Types.BucketName = '';
   public pageActions: PageAction[] = [];
   public pageStatus: PageStatus = PageStatus.none;
   public loadingErrorText: string = TEXT('Failed to load bucket.');
@@ -49,20 +48,30 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
         this.pageStatus = PageStatus.ready;
         return;
       }
-      this.bid = decodeURIComponent(value['bid']);
+      const bid: AWS.S3.Types.BucketName = decodeURIComponent(value['bid']);
       this.pageActions = [
         {
           type: 'button',
           text: TEXT('Explore'),
           icon: Icon.folderOpen,
-          callback: () => this.router.navigate([`/objects/${this.bid}`])
+          callback: () => this.router.navigate([`/objects/${bid}`])
         }
       ];
       this.pageStatus = PageStatus.loading;
-      this.s3BucketService.getAttributes(this.bid).subscribe({
+      this.s3BucketService.getAttributes(bid).subscribe({
         next: (bucket: S3BucketAttributes) => {
           this.pageStatus = PageStatus.ready;
           this.form.patchValues(bucket, false);
+          // Disable various controls.
+          if (bucket.ObjectLockEnabled) {
+            this.form.getControl('VersioningEnabled')?.disable();
+            this.form.getControl('ObjectLockEnabled')?.disable();
+          } else {
+            this.form.getControl('RetentionEnabled')?.disable();
+          }
+          if (bucket.RetentionEnabled) {
+            this.form.getControl('RetentionEnabled')?.disable();
+          }
         },
         error: (err) => {
           this.pageStatus = PageStatus.loadingError;
@@ -120,13 +129,6 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           }
         },
         {
-          type: 'checkbox',
-          name: 'Versioning',
-          label: TEXT('Versioning'),
-          hint: TEXT('Enable versioning for the objects in this bucket.'),
-          value: false
-        },
-        {
           type: 'tags',
           name: 'TagSet',
           label: TEXT('Tags'),
@@ -144,6 +146,170 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
               errorMessage: TEXT('Only up to 10 tags are allowed.')
             }
           }
+        },
+        // -------------- Versioning --------------
+        {
+          type: 'divider',
+          title: TEXT('Versioning')
+        },
+        {
+          type: 'checkbox',
+          name: 'VersioningEnabled',
+          label: TEXT('Enabled'),
+          hint: TEXT('Enable versioning for the objects in this bucket.'),
+          value: false,
+          modifiers: [
+            {
+              type: 'value',
+              constraint: {
+                operator: 'truthy',
+                arg0: { prop: 'ObjectLockEnabled' }
+              },
+              data: true
+            },
+            {
+              type: 'value',
+              constraint: {
+                operator: 'truthy',
+                arg0: { prop: 'RetentionEnabled' }
+              },
+              data: true
+            }
+          ]
+        },
+        // -------------- Object Locking --------------
+        {
+          type: 'divider',
+          title: TEXT('Object Locking')
+        },
+        {
+          type: 'checkbox',
+          name: 'ObjectLockEnabled',
+          label: TEXT('Enabled'),
+          hint: TEXT(
+            'Enable object locking only if you need to prevent objects from being deleted. Can only be enabled while bucket creation.'
+          ),
+          value: false,
+          readonly: editing,
+          modifiers: [
+            {
+              type: 'value',
+              constraint: {
+                operator: 'falsy',
+                arg0: { prop: 'VersioningEnabled' }
+              },
+              data: false
+            },
+            {
+              type: 'value',
+              constraint: {
+                operator: 'truthy',
+                arg0: { prop: 'RetentionEnabled' }
+              },
+              data: true
+            }
+          ]
+        },
+        {
+          type: 'checkbox',
+          name: 'RetentionEnabled',
+          label: TEXT('Retention'),
+          hint: TEXT('Prevent object deletion for a period of time.'),
+          value: false,
+          modifiers: [
+            {
+              type: 'value',
+              constraint: {
+                operator: 'falsy',
+                arg0: { prop: 'VersioningEnabled' }
+              },
+              data: false
+            },
+            {
+              type: 'value',
+              constraint: {
+                operator: 'falsy',
+                arg0: { prop: 'ObjectLockEnabled' }
+              },
+              data: false
+            }
+          ]
+        },
+        {
+          type: 'select',
+          name: 'RetentionMode',
+          label: TEXT('Mode'),
+          value: 'COMPLIANCE',
+          options: {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            COMPLIANCE: TEXT('Compliance'),
+            GOVERNANCE: TEXT('Governance')
+            /* eslint-enable @typescript-eslint/naming-convention */
+          },
+          validators: {
+            requiredIf: {
+              operator: 'truthy',
+              arg0: { prop: 'RetentionEnabled' }
+            }
+          },
+          modifiers: [
+            {
+              type: 'visible',
+              constraint: {
+                operator: 'truthy',
+                arg0: { prop: 'RetentionEnabled' }
+              }
+            }
+          ]
+        },
+        {
+          type: 'container',
+          fields: [
+            {
+              type: 'number',
+              name: 'RetentionValidity',
+              label: TEXT('Validity'),
+              value: 180,
+              modifiers: [
+                {
+                  type: 'visible',
+                  constraint: {
+                    operator: 'truthy',
+                    arg0: { prop: 'RetentionEnabled' }
+                  }
+                }
+              ],
+              validators: {
+                min: 1,
+                max: 65535,
+                requiredIf: {
+                  operator: 'truthy',
+                  arg0: { prop: 'RetentionEnabled' }
+                }
+              }
+            },
+            {
+              type: 'select',
+              name: 'RetentionUnit',
+              label: TEXT('Unit'),
+              value: 'Days',
+              options: {
+                /* eslint-disable @typescript-eslint/naming-convention */
+                Days: TEXT('Days'),
+                Years: TEXT('Years')
+                /* eslint-enable @typescript-eslint/naming-convention */
+              },
+              modifiers: [
+                {
+                  type: 'visible',
+                  constraint: {
+                    operator: 'truthy',
+                    arg0: { prop: 'RetentionEnabled' }
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     };

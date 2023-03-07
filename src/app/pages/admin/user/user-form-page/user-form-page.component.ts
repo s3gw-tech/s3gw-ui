@@ -175,7 +175,7 @@ export class UserFormPageComponent implements OnInit, IsDirty {
           type: 'paragraph',
           icon: 'mdi mdi-alert',
           iconClass: 's3gw-color-background-pair-warning',
-          text: TEXT('This feature is non-functional right now.')
+          text: TEXT('This feature is non-functional in s3gw right now.')
         },
         {
           type: 'checkbox',
@@ -291,7 +291,7 @@ export class UserFormPageComponent implements OnInit, IsDirty {
           type: 'paragraph',
           icon: 'mdi mdi-alert',
           iconClass: 's3gw-color-background-pair-warning',
-          text: TEXT('This feature is non-functional right now.')
+          text: TEXT('This feature is non-functional in s3gw right now.')
         },
         {
           type: 'checkbox',
