@@ -4,6 +4,7 @@ export enum DatatableCellTemplateName {
   icon = 'icon',
   checkIcon = 'checkIcon',
   yesNoIcon = 'yesNoIcon',
+  rowExpandable = 'rowExpandable',
   rowSelect = 'rowSelect',
   // Display a drop-down menu.
   // {

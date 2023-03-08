@@ -1,4 +1,8 @@
 .s3gw-declarative-form {
+  .form-field {
+    break-inside: avoid;
+  }
+
   .form-label {
     // Always position label in upper left corner.
     opacity: 0.65;

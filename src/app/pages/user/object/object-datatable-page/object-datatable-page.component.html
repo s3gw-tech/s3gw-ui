@@ -7,6 +7,9 @@
                   [data]="objects"
                   [columns]="datatableColumns"
                   [autoReload]="false"
+                  [hasExpandableRows]="true"
+                  [isExpandableRow]="isExpandableRow()"
+                  (expandedRowsChange)="onExpandedRowsChange($event)"
                   (rowSelection)="onRowSelection($event)"
                   (loadData)="loadData()">
     <s3gw-datatable-actions [actions]="datatableActions"
@@ -43,6 +46,22 @@
         </div>
       </div>
     </s3gw-datatable-custom-top>
+    <ng-template s3gw-datatable-expanded-row-template
+                 let-row="row">
+      <div class="expanded-row m-3">
+        <div class="title h3">{{ 'Details' | transloco }}</div>
+        <div *ngIf="loadingObjectAttrsKeys.includes(row.Key)"
+             class="placeholder-wrapper placeholder-glow">
+          <div *ngForTimes="expandedRowFormConfig.fields.length"
+               class="placeholder rounded w-100 mb-2">
+          </div>
+        </div>
+        <s3gw-declarative-form *ngIf="!loadingObjectAttrsKeys.includes(row.Key)"
+                               [config]="expandedRowFormConfig"
+                               [initValues]="objectAttrsCache[row.Key]">
+        </s3gw-declarative-form>
+      </div>
+    </ng-template>
   </s3gw-datatable>
 </s3gw-wrapper-status>
 
