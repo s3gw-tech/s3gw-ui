@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ToastrModule } from 'ngx-toastr';
 import { of } from 'rxjs';
 
 import { DashboardModule } from '~/app/dashboard/dashboard.module';
@@ -12,7 +13,7 @@ describe('BucketsWidgetComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [BucketsWidgetComponent],
-      imports: [DashboardModule, TestingModule]
+      imports: [DashboardModule, TestingModule, ToastrModule.forRoot()]
     }).compileComponents();
   });
 

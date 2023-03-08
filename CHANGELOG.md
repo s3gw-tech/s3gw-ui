@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add button to copy the current path of the object browser to the clipboard.
+- Support legal holds on objects (gh#aquarist-labs/s3gw#365).
 
 ### Changed
 

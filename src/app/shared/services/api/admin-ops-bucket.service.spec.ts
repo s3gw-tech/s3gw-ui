@@ -1,5 +1,6 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { ToastrModule } from 'ngx-toastr';
 import { of, throwError } from 'rxjs';
 
 import { AdminOpsBucketService, Bucket } from '~/app/shared/services/api/admin-ops-bucket.service';
@@ -14,7 +15,7 @@ describe('AdminOpsBucketService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [AuthSessionService],
-      imports: [TestingModule]
+      imports: [TestingModule, ToastrModule.forRoot()]
     });
     service = TestBed.inject(AdminOpsBucketService);
     httpTesting = TestBed.inject(HttpTestingController);
