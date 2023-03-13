@@ -986,7 +986,7 @@ export class S3BucketService {
 
   /**
    * Returns the tag-set of an object.
-   * Note, a `NoSuchTagSet` is caught and handled properly.
+   * Note, a `NoSuchTagSetError` or `NoSuchTagSet` is caught and handled properly.
    *
    * @param bucket The name of the bucket.
    * @param key The object key.
@@ -1027,7 +1027,8 @@ export class S3BucketService {
 
   /**
    * Retrieves an object's retention settings.
-   * Note, a `ObjectLockConfigurationNotFoundError` is caught and handled properly.
+   * Note, a `InvalidRequest` or `ObjectLockConfigurationNotFoundError` is
+   * caught and handled properly.
    *
    * @param bucket The name of the bucket.
    * @param key The object key.
@@ -1053,7 +1054,7 @@ export class S3BucketService {
       this.s3ClientService.get(credentials).getObjectRetention(params).promise()
     ).pipe(
       catchError((err) => {
-        if (['ObjectLockConfigurationNotFoundError'].includes(err.code)) {
+        if (['InvalidRequest', 'ObjectLockConfigurationNotFoundError'].includes(err.code)) {
           return of({});
         }
         return throwError(err);
