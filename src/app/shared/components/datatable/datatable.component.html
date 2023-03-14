@@ -297,13 +297,14 @@
 </ng-template>
 
 <ng-template #copyToClipboardTpl
+             let-column="column"
              let-value="value">
   <ng-container *ngIf="value">
     <span [title]="value">{{ value }}</span>
     <i class="mdi-18px s3gw-cursor-pointer ms-1"
        [class]="icons.copy"
        title="{{ 'Copy to clipboard' | transloco }}"
-       (click)="onCopyToClipboard($event, value)">
+       (click)="onCopyToClipboard($event, value, column)">
     </i>
   </ng-container>
 </ng-template>

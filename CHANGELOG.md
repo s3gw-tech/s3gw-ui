@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.14.0]
 
+### Added
+
+- Add button to copy the current path of the object browser to the clipboard.
+
 ### Changed
 
 - Display object data more intuitively (gh#aquarist-labs/s3gw#350).

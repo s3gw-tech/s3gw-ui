@@ -13,10 +13,13 @@ import {
   TemplateRef,
   ViewChild
 } from '@angular/core';
+import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
 import { Throttle } from '~/app/functions.helper';
+import { format } from '~/app/functions.helper';
+import { translate } from '~/app/i18n.helper';
 import { DatatableExpandedRowTemplateDirective } from '~/app/shared/directives/datatable-expanded-row-template.directive';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { Datatable } from '~/app/shared/models/datatable.interface';
@@ -25,6 +28,7 @@ import {
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
+import { NotificationService } from '~/app/shared/services/notification.service';
 import { UserLocalStorageService } from '~/app/shared/services/user-local-storage.service';
 
 export enum SortDirection {
@@ -167,6 +171,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   constructor(
     private clipboard: Clipboard,
     private ngZone: NgZone,
+    private notificationService: NotificationService,
     private userLocalStorageService: UserLocalStorageService
   ) {}
 
@@ -379,9 +384,22 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     this.updateSelection();
   }
 
-  onCopyToClipboard(event: Event, value: any): void {
+  onCopyToClipboard(event: Event, value: any, column: DatatableColumn): void {
     event.stopPropagation();
-    this.clipboard.copy(value);
+    const success = this.clipboard.copy(value);
+    if (success) {
+      this.notificationService.showSuccess(
+        format(TEXT('Successfully copied "{{ text }}" to the clipboard.'), {
+          text: translate(column.name)
+        })
+      );
+    } else {
+      this.notificationService.showError(
+        format(TEXT('Failed to copy "{{ text }}" to the clipboard.'), {
+          text: translate(column.name)
+        })
+      );
+    }
   }
 
   clearSearchFilter(): void {

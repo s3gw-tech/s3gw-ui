@@ -31,7 +31,7 @@
               class="delimiter mx-1">
           {{ delimiter }}
         </span>
-        <div class="prefixes me-3">
+        <div class="prefixes me-2">
           <ng-container *ngFor="let prefixPart of prefixParts; let index = index; let last = last">
             <a class="prefix-part"
                [ngClass]="{'last': last}"
@@ -44,6 +44,12 @@
             </span>
           </ng-container>
         </div>
+        <button type="button"
+                class="btn btn-light rounded-0"
+                title="{{ 'Copy to clipboard' | transloco }}"
+                (click)="onCopyPrefixToClipboard()">
+          <i [class]="icons.copy"></i>
+        </button>
       </div>
     </s3gw-datatable-custom-top>
     <ng-template s3gw-datatable-expanded-row-template
