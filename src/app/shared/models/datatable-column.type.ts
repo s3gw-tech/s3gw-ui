@@ -55,7 +55,10 @@ export enum DatatableCellTemplateName {
   // Convert a number of bytes into the highest possible binary unit.
   binaryUnit = 'binaryUnit',
   // Display an icon beside the text to copy it into the clipboard.
-  copyToClipboard = 'copyToClipboard'
+  copyToClipboard = 'copyToClipboard',
+  // Display the value masked. The original value can be copied to the
+  // clipboard.
+  masked = 'masked'
 }
 
 export type DatatableColumn = {

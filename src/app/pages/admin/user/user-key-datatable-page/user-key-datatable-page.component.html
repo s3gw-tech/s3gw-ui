@@ -1,9 +1,15 @@
 <s3gw-wrapper-status [actions]="pageActions"
                      [pageStatus]="pageStatus">
-  <s3gw-datatable stateId="admin_user_keys"
+  <s3gw-datatable #table
+                  selectionType="multi"
+                  stateId="admin_user_keys"
+                  identifier="access_key"
                   [data]="keys"
                   [columns]="datatableColumns"
                   [autoReload]="false"
                   (loadData)="loadData()">
+    <s3gw-datatable-actions [actions]="datatableActions"
+                            [table]="table">
+    </s3gw-datatable-actions>
   </s3gw-datatable>
 </s3gw-wrapper-status>
