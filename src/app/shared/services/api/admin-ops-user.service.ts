@@ -1,7 +1,7 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
-import { forkJoin, iif, Observable, of } from 'rxjs';
+import { forkJoin, iif, Observable, of, switchMap } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
@@ -174,13 +174,22 @@ export class AdminOpsUserService {
   /**
    * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-key
    */
-  public deleteKey(uid: string, accessKey: string): Observable<void> {
+  public deleteKey(uid: string, accessKey: string): Observable<Key> {
     const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = new HttpParams({
       // eslint-disable-next-line @typescript-eslint/naming-convention
       fromObject: { uid, 'access-key': accessKey }
     });
-    return this.rgwService.delete<void>('admin/user?key', { credentials, params });
+    return this.rgwService.delete<void>('admin/user?key', { credentials, params }).pipe(
+      switchMap(() =>
+        of({
+          /* eslint-disable @typescript-eslint/naming-convention */
+          access_key: accessKey,
+          user: uid
+          /* eslint-enable @typescript-eslint/naming-convention */
+        })
+      )
+    );
   }
 
   /**

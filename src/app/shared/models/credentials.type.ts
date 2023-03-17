@@ -19,5 +19,16 @@ export const Credentials = {
   /**
    * Get the MD5 sum of the specified credentials.
    */
-  md5: (credentials: Credentials): string => CryptoJS.MD5(JSON.stringify(credentials)).toString()
+  md5: (credentials: Credentials): string => CryptoJS.MD5(JSON.stringify(credentials)).toString(),
+
+  /**
+   * Checks if this and the specified credentials are equivalent.
+   *
+   * @param value The value to compare.
+   * @param other The other value to compare.
+   * @return Returns `true` if the credentials are equivalent,
+   *   else `false`.
+   */
+  isEqual: (value: Credentials, other: Credentials): boolean =>
+    value.accessKey === other.accessKey && value.secretKey === other.secretKey
 };

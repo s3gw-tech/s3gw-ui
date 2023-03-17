@@ -75,6 +75,8 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   binaryUnitTpl?: TemplateRef<any>;
   @ViewChild('copyToClipboardTpl', { static: true })
   copyToClipboardTpl?: TemplateRef<any>;
+  @ViewChild('maskedTpl', { static: true })
+  maskedTpl?: TemplateRef<any>;
 
   @ContentChild(DatatableExpandedRowTemplateDirective, { read: TemplateRef, static: true })
   expandedRowTpl?: TemplateRef<any>;
@@ -288,7 +290,8 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
       localeDateTime: this.localeDateTimeTpl!,
       button: this.buttonTpl!,
       binaryUnit: this.binaryUnitTpl!,
-      copyToClipboard: this.copyToClipboardTpl!
+      copyToClipboard: this.copyToClipboardTpl!,
+      masked: this.maskedTpl!
     };
   }
 
