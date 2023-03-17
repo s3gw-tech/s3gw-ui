@@ -41,6 +41,9 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
   @Input()
   formGroup?: FormGroup;
 
+  @Input()
+  initValues?: DeclarativeFormValues;
+
   private subscriptions: Subscription = new Subscription();
 
   constructor(
@@ -238,6 +241,10 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
         });
       }
     );
+    // Set initial form values.
+    if (this.initValues) {
+      this.patchValues(this.initValues);
+    }
   }
 
   ngAfterViewInit(): void {
@@ -296,7 +303,8 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
     }
   }
 
-  onButtonClick(buttonConfig: FormButtonConfig) {
+  onButtonClick(event: Event, buttonConfig: FormButtonConfig) {
+    event.stopPropagation();
     if (_.isFunction(buttonConfig.click)) {
       buttonConfig.click(buttonConfig, this.values);
     }

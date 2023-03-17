@@ -25,7 +25,8 @@
         <ng-container [ngSwitch]="field.type">
           <ng-template [ngSwitchCase]="'password'">
             <div class="col form-field mb-2"
-                 [class]="field.groupClass">
+                 [class]="field.groupClass"
+                 (click)="$event.stopPropagation()">
               <div class="input-group">
                 <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
                   <input #passwordInput
@@ -91,7 +92,8 @@
 
           <ng-template [ngSwitchCase]="'text'">
             <div class="col form-field mb-2"
-                 [class]="field.groupClass">
+                 [class]="field.groupClass"
+                 (click)="$event.stopPropagation()">
               <div class="input-group">
                 <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
                   <input class="form-control"
@@ -152,7 +154,8 @@
 
           <ng-template [ngSwitchCase]="'number'">
             <div class="col form-field mb-2"
-                 [class]="field.groupClass">
+                 [class]="field.groupClass"
+                 (click)="$event.stopPropagation()">
               <div class="input-group">
                 <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
                   <input class="form-control"
@@ -210,7 +213,8 @@
 
           <ng-template [ngSwitchCase]="'checkbox'">
             <div class="col form-field mb-2"
-                 [class]="field.groupClass">
+                 [class]="field.groupClass"
+                 (click)="$event.stopPropagation()">
               <div class="form-check">
                 <input class="form-check-input"
                        type="checkbox"
@@ -242,7 +246,8 @@
 
           <ng-template [ngSwitchCase]="'radio'">
             <div class="col form-field mb-2"
-                 [class]="field.groupClass">
+                 [class]="field.groupClass"
+                 (click)="$event.stopPropagation()">
               <div class="form-check">
                 <input class="form-check-input"
                        type="radio"
@@ -265,7 +270,8 @@
 
           <ng-template [ngSwitchCase]="'select'">
             <div class="col form-field mb-2"
-                 [class]="field.groupClass">
+                 [class]="field.groupClass"
+                 (click)="$event.stopPropagation()">
               <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
                 <select class="form-select"
                         [ngClass]="{'is-invalid': showError(field.name, frm)}"
@@ -274,8 +280,7 @@
                         [autofocus]="field.autofocus"
                         [required]="field.validators?.required!">
                   <option *ngFor="let option of field.options | keyvalue"
-                          [value]="option.key"
-                          [selected]="option.key === field.value">
+                          [value]="option.key">
                     {{ option.value | toString | transloco }}
                   </option>
                 </select>
@@ -303,7 +308,8 @@
 
           <ng-template [ngSwitchCase]="'binary'">
             <div class="col form-field mb-2"
-                 [class]="field.groupClass">
+                 [class]="field.groupClass"
+                 (click)="$event.stopPropagation()">
               <div class="input-group">
                 <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
                   <input class="form-control"
@@ -409,7 +415,8 @@
 
           <ng-template [ngSwitchCase]="'tags'">
             <div class="col form-field mb-2"
-                 [class]="field.groupClass">
+                 [class]="field.groupClass"
+                 (click)="$event.stopPropagation()">
               <div class="input-group">
                 <div [ngClass]="{'form-floating': field.label, 'w-100': !field.label}">
                   <s3gw-tags-input class="form-control"
@@ -454,7 +461,7 @@
             <button type="button"
                     class="btn btn-outline-primary ms-2"
                     [class]="button.class"
-                    (click)="onButtonClick(button)">
+                    (click)="onButtonClick($event, button)">
               {{ button.text! | transloco }}
             </button>
           </ng-template>
@@ -463,7 +470,7 @@
             <s3gw-submit-button class="ms-2"
                                 [form]="formGroup"
                                 [formId]="config.id"
-                                (buttonClick)="onButtonClick(button)">
+                                (buttonClick)="onButtonClick($event, button)">
               {{ button.text! | transloco }}
             </s3gw-submit-button>
           </ng-template>

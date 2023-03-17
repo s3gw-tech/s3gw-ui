@@ -5,7 +5,7 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { merge, Observable, of, timer } from 'rxjs';
+import { forkJoin, merge, Observable, of, timer } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 
 import { bytesToSize, format } from '~/app/functions.helper';
@@ -22,7 +22,10 @@ import {
 } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
-import { DeclarativeFormValues } from '~/app/shared/models/declarative-form-config.type';
+import {
+  DeclarativeFormConfig,
+  DeclarativeFormValues
+} from '~/app/shared/models/declarative-form-config.type';
 import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
 import { LocaleDatePipe } from '~/app/shared/pipes/locale-date.pipe';
@@ -60,6 +63,9 @@ export class ObjectDatatablePageComponent implements OnInit {
   public pageActions: PageAction[];
   public pageStatus: PageStatus = PageStatus.none;
   public prefixParts: string[] = [];
+  public objectAttrsCache: Record<AWS.S3.Types.ObjectKey, Record<string, any>> = {};
+  public loadingObjectAttrsKeys: AWS.S3.Types.ObjectKey[] = [];
+  public expandedRowFormConfig: DeclarativeFormConfig;
 
   private firstLoadComplete = false;
 
@@ -113,6 +119,75 @@ export class ObjectDatatablePageComponent implements OnInit {
         callback: () => this.router.navigate([`/buckets/edit/${this.bid}`])
       }
     ];
+    this.expandedRowFormConfig = {
+      fields: [
+        {
+          type: 'text',
+          name: 'Key',
+          label: TEXT('Key'),
+          readonly: true
+        },
+        {
+          type: 'text',
+          name: 'Size',
+          label: TEXT('Size'),
+          readonly: true
+        },
+        {
+          type: 'text',
+          name: 'LastModified',
+          label: TEXT('Last Modified'),
+          readonly: true
+        },
+        {
+          type: 'text',
+          name: 'ETag',
+          label: TEXT('ETag'),
+          readonly: true
+        },
+        {
+          type: 'select',
+          name: 'ObjectLockMode',
+          label: TEXT('Retention Mode'),
+          readonly: true,
+          options: {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            NONE: TEXT('None'),
+            GOVERNANCE: TEXT('Governance'),
+            COMPLIANCE: TEXT('Compliance')
+            /* eslint-enable @typescript-eslint/naming-convention */
+          }
+        },
+        {
+          type: 'text',
+          name: 'ObjectLockRetainUntilDate',
+          label: TEXT('Retain Until'),
+          readonly: true
+        },
+        {
+          type: 'text',
+          name: 'ContentType',
+          label: TEXT('Content-Type'),
+          readonly: true
+        },
+        {
+          type: 'hidden',
+          name: 'placeholder'
+        }
+        // {
+        //   type: 'select',
+        //   name: 'legalHold',
+        //   label: TEXT('Legal Hold'),
+        //   readonly: true,
+        //   options: {
+        //     /* eslint-disable @typescript-eslint/naming-convention */
+        //     ON: TEXT('On'),
+        //     OFF: TEXT('Off')
+        //     /* eslint-enable @typescript-eslint/naming-convention */
+        //   }
+        // }
+      ]
+    };
   }
 
   get delimiter(): string {
@@ -162,6 +237,7 @@ export class ObjectDatatablePageComponent implements OnInit {
 
   loadData(): void {
     this.objects = [];
+    this.objectAttrsCache = {};
     this.pageStatus = !this.firstLoadComplete ? PageStatus.loading : PageStatus.reloading;
     this.s3BucketService
       .listObjects(this.bid, this.s3BucketService.buildPrefix(this.prefixParts, true))
@@ -205,11 +281,6 @@ export class ObjectDatatablePageComponent implements OnInit {
     if ('OBJECT' === object.Type) {
       result.push(
         {
-          title: TEXT('Details'),
-          icon: this.icons.details,
-          callback: (data: DatatableData) => this.doDetails([data])
-        },
-        {
           title: TEXT('Download'),
           icon: this.icons.download,
           callback: (data: DatatableData) => this.doDownload([data])
@@ -233,94 +304,54 @@ export class ObjectDatatablePageComponent implements OnInit {
     return result;
   }
 
-  private doDetails(selected: DatatableData[]): void {
-    const data: DatatableData = selected[0];
-    this.blockUI.start(translate(TEXT('Please wait, fetching object details ...')));
-    this.s3BucketService
-      .getObjectAttributes(this.bid, data['Key'])
-      .pipe(finalize(() => this.blockUI.stop()))
-      .subscribe((resp: S3GetObjectAttributesOutput) => {
-        this.dialogService.open(DeclarativeFormModalComponent, undefined, {
-          formConfig: {
-            title: TEXT('Details'),
-            fields: [
-              {
-                type: 'text',
-                name: 'name',
-                label: TEXT('Name'),
-                value: resp.Key,
-                readonly: true
-              },
-              {
-                type: 'text',
-                name: 'size',
-                label: TEXT('Size'),
-                value: bytesToSize(data['Size']),
-                readonly: true
-              },
-              {
-                type: 'text',
-                name: 'lastModified',
-                label: TEXT('Last Modified'),
-                value: this.localeDatePipe.transform(data['LastModified'], 'datetime'),
-                readonly: true
-              },
-              {
-                type: 'text',
-                name: 'eTag',
-                label: TEXT('ETag'),
-                value: _.trim(resp.ETag, '"'),
-                readonly: true
-              },
-              // {
-              //   type: 'select',
-              //   name: 'legalHold',
-              //   label: TEXT('Legal Hold'),
-              //   value: _.defaultTo(resp.ObjectLockLegalHoldStatus, 'OFF'),
-              //   readonly: true,
-              //   options: {
-              //     /* eslint-disable @typescript-eslint/naming-convention */
-              //     ON: TEXT('On'),
-              //     OFF: TEXT('Off')
-              //     /* eslint-enable @typescript-eslint/naming-convention */
-              //   }
-              // },
-              {
-                type: 'select',
-                name: 'retentionMode',
-                label: TEXT('Retention Mode'),
-                value: _.defaultTo(resp.ObjectLockMode, 'NONE'),
-                readonly: true,
-                options: {
-                  /* eslint-disable @typescript-eslint/naming-convention */
-                  NONE: TEXT('None'),
-                  GOVERNANCE: TEXT('Governance'),
-                  COMPLIANCE: TEXT('Compliance')
-                  /* eslint-enable @typescript-eslint/naming-convention */
-                }
-              },
-              {
-                type: 'text',
-                name: 'retainUntil',
-                label: TEXT('Retain Until'),
-                value: this.localeDatePipe.transform(
-                  _.defaultTo(resp.ObjectLockRetainUntilDate, ''),
-                  'datetime'
-                ),
-                readonly: true
-              },
-              {
-                type: 'text',
-                name: 'contentType',
-                label: TEXT('Content-Type'),
-                value: resp.ContentType,
-                readonly: true
-              }
-            ]
-          },
-          submitButtonVisible: false,
-          cancelButtonText: TEXT('Close')
-        } as DeclarativeFormModalConfig);
+  isExpandableRow(): (data: DatatableData) => boolean {
+    return (data: DatatableData): boolean => (data as S3Object).Type === 'OBJECT';
+  }
+
+  onExpandedRowsChange(event: any): void {
+    this.loadingObjectAttrsKeys = [];
+    const objects: S3Objects = event as S3Objects;
+    const sources: Observable<S3GetObjectAttributesOutput>[] = [];
+    _.forEach(objects, (object: S3Object) => {
+      const key: AWS.S3.Types.ObjectKey = object.Key!;
+      // Only load the object attributes of those rows that haven't been
+      // loaded yet.
+      if (!_.has(this.objectAttrsCache, key)) {
+        this.loadingObjectAttrsKeys.push(key);
+        sources.push(this.s3BucketService.getObjectAttributes(this.bid, key));
+      }
+    });
+    forkJoin(sources)
+      .pipe(finalize(() => (this.loadingObjectAttrsKeys = [])))
+      .subscribe((objAttrs: S3GetObjectAttributesOutput[]) => {
+        // Append the data of those expanded rows that haven't been
+        // loaded yet.
+        _.forEach(objAttrs, (objAttr: Record<string, any>) => {
+          const object: S3Object | undefined = _.find(objects, ['Key', objAttr['Key']]);
+          if (object) {
+            // Append modified (transformed) data.
+            _.merge(objAttr, {
+              /* eslint-disable @typescript-eslint/naming-convention */
+              Size: bytesToSize(object.Size),
+              LastModified: this.localeDatePipe.transform(object.LastModified!, 'datetime'),
+              ETag: _.trim(objAttr['ETag'], '"'),
+              ObjectLockMode: _.defaultTo(objAttr['ObjectLockMode'], 'NONE'),
+              ObjectLockRetainUntilDate: this.localeDatePipe.transform(
+                _.defaultTo(objAttr['ObjectLockRetainUntilDate'], ''),
+                'datetime'
+              )
+              /* eslint-enable @typescript-eslint/naming-convention */
+            });
+          }
+          this.objectAttrsCache[objAttr['Key']] = objAttr;
+        });
+        // Purge collapsed rows.
+        this.objectAttrsCache = _.pickBy(
+          this.objectAttrsCache,
+          (value, key: AWS.S3.Types.ObjectKey) => {
+            return 0 <= _.findIndex(objects, ['Key', key]);
+          }
+        );
       });
   }
 

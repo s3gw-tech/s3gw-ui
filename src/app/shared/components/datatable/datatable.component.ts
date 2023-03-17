@@ -1,7 +1,9 @@
 /* eslint-disable no-underscore-dangle */
+import { animate, style, transition, trigger } from '@angular/animations';
 import { Clipboard } from '@angular/cdk/clipboard';
 import {
   Component,
+  ContentChild,
   EventEmitter,
   Input,
   NgZone,
@@ -15,6 +17,7 @@ import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
 import { Throttle } from '~/app/functions.helper';
+import { DatatableExpandedRowTemplateDirective } from '~/app/shared/directives/datatable-expanded-row-template.directive';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { Datatable } from '~/app/shared/models/datatable.interface';
 import {
@@ -32,7 +35,16 @@ export enum SortDirection {
 @Component({
   selector: 's3gw-datatable',
   templateUrl: './datatable.component.html',
-  styleUrls: ['./datatable.component.scss']
+  styleUrls: ['./datatable.component.scss'],
+  animations: [
+    trigger('fadeSlideInOutExpandedRow', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('250ms', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [animate('250ms', style({ opacity: 0, transform: 'translateY(10px)' }))])
+    ])
+  ]
 })
 export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   @ViewChild('iconTpl', { static: true })
@@ -41,6 +53,8 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   checkIconTpl?: TemplateRef<any>;
   @ViewChild('yesNoIconTpl', { static: true })
   yesNoIconTpl?: TemplateRef<any>;
+  @ViewChild('rowExpandableTpl', { static: true })
+  rowExpandableTpl?: TemplateRef<any>;
   @ViewChild('rowSelectTpl', { static: true })
   rowSelectTpl?: TemplateRef<any>;
   @ViewChild('actionMenuTpl', { static: true })
@@ -57,6 +71,9 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   binaryUnitTpl?: TemplateRef<any>;
   @ViewChild('copyToClipboardTpl', { static: true })
   copyToClipboardTpl?: TemplateRef<any>;
+
+  @ContentChild(DatatableExpandedRowTemplateDirective, { read: TemplateRef, static: true })
+  expandedRowTpl?: TemplateRef<any>;
 
   @Input()
   columns: DatatableColumn[] = [];
@@ -105,15 +122,34 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   @Input()
   selected: DatatableData[] = [];
 
+  // Expanded rows can be used to display additional information.
+  // An additional column with an icon button to expand or collapse the row
+  // will be added automatically.
+  @Input()
+  hasExpandableRows = false;
+
+  @Input()
+  isExpandableRow?: (data: DatatableData) => boolean;
+
   @Output()
   loadData = new EventEmitter();
 
+  // This event is fired when a single row is clicked. The data of the line
+  // and the configuration of the column that was clicked are submitted.
   @Output()
   rowSelection = new EventEmitter<[DatatableData, DatatableColumn]>();
 
+  // This event is fired whenever the selection of the rows has changed.
+  // The data of all selected rows is submitted.
   @Output()
   selectionChange = new EventEmitter<DatatableData[]>();
 
+  // This event is fired whenever the number of expanded rows has changed.
+  // The data of all expanded rows is submitted.
+  @Output()
+  expandedRowsChange = new EventEmitter<DatatableData[]>();
+
+  ////////////////////////////////////////////////////////////////////////////
   // Internal
   public icons = Icon;
   public page = 1;
@@ -121,6 +157,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   public isAllRowsSelected = false;
   public searchFilter = '';
   public filteredData: DatatableData[] = [];
+  public expandedRows: DatatableData[] = [];
 
   protected _data: DatatableData[] = [];
   protected subscriptions: Subscription = new Subscription();
@@ -154,6 +191,21 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   ngOnInit(): void {
     this.initTemplates();
     if (this.columns) {
+      if (this.hasExpandableRows) {
+        // Check if the template is defined.
+        if (!this.expandedRowTpl) {
+          throw new Error(
+            'Failed to find the expandable rows template. Did you have specified a "ng-template" with the "s3gw-datatable-expanded-row-template" directive?'
+          );
+        }
+        // Add column configuration.
+        this.columns.unshift({
+          name: '',
+          prop: '',
+          cellTemplateName: DatatableCellTemplateName.rowExpandable
+        });
+      }
+
       // Add 'Checkbox' column if `selectionType` is `single` and `multi.
       if (this.selectionType !== 'none') {
         if (!_.find(this.columns, ['prop', this.identifier])) {
@@ -177,6 +229,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
           column.cellTemplate = this.cellTemplates[column.cellTemplateName];
           switch (column.cellTemplateName) {
             case 'actionMenu':
+            case 'rowExpandable':
             case 'rowSelect':
               column.name = '';
               column.prop = '';
@@ -222,6 +275,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
       icon: this.iconTpl!,
       checkIcon: this.checkIconTpl!,
       yesNoIcon: this.yesNoIconTpl!,
+      rowExpandable: this.rowExpandableTpl!,
       rowSelect: this.rowSelectTpl!,
       actionMenu: this.actionMenuTpl!,
       map: this.mapTpl!,
@@ -240,6 +294,12 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     }
     if (column.cellTemplateName === DatatableCellTemplateName.rowSelect) {
       const item = _.find(this.selected, [this.identifier, row[this.identifier]]);
+      if (item) {
+        value = true;
+      }
+    }
+    if (column.cellTemplateName === DatatableCellTemplateName.rowExpandable) {
+      const item = _.find(this.expandedRows, [this.identifier, row[this.identifier]]);
       if (item) {
         value = true;
       }
@@ -361,6 +421,17 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     this.updateIsAllRowsSelected();
   }
 
+  onToggleRowExpansion(event: Event, row: DatatableData): void {
+    event.stopPropagation();
+    const index = _.findIndex(this.expandedRows, [this.identifier, row[this.identifier]]);
+    if (-1 === index) {
+      this.expandedRows.push(row);
+    } else {
+      this.expandedRows.splice(index, 1);
+    }
+    this.expandedRowsChange.emit(this.expandedRows);
+  }
+
   clearSelection(): void {
     this.selected.splice(0, this.selected.length);
     this.updateIsAllRowsSelected();
@@ -409,6 +480,8 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
       !_.isEqual(filteredData, this.filteredData)
     ) {
       this.filteredData = filteredData;
+      // Reset the list of expanded rows.
+      this.expandedRows = [];
     }
   }
 

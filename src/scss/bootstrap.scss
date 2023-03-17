@@ -64,6 +64,12 @@ $placeholder-opacity-max: 0.2;
   --bs-table-bg: #{$table-hover-bg};
 }
 
+tbody > tr {
+  &.no-hover:hover > * {
+    box-shadow: none;
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Forms
 .invalid-feedback {
