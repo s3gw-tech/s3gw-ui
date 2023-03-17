@@ -1,3 +1,4 @@
+import { Clipboard } from '@angular/cdk/clipboard';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -70,6 +71,7 @@ export class ObjectDatatablePageComponent implements OnInit {
   private firstLoadComplete = false;
 
   constructor(
+    private clipboard: Clipboard,
     private dialogService: DialogService,
     private localeDatePipe: LocaleDatePipe,
     private modalDialogService: ModalDialogService,
@@ -302,6 +304,16 @@ export class ObjectDatatablePageComponent implements OnInit {
       });
     }
     return result;
+  }
+
+  onCopyPrefixToClipboard(): void {
+    const prefix: string = this.s3BucketService.buildPrefix(this.prefixParts);
+    const success = this.clipboard.copy(prefix);
+    if (success) {
+      this.notificationService.showSuccess(TEXT('Successfully copied path to the clipboard.'));
+    } else {
+      this.notificationService.showError(TEXT('Failed to copy path to the clipboard.'));
+    }
   }
 
   isExpandableRow(): (data: DatatableData) => boolean {

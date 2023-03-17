@@ -291,7 +291,7 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
     const text = this.formGroup?.get(field.name!)?.value;
     const success = this.clipboard.copy(text);
     if (success) {
-      this.notificationService.showSuccess(TEXT('Copied text to the clipboard successfully.'));
+      this.notificationService.showSuccess(TEXT('Successfully copied text to the clipboard.'));
     } else {
       this.notificationService.showError(TEXT('Failed to copy text to the clipboard.'));
     }

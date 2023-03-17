@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ToastrModule } from 'ngx-toastr';
 
 import { ComponentsModule } from '~/app/shared/components/components.module';
 import {
@@ -23,7 +24,7 @@ describe('DatatableComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [DatatableComponent],
-      imports: [ComponentsModule, TestingModule]
+      imports: [ComponentsModule, ToastrModule.forRoot(), TestingModule]
     }).compileComponents();
   });
 
