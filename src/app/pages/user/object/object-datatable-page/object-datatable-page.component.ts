@@ -467,7 +467,7 @@ export class ObjectDatatablePageComponent implements OnInit {
               )
             },
             {
-              next: TEXT('Object {{ name }} has been deleted.'),
+              next: TEXT('The object {{ name }} has been deleted.'),
               nextFmtArgs: (output: S3DeleteObjectOutput) => ({ name: output.Key })
             }
           )

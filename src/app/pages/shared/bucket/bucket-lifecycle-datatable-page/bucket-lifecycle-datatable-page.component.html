@@ -1,0 +1,15 @@
+<s3gw-wrapper-status [actions]="pageActions"
+                     [pageStatus]="pageStatus">
+  <s3gw-datatable #table
+                  selectionType="multi"
+                  identifier="ID"
+                  stateId="bucket_lifecycle"
+                  [data]="rules"
+                  [columns]="datatableColumns"
+                  [autoReload]="-1"
+                  (loadData)="loadData()">
+    <s3gw-datatable-actions [actions]="datatableActions"
+                            [table]="table">
+    </s3gw-datatable-actions>
+  </s3gw-datatable>
+</s3gw-wrapper-status>

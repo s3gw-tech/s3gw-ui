@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 
+import { BucketLifecycleDatatablePageComponent } from '~/app/pages/shared/bucket/bucket-lifecycle-datatable-page/bucket-lifecycle-datatable-page.component';
 import { BucketDatatablePageComponent } from '~/app/pages/user/bucket/bucket-datatable-page/bucket-datatable-page.component';
 import { BucketFormPageComponent } from '~/app/pages/user/bucket/bucket-form-page/bucket-form-page.component';
 import { DashboardPageComponent } from '~/app/pages/user/dashboard-page/dashboard-page.component';
@@ -33,6 +34,12 @@ const routes: Routes = [
         path: 'edit/:bid',
         data: { subTitle: '{{ bid }}', title: TEXT('Bucket:'), url: '../..' },
         component: BucketFormPageComponent,
+        canDeactivate: [IsDirtyGuardService]
+      },
+      {
+        path: 'lifecycle/:bid',
+        data: { subTitle: '{{ bid }} - Lifecycle Rules', title: TEXT('Bucket:'), url: '../..' },
+        component: BucketLifecycleDatatablePageComponent,
         canDeactivate: [IsDirtyGuardService]
       }
     ]

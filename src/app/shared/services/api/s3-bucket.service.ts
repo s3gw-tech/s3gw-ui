@@ -666,6 +666,81 @@ export class S3BucketService {
   }
 
   /**
+   * Returns the lifecycle configuration information set on the bucket.
+   * Note, a `NoSuchLifecycleConfiguration` is caught and handled properly.
+   *
+   * @param bucket The name of the bucket.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getBucketLifecycleConfiguration-property
+   */
+  @CatchAuthErrors()
+  public getLifecycleConfiguration(
+    bucket: AWS.S3.Types.BucketName,
+    credentials?: Credentials
+  ): Observable<AWS.S3.Types.GetBucketLifecycleConfigurationOutput> {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const params: AWS.S3.Types.GetBucketLifecycleConfigurationRequest = { Bucket: bucket };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).getBucketLifecycleConfiguration(params).promise()
+    ).pipe(
+      catchError((err) => {
+        if (['NoSuchLifecycleConfiguration'].includes(err.code)) {
+          return of({
+            /* eslint-disable @typescript-eslint/naming-convention */
+            Rules: []
+            /* eslint-enable @typescript-eslint/naming-convention */
+          });
+        }
+        return throwError(err);
+      })
+    );
+  }
+
+  /**
+   * Creates a new lifecycle configuration for the bucket or replaces an existing lifecycle configuration.
+   *
+   * @param bucket The name of the bucket.
+   * @param rules The list of rules to set.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketLifecycleConfiguration-property
+   */
+  @CatchInvalidRequest()
+  @CatchAuthErrors()
+  public setLifecycleConfiguration(
+    bucket: AWS.S3.Types.BucketName,
+    rules: AWS.S3.Types.LifecycleRules,
+    credentials?: Credentials
+  ): Observable<void> {
+    return defer(() => {
+      // Note, we need to convert the hot promise to a cold observable.
+      if (0 === rules.length) {
+        return this.s3ClientService
+          .get(credentials)
+          .deleteBucketLifecycle({
+            /* eslint-disable @typescript-eslint/naming-convention */
+            Bucket: bucket
+            /* eslint-enable @typescript-eslint/naming-convention */
+          })
+          .promise();
+      }
+      return this.s3ClientService
+        .get(credentials)
+        .putBucketLifecycleConfiguration({
+          /* eslint-disable @typescript-eslint/naming-convention */
+          Bucket: bucket,
+          LifecycleConfiguration: { Rules: rules }
+          /* eslint-enable @typescript-eslint/naming-convention */
+        })
+        .promise();
+    }).pipe(map(() => void 0));
+  }
+
+  /**
    * Get the objects of the specified bucket.
    *
    * @param bucket The name of the bucket.
