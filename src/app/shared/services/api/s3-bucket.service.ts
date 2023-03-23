@@ -11,7 +11,30 @@ import { Credentials } from '~/app/shared/models/credentials.type';
 import { RgwService } from '~/app/shared/services/api/rgw.service';
 import { S3ClientService } from '~/app/shared/services/api/s3-client.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
+import { NotificationService } from '~/app/shared/services/notification.service';
 import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
+
+// eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
+function CatchInvalidRequest() {
+  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    const originalFn = descriptor.value;
+    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+    descriptor.value = function (...args: any[]) {
+      // @ts-ignore
+      const result: Observable<any> = originalFn.apply(this, args);
+      return result.pipe(
+        catchError((err) => {
+          if (['InvalidRequest'].includes(err.code)) {
+            // @ts-ignore
+            this.notificationService.showError(_.capitalize(_.trimEnd(err.message), '.') + '.');
+          }
+          return throwError(err);
+        })
+      );
+    };
+    return descriptor;
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
 function CatchAuthErrors() {
@@ -145,6 +168,20 @@ export type S3GetObjectRetentionOutput = AWS.S3.Types.GetObjectRetentionOutput &
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 
+export type S3GetObjectLegalHoldOutput = AWS.S3.Types.GetObjectLegalHoldOutput & {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Bucket: AWS.S3.Types.BucketName;
+  Key: AWS.S3.Types.ObjectKey;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+export type S3PutObjectLegalHoldOutput = AWS.S3.Types.PutObjectLegalHoldOutput & {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Bucket: AWS.S3.Types.BucketName;
+  Key: AWS.S3.Types.ObjectKey;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
 /**
  * Service to handle buckets via the S3 API.
  */
@@ -154,6 +191,7 @@ export type S3GetObjectRetentionOutput = AWS.S3.Types.GetObjectRetentionOutput &
 export class S3BucketService {
   constructor(
     private authSessionService: AuthSessionService,
+    private notificationService: NotificationService,
     private rgwService: RgwService,
     private rgwServiceConfigService: RgwServiceConfigService,
     private s3ClientService: S3ClientService
@@ -423,6 +461,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
+  @CatchAuthErrors()
   public getObjectLocking(
     bucket: AWS.S3.Types.BucketName,
     credentials?: Credentials
@@ -472,6 +511,8 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObjectLockConfiguration-property
    */
+  @CatchInvalidRequest()
+  @CatchAuthErrors()
   public setObjectLocking(
     bucket: AWS.S3.Types.BucketName,
     objectLockConfiguration: S3BucketObjectLockConfiguration,
@@ -541,6 +582,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketVersioning-property
    */
+  @CatchInvalidRequest()
   @CatchAuthErrors()
   public setVersioning(
     bucket: AWS.S3.Types.BucketName,
@@ -604,6 +646,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketTagging-property
    */
+  @CatchInvalidRequest()
   @CatchAuthErrors()
   public setTagging(
     bucket: AWS.S3.Types.BucketName,
@@ -696,6 +739,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteObject-property
    */
+  @CatchInvalidRequest()
   @CatchAuthErrors()
   public deleteObject(
     bucket: AWS.S3.Types.BucketName,
@@ -872,6 +916,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
    */
+  @CatchInvalidRequest()
   @CatchAuthErrors()
   public putObject(
     bucket: AWS.S3.Types.BucketName,
@@ -942,11 +987,12 @@ export class S3BucketService {
     return forkJoin({
       object: this.headObject(bucket, key, undefined, credentials),
       tagging: this.getObjectTagging(bucket, key, credentials),
-      // Get the object's retention settings in a separate request
-      // because there seem to be a bug in the headObject function,
-      // check https://github.com/aws/aws-sdk-js/issues/4362 for
-      // more details.
-      retention: this.getObjectRetention(bucket, key, credentials)
+      // Get the object's retention and legal hold settings in a separate
+      // request because there seems to be a bug in the headObject function,
+      // check out https://github.com/aws/aws-sdk-js/issues/4362 for more
+      // details.
+      retention: this.getObjectRetention(bucket, key, credentials),
+      legalHold: this.getObjectLegalHold(bucket, key, credentials)
     }).pipe(
       map((resp) => {
         return {
@@ -954,7 +1000,8 @@ export class S3BucketService {
           ...resp.tagging,
           /* eslint-disable @typescript-eslint/naming-convention */
           ObjectLockMode: resp.retention.Retention?.Mode,
-          ObjectLockRetainUntilDate: resp.retention.Retention?.RetainUntilDate
+          ObjectLockRetainUntilDate: resp.retention.Retention?.RetainUntilDate,
+          ObjectLockLegalHoldStatus: resp.legalHold.LegalHold?.Status
           /* eslint-enable @typescript-eslint/naming-convention */
         };
       })
@@ -1026,6 +1073,39 @@ export class S3BucketService {
   }
 
   /**
+   * Sets the supplied tag-set to an object that already exists in a
+   * bucket.
+   *
+   * @param bucket The name of the bucket.
+   * @param key The object key.
+   * @param tags The list of tags to add.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObjectTagging-property
+   */
+  @CatchInvalidRequest()
+  @CatchAuthErrors()
+  public setObjectTagging(
+    bucket: AWS.S3.Types.BucketName,
+    key: AWS.S3.ObjectKey,
+    tags: AWS.S3.Types.TagSet,
+    credentials?: Credentials
+  ): Observable<S3PutObjectTaggingOutput> {
+    const params: AWS.S3.Types.PutObjectTaggingRequest = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: bucket,
+      Key: key,
+      Tagging: { TagSet: tags }
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).putObjectTagging(params).promise()
+    ).pipe(map((resp: AWS.S3.Types.PutObjectTaggingOutput) => _.merge(resp, params)));
+  }
+
+  /**
    * Retrieves an object's retention settings.
    * Note, a `InvalidRequest` or `ObjectLockConfigurationNotFoundError` is
    * caught and handled properly.
@@ -1066,34 +1146,74 @@ export class S3BucketService {
   }
 
   /**
-   * Sets the supplied tag-set to an object that already exists in a
-   * bucket.
+   * Gets an object's current legal hold status.
+   * Note, a `InvalidRequest` or `ObjectLockConfigurationNotFoundError` is
+   * caught and handled properly.
    *
    * @param bucket The name of the bucket.
    * @param key The object key.
-   * @param tags The list of tags to add.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObjectTagging-property
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObjectLegalHold-property
    */
   @CatchAuthErrors()
-  public setObjectTagging(
+  public getObjectLegalHold(
     bucket: AWS.S3.Types.BucketName,
     key: AWS.S3.ObjectKey,
-    tags: AWS.S3.Types.TagSet,
     credentials?: Credentials
-  ): Observable<S3PutObjectTaggingOutput> {
-    const params: AWS.S3.Types.PutObjectTaggingRequest = {
+  ): Observable<S3GetObjectLegalHoldOutput> {
+    const params: AWS.S3.Types.GetObjectLegalHoldRequest = {
       /* eslint-disable @typescript-eslint/naming-convention */
       Bucket: bucket,
-      Key: key,
-      Tagging: { TagSet: tags }
+      Key: key
       /* eslint-enable @typescript-eslint/naming-convention */
     };
     return defer(() =>
       // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).putObjectTagging(params).promise()
-    ).pipe(map((resp: AWS.S3.Types.PutObjectTaggingOutput) => _.merge(resp, params)));
+      this.s3ClientService.get(credentials).getObjectLegalHold(params).promise()
+    ).pipe(
+      catchError((err) => {
+        if (['InvalidRequest', 'ObjectLockConfigurationNotFoundError'].includes(err.code)) {
+          return of({});
+        }
+        return throwError(err);
+      }),
+      map((resp: AWS.S3.Types.GetObjectLegalHoldOutput) => {
+        return _.merge(resp, params);
+      })
+    );
+  }
+
+  /**
+   * Applies a legal hold configuration to the specified object.
+   *
+   * @param bucket The name of the bucket.
+   * @param key The object key.
+   * @param status The legal hold status, e.g. `ON` or `OFF`.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObjectLegalHold-property
+   */
+  @CatchInvalidRequest()
+  @CatchAuthErrors()
+  public setObjectLegalHold(
+    bucket: AWS.S3.Types.BucketName,
+    key: AWS.S3.ObjectKey,
+    status: AWS.S3.Types.ObjectLockLegalHoldStatus,
+    credentials?: Credentials
+  ): Observable<S3PutObjectLegalHoldOutput> {
+    const params: AWS.S3.Types.PutObjectLegalHoldRequest = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: bucket,
+      Key: key,
+      LegalHold: { Status: status }
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).putObjectLegalHold(params).promise()
+    ).pipe(map((resp: AWS.S3.Types.PutObjectLegalHoldOutput) => _.merge(resp, params)));
   }
 }

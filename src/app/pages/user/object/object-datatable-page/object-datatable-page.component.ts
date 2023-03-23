@@ -149,6 +149,17 @@ export class ObjectDatatablePageComponent implements OnInit {
         },
         {
           type: 'select',
+          name: 'ObjectLockLegalHoldStatus',
+          label: TEXT('Legal Hold'),
+          options: {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            ON: TEXT('On'),
+            OFF: TEXT('Off')
+            /* eslint-enable @typescript-eslint/naming-convention */
+          }
+        },
+        {
+          type: 'select',
           name: 'ObjectLockMode',
           label: TEXT('Retention Mode'),
           readonly: true,
@@ -171,23 +182,24 @@ export class ObjectDatatablePageComponent implements OnInit {
           name: 'ContentType',
           label: TEXT('Content-Type'),
           readonly: true
-        },
-        {
-          type: 'hidden',
-          name: 'placeholder'
         }
-        // {
-        //   type: 'select',
-        //   name: 'legalHold',
-        //   label: TEXT('Legal Hold'),
-        //   readonly: true,
-        //   options: {
-        //     /* eslint-disable @typescript-eslint/naming-convention */
-        //     ON: TEXT('On'),
-        //     OFF: TEXT('Off')
-        //     /* eslint-enable @typescript-eslint/naming-convention */
-        //   }
-        // }
+      ],
+      buttons: [
+        {
+          type: 'submit',
+          text: TEXT('Update'),
+          click: (buttonConfig, values: Record<string, any>): void => {
+            this.s3BucketService
+              .setObjectLegalHold(this.bid, values['Key'], values['ObjectLockLegalHoldStatus'])
+              .subscribe(() => {
+                this.notificationService.showSuccess(
+                  format(translate(TEXT('The object {{ key }} has been updated.')), {
+                    key: values['Key']
+                  })
+                );
+              });
+          }
+        }
       ]
     };
   }
@@ -351,7 +363,8 @@ export class ObjectDatatablePageComponent implements OnInit {
               ObjectLockRetainUntilDate: this.localeDatePipe.transform(
                 _.defaultTo(objAttr['ObjectLockRetainUntilDate'], ''),
                 'datetime'
-              )
+              ),
+              ObjectLockLegalHoldStatus: _.defaultTo(objAttr['ObjectLockLegalHoldStatus'], 'OFF')
               /* eslint-enable @typescript-eslint/naming-convention */
             });
           }

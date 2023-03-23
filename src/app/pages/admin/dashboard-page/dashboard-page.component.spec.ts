@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ToastrModule } from 'ngx-toastr';
 
 import { AdminPagesModule } from '~/app/pages/admin/admin-pages.module';
 import { DashboardPageComponent } from '~/app/pages/admin/dashboard-page/dashboard-page.component';
@@ -13,7 +14,7 @@ describe('DashboardPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [DashboardPageComponent],
-      imports: [AdminPagesModule, TestingModule]
+      imports: [AdminPagesModule, TestingModule, ToastrModule.forRoot()]
     }).compileComponents();
   });
 
