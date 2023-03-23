@@ -58,7 +58,7 @@ tbody > tr {
   }
 }
 
-::ng-deep ngb-pagination {
+:host ::ng-deep ngb-pagination {
   .pagination {
     margin-bottom: 0;
   }
