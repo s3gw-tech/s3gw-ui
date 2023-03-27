@@ -9,6 +9,7 @@ import { UserDatatablePageComponent } from '~/app/pages/admin/user/user-datatabl
 import { UserFormPageComponent } from '~/app/pages/admin/user/user-form-page/user-form-page.component';
 import { UserKeyDatatablePageComponent } from '~/app/pages/admin/user/user-key-datatable-page/user-key-datatable-page.component';
 import { UserKeyFormPageComponent } from '~/app/pages/admin/user/user-key-form-page/user-key-form-page.component';
+import { BucketLifecycleDatatablePageComponent } from '~/app/pages/shared/bucket/bucket-lifecycle-datatable-page/bucket-lifecycle-datatable-page.component';
 import { IsDirtyGuardService } from '~/app/shared/services/is-dirty-guard.service';
 
 const routes: Routes = [
@@ -36,6 +37,12 @@ const routes: Routes = [
         path: 'edit/:bid',
         data: { subTitle: '{{ bid }}', title: TEXT('Bucket:'), url: '../..' },
         component: BucketFormPageComponent,
+        canDeactivate: [IsDirtyGuardService]
+      },
+      {
+        path: 'lifecycle/:bid',
+        data: { subTitle: '{{ bid }} - Lifecycle Rules', title: TEXT('Bucket:'), url: '../..' },
+        component: BucketLifecycleDatatablePageComponent,
         canDeactivate: [IsDirtyGuardService]
       }
     ]

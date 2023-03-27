@@ -127,6 +127,13 @@ export class BucketDatatablePageComponent {
         }
       },
       {
+        title: TEXT('Lifecycle'),
+        icon: 'mdi mdi-clock-end',
+        callback: () => {
+          this.router.navigate([`/admin/buckets/lifecycle/${bucket.bucket}`]);
+        }
+      },
+      {
         type: 'divider'
       },
       {

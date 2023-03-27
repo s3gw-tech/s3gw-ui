@@ -94,29 +94,35 @@ tbody > tr {
 // Badge
 .badge-outline {
   &.success {
-    color: $success;
-    border-color: $success;
+    color: var(--bs-success);
+    border-color: var(--bs-success);
   }
 
   &.info {
-    color: $info;
-    border-color: $info;
+    color: var(--bs-info);
+    border-color: var(--bs-info);
   }
 
   &.warning {
-    color: $warning;
-    border-color: $warning;
+    color: var(--bs-warning);
+    border-color: var(--bs-warning);
   }
 
   &.danger {
-    color: $danger;
-    border-color: $danger;
+    color: var(--bs-danger);
+    border-color: var(--bs-danger);
+  }
+
+  &.dark {
+    color: var(--bs-gray-dark);
+    border-color: var(--bs-gray-dark);
   }
 
   &.success,
   &.info,
   &.warning,
-  &.danger {
+  &.danger,
+  &.dark {
     background: transparent;
     border: 1px solid;
   }
