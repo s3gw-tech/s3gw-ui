@@ -364,15 +364,17 @@ export class S3BucketService {
    */
   @CatchAuthErrors()
   public create(bucket: S3BucketAttributes, credentials?: Credentials): Observable<S3Bucket> {
-    credentials = credentials ?? this.authSessionService.getCredentials();
-    let headers: Record<string, any> | undefined;
-    if (bucket.ObjectLockEnabled) {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      headers = { 'x-amz-bucket-object-lock-enabled': 'true' };
-    }
-    return this.rgwService
-      .put<AWS.S3.Types.CreateBucketOutput>(bucket.Name!, { credentials, headers })
-      .pipe(switchMap(() => this.update(bucket, credentials)));
+    const params: AWS.S3.Types.CreateBucketRequest = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: bucket.Name!,
+      CreateBucketConfiguration: { LocationConstraint: '' },
+      ObjectLockEnabledForBucket: _.defaultTo(bucket.ObjectLockEnabled, false)
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).createBucket(params).promise()
+    ).pipe(switchMap(() => this.update(bucket, credentials)));
   }
 
   /**
