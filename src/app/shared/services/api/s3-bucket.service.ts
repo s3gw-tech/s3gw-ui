@@ -1062,11 +1062,6 @@ export class S3BucketService {
     return forkJoin({
       object: this.headObject(bucket, key, undefined, credentials),
       tagging: this.getObjectTagging(bucket, key, credentials),
-      // Get the object's retention and legal hold settings in a separate
-      // request because there seems to be a bug in the headObject function,
-      // check out https://github.com/aws/aws-sdk-js/issues/4362 for more
-      // details.
-      retention: this.getObjectRetention(bucket, key, credentials),
       legalHold: this.getObjectLegalHold(bucket, key, credentials)
     }).pipe(
       map((resp) => {
@@ -1074,8 +1069,6 @@ export class S3BucketService {
           ...resp.object,
           ...resp.tagging,
           /* eslint-disable @typescript-eslint/naming-convention */
-          ObjectLockMode: resp.retention.Retention?.Mode,
-          ObjectLockRetainUntilDate: resp.retention.Retention?.RetainUntilDate,
           ObjectLockLegalHoldStatus: resp.legalHold.LegalHold?.Status
           /* eslint-enable @typescript-eslint/naming-convention */
         };
