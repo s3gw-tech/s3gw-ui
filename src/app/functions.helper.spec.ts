@@ -1,4 +1,12 @@
-import { bytesToSize, format, isEqualOrUndefined, toBytes } from '~/app/functions.helper';
+import {
+  bytesToSize,
+  extractErrorCode,
+  extractErrorDescription,
+  extractErrorMessage,
+  format,
+  isEqualOrUndefined,
+  toBytes
+} from '~/app/functions.helper';
 
 describe('functions.helper', () => {
   it('should convert value to bytes [1]', () => {
@@ -69,5 +77,94 @@ describe('functions.helper', () => {
 
   it('should isEqualOrUndefined [4]', () => {
     expect(isEqualOrUndefined('foo', 'bar')).toBeFalsy();
+  });
+
+  it('should extract error code [1]', () => {
+    expect(
+      extractErrorCode({
+        code: 'InvalidLocationConstraint',
+        name: 'InvalidLocationConstraint',
+        statusCode: 400
+      })
+    ).toBe('InvalidLocationConstraint');
+  });
+
+  it('should extract error code [2]', () => {
+    expect(
+      extractErrorCode({
+        statusCode: 400
+      })
+    ).toBe(400);
+  });
+
+  it('should extract error code [3]', () => {
+    expect(
+      extractErrorCode({
+        error: 'foo',
+        statusCode: 400
+      })
+    ).toBe('foo');
+  });
+
+  it('should extract error code [4]', () => {
+    expect(
+      extractErrorCode({
+        name: 'InvalidLocationConstraint',
+        statusCode: 400
+      })
+    ).toBe('InvalidLocationConstraint');
+  });
+
+  it('should extract error message [5]', () => {
+    expect(extractErrorCode({})).toBeUndefined();
+  });
+
+  it('should extract error message [1]', () => {
+    expect(
+      extractErrorMessage({
+        code: 'InvalidLocationConstraint',
+        statusCode: 400,
+        message: 'The specified location-constraint is not valid'
+      })
+    ).toBe('The specified location-constraint is not valid');
+  });
+
+  it('should extract error message [2]', () => {
+    expect(
+      extractErrorMessage({
+        code: 'InvalidLocationConstraint',
+        statusCode: 400,
+        statusText: 'foo bar baz'
+      })
+    ).toBe('foo bar baz');
+  });
+
+  it('should extract error message [3]', () => {
+    expect(extractErrorMessage({})).toBeUndefined();
+  });
+
+  it('should extract error description [1]', () => {
+    expect(
+      extractErrorDescription({
+        code: 'aaa',
+        message: 'bbb'
+      })
+    ).toBe('code=aaa, message=bbb');
+  });
+
+  it('should extract error description [1]', () => {
+    expect(
+      extractErrorDescription({
+        name: 'aaa'
+      })
+    ).toBe('code=aaa');
+  });
+
+  it('should extract error description [2]', () => {
+    expect(
+      extractErrorDescription({
+        statusText: 'bbb'
+      })
+    ).toBe('message=bbb');
   });
 });

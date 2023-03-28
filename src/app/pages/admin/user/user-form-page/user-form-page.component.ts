@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import { concat, Observable, of, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
-import { bytesToSize, extractErrorCode, format } from '~/app/functions.helper';
+import { bytesToSize, extractErrorDescription, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import {
@@ -57,8 +57,8 @@ export class UserFormPageComponent implements OnInit, IsDirty {
         },
         error: (err) => {
           this.pageStatus = PageStatus.loadingError;
-          this.loadingErrorText = format(TEXT('Failed to load user (code={{ code }}).'), {
-            code: extractErrorCode(err)
+          this.loadingErrorText = format(TEXT('Failed to load user ({{ errorDesc }}).'), {
+            errorDesc: extractErrorDescription(err)
           });
         }
       });
@@ -429,8 +429,8 @@ export class UserFormPageComponent implements OnInit, IsDirty {
       },
       error: (err) => {
         this.pageStatus = PageStatus.savingError;
-        this.savingErrorText = format(TEXT('Failed to save user (code={{ code }}).'), {
-          code: extractErrorCode(err)
+        this.savingErrorText = format(TEXT('Failed to save user ({{ errorDesc }}).'), {
+          errorDesc: extractErrorDescription(err)
         });
       }
     });
@@ -459,8 +459,8 @@ export class UserFormPageComponent implements OnInit, IsDirty {
       },
       error: (err) => {
         this.pageStatus = PageStatus.savingError;
-        this.savingErrorText = format(TEXT('Failed to save user (code={{ code }}).'), {
-          code: extractErrorCode(err)
+        this.savingErrorText = format(TEXT('Failed to save user ({{ errorDesc }}).'), {
+          errorDesc: extractErrorDescription(err)
         });
       }
     });

@@ -64,8 +64,38 @@ export const format = (str: string, options: Record<any, any>): string => {
  * Try to extract the error code from an error object. This might
  * be provided by the RGW Admin Ops or the S3 API.
  */
-export const extractErrorCode = (err: Record<string, any>): string =>
-  err['code'] ?? (_.isString(err['error']) ? err['error'] : err['statusText']);
+export const extractErrorCode = (err: Record<string, any>): string | number =>
+  err['code'] ??
+  (_.isString(err['error'])
+    ? err['error']
+    : _.isString(err['name'])
+    ? err['name']
+    : err['statusCode']);
+
+/**
+ * Try to extract the error message from an error object.
+ */
+export const extractErrorMessage = (err: Record<string, any>): string | undefined =>
+  err['message'] ?? (_.isString(err['statusText']) ? err['statusText'] : undefined);
+
+/**
+ * Try to get an error description. Depending on what information the
+ * error object provides, this will look like:
+ * - `code=XXXXX, message=XXXXX`
+ * - `code=XXXXX`
+ * - `message=XXXXX`
+ */
+export const extractErrorDescription = (err: Record<string, any>): string | undefined => {
+  const code: string | number = extractErrorCode(err);
+  const message: string | undefined = extractErrorMessage(err);
+  return code && message
+    ? `code=${code}, message=${message}`
+    : code && !message
+    ? `code=${code}`
+    : !code && message
+    ? `message=${message}`
+    : undefined;
+};
 
 /**
  * Decorator that creates a throttled function that only invokes func at
