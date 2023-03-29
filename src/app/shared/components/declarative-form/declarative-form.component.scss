@@ -1,4 +1,7 @@
-.s3gw-declarative-form {
+form {
+  column-count: var(--s3gw-form-column-count, 1);
+  column-gap: var(--s3gw-form-column-gap, 0.5rem);
+
   .form-field {
     break-inside: avoid;
   }
