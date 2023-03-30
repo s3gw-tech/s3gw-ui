@@ -1,0 +1,8 @@
+black
+isort
+tox
+pytest
+pytest-asyncio
+pytest-cov
+pytest-mock
+pyright
