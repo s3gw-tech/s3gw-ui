@@ -43,28 +43,15 @@
     }
   }
 
-  ::ng-deep {
-    form {
-      column-count: 1;
-      column-gap: 0.5rem;
-    }
+  @media only screen and (min-width: 600px) {
+    --s3gw-form-column-count: 2;
+  }
 
-    @media only screen and (min-width: 600px) {
-      form {
-        column-count: 2;
-      }
-    }
+  @media only screen and (min-width: 1280px) {
+    --s3gw-form-column-count: 3;
+  }
 
-    @media only screen and (min-width: 1280px) {
-      form {
-        column-count: 3;
-      }
-    }
-
-    @media only screen and (min-width: 1920px) {
-      form {
-        column-count: 4;
-      }
-    }
+  @media only screen and (min-width: 1920px) {
+    --s3gw-form-column-count: 4;
   }
 }

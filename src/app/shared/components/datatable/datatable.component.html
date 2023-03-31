@@ -115,11 +115,12 @@
 </table>
 <div class="d-flex align-items-center justify-content-start">
   <div *ngIf="selectionType !== 'none'"
-       class="text-nowrap">
+       class="text-nowrap mb-3 mt-0">
     {{ selected.length }} {{ 'selected' | transloco }}
   </div>
   <div class="flex-fill"></div>
   <div *ngIf="hasPageSize"
+       class="mb-3 mt-0"
        ngbDropdown>
     <button class="btn btn-outline-default mr-2"
             ngbDropdownToggle>
@@ -148,7 +149,7 @@
       </button>
     </div>
   </div>
-  <div class="mx-4 text-nowrap">
+  <div class="mx-4 mb-3 mt-0 text-nowrap">
     {{ (page - 1) * pageSize + 1 }} - {{ page * pageSize > data.length ? data.length : page * pageSize }} {{ 'of' | transloco }} {{ data.length }}
   </div>
   <ngb-pagination [collectionSize]="data.length"

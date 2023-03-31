@@ -57,9 +57,3 @@ tbody > tr {
     --bs-dropdown-link-hover-bg: var(--bs-primary);
   }
 }
-
-:host ::ng-deep ngb-pagination {
-  .pagination {
-    margin-bottom: 0;
-  }
-}
