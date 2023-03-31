@@ -7,7 +7,7 @@ import * as _ from 'lodash';
 import { Observable, of, timer } from 'rxjs';
 import { delayWhen, map, switchMap } from 'rxjs/operators';
 
-import { extractErrorCode, format } from '~/app/functions.helper';
+import { extractErrorDescription, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { S3gwValidators } from '~/app/shared/forms/validators';
@@ -92,8 +92,8 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           },
           error: (err) => {
             this.pageStatus = PageStatus.loadingError;
-            this.loadingErrorText = format(TEXT('Failed to load bucket (code={{ code }}).'), {
-              code: extractErrorCode(err)
+            this.loadingErrorText = format(TEXT('Failed to load bucket ({{ errorDesc }}).'), {
+              errorDesc: extractErrorDescription(err)
             });
           }
         });
@@ -354,8 +354,8 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
       },
       error: (err) => {
         this.pageStatus = PageStatus.savingError;
-        this.savingErrorText = format(TEXT('Failed to save bucket (code={{ code }}).'), {
-          code: extractErrorCode(err)
+        this.savingErrorText = format(TEXT('Failed to save bucket ({{ errorDesc }}).'), {
+          errorDesc: extractErrorDescription(err)
         });
       }
     });
@@ -371,8 +371,8 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
       },
       error: (err) => {
         this.pageStatus = PageStatus.savingError;
-        this.savingErrorText = format(TEXT('Failed to save bucket (code={{ code }}).'), {
-          code: extractErrorCode(err)
+        this.savingErrorText = format(TEXT('Failed to save bucket ({{ errorDesc }}).'), {
+          errorDesc: extractErrorDescription(err)
         });
       }
     });
