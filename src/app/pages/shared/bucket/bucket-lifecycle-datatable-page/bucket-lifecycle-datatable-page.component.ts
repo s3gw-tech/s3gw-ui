@@ -312,6 +312,7 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
             name: 'days',
             label: TEXT('Expires after'),
             value: _.get(rule, 'Expiration.Days', 365),
+            hint: TEXT('Expires after the specified days since object creation.'),
             validators: {
               min: 1,
               patternType: 'numeric',
