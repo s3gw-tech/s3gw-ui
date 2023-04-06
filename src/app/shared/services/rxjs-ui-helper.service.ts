@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { concat, Observable } from 'rxjs';
+import { concat, forkJoin, Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
 import { format } from '~/app/functions.helper';
@@ -77,6 +77,43 @@ export class RxjsUiHelperService {
           },
           error: (err) => observer.error(err),
           complete: () => observer.complete()
+        });
+    });
+  }
+
+  /**
+   * Process the given observables in parallel.
+   * - Block the UI after subscription.
+   * - Create a notification after the observables have been processed
+   *   successfully.
+   * - Unblock the UI on success or failure.
+   *
+   * @param sources The observables to process.
+   * @param message The message that is displayed while the UI is
+   *   blocked.
+   * @param successNotification The notification that is displayed after
+   *   the observables have been successfully processed.
+   */
+  public forkJoin(
+    sources: Observable<any>[],
+    message: string,
+    successNotification: string
+  ): Observable<any> {
+    return new Observable((observer: any) => {
+      this.blockUI.start(translate(message));
+      forkJoin(sources)
+        .pipe(
+          finalize(() => {
+            this.blockUI.stop();
+          })
+        )
+        .subscribe({
+          next: (value: any) => observer.next(value),
+          error: (err) => observer.error(err),
+          complete: () => {
+            this.notificationService.showSuccess(translate(successNotification));
+            observer.complete();
+          }
         });
     });
   }

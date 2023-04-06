@@ -99,7 +99,11 @@ export type FormButtonConfig = {
   type: 'default' | 'submit';
   text?: string;
   class?: string;
-  click?: (buttonConfig: FormButtonConfig, values: Record<string, any>) => void;
+  // The callback that is executed when the button has been clicked.
+  // @param event The click event.
+  // @param form This form.
+  // @param buttonConfig The configuration of the clicked button.
+  click?: (event: Event, form: DeclarativeForm, buttonConfig: FormButtonConfig) => void;
 };
 
 export type DeclarativeFormValues = Record<string, any>;
@@ -107,6 +111,9 @@ export type DeclarativeFormValues = Record<string, any>;
 export interface DeclarativeForm {
   getControl(path: string): AbstractControl | null;
   get values(): DeclarativeFormValues;
+  get allValues(): DeclarativeFormValues;
+  get modifiedValues(): DeclarativeFormValues;
+  get allModifiedValues(): DeclarativeFormValues;
   patchValues(values: DeclarativeFormValues): void;
 }
 

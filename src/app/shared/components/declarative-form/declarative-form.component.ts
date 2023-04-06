@@ -86,7 +86,7 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
     const values: DeclarativeFormValues = {};
     _.forEach(this.getFields(), (field: FormFieldConfig) => {
       const control = this.getControl(field.name!);
-      if (control?.touched) {
+      if (control?.dirty) {
         values[field.name!] = this.convertToRaw(control.value, field);
       }
     });
@@ -243,7 +243,7 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
     );
     // Set initial form values.
     if (this.initValues) {
-      this.patchValues(this.initValues);
+      this.patchValues(this.initValues, false);
     }
   }
 
@@ -306,7 +306,7 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
   onButtonClick(event: Event, buttonConfig: FormButtonConfig) {
     event.stopPropagation();
     if (_.isFunction(buttonConfig.click)) {
-      buttonConfig.click(buttonConfig, this.values);
+      buttonConfig.click(event, this, buttonConfig);
     }
   }
 

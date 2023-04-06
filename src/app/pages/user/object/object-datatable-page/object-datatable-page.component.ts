@@ -24,6 +24,7 @@ import {
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
 import {
+  DeclarativeForm,
   DeclarativeFormConfig,
   DeclarativeFormValues
 } from '~/app/shared/models/declarative-form-config.type';
@@ -182,22 +183,48 @@ export class ObjectDatatablePageComponent implements OnInit {
           name: 'ContentType',
           label: TEXT('Content-Type'),
           readonly: true
+        },
+        {
+          type: 'tags',
+          name: 'TagSet',
+          label: TEXT('Tags')
         }
       ],
       buttons: [
         {
           type: 'submit',
           text: TEXT('Update'),
-          click: (buttonConfig, values: Record<string, any>): void => {
-            this.s3BucketService
-              .setObjectLegalHold(this.bid, values['Key'], values['ObjectLockLegalHoldStatus'])
-              .subscribe(() => {
-                this.notificationService.showSuccess(
+          click: (event: Event, form: DeclarativeForm): void => {
+            const sources: Observable<any>[] = [];
+            const values: DeclarativeFormValues = form.values;
+            const modifiedValues: DeclarativeFormValues = form.modifiedValues;
+            if (_.has(modifiedValues, 'TagSet')) {
+              sources.push(
+                this.s3BucketService.setObjectTagging(this.bid, values['Key'], values['TagSet'])
+              );
+            }
+            if (_.has(modifiedValues, 'ObjectLockLegalHoldStatus')) {
+              sources.push(
+                this.s3BucketService.setObjectLegalHold(
+                  this.bid,
+                  values['Key'],
+                  values['ObjectLockLegalHoldStatus']
+                )
+              );
+            }
+            if (sources.length) {
+              this.rxjsUiHelperService
+                .forkJoin(
+                  sources,
+                  format(translate(TEXT('Please wait, updating the object {{ key }}.')), {
+                    key: values['Key']
+                  }),
                   format(translate(TEXT('The object {{ key }} has been updated.')), {
                     key: values['Key']
                   })
-                );
-              });
+                )
+                .subscribe();
+            }
           }
         }
       ]
@@ -364,7 +391,8 @@ export class ObjectDatatablePageComponent implements OnInit {
                 _.defaultTo(objAttr['ObjectLockRetainUntilDate'], ''),
                 'datetime'
               ),
-              ObjectLockLegalHoldStatus: _.defaultTo(objAttr['ObjectLockLegalHoldStatus'], 'OFF')
+              ObjectLockLegalHoldStatus: _.defaultTo(objAttr['ObjectLockLegalHoldStatus'], 'OFF'),
+              TagSet: _.defaultTo(objAttr['TagSet'], [])
               /* eslint-enable @typescript-eslint/naming-convention */
             });
           }
