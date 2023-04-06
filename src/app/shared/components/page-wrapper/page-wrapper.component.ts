@@ -16,7 +16,7 @@ export enum PageStatus {
 }
 
 @Component({
-  selector: 's3gw-wrapper-status',
+  selector: 's3gw-page-wrapper',
   templateUrl: './page-wrapper.component.html',
   styleUrls: ['./page-wrapper.component.scss']
 })
