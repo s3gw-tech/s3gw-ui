@@ -15,7 +15,7 @@
     <s3gw-datatable-actions [actions]="datatableActions"
                             [table]="table">
     </s3gw-datatable-actions>
-    <s3gw-datatable-custom-top>
+    <s3gw-datatable-secondary-header>
       <div class="border d-flex flex-row align-items-center">
         <button type="button"
                 class="btn btn-light rounded-0"
@@ -51,7 +51,7 @@
           <i [class]="icons.copy"></i>
         </button>
       </div>
-    </s3gw-datatable-custom-top>
+    </s3gw-datatable-secondary-header>
     <ng-template s3gw-datatable-expanded-row-template
                  let-row="row">
       <div class="expanded-row m-3">
