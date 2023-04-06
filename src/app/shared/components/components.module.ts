@@ -11,7 +11,7 @@ import { BreadcrumbsComponent } from '~/app/shared/components/breadcrumbs/breadc
 import { DashboardWidgetComponent } from '~/app/shared/components/dashboard-widget/dashboard-widget.component';
 import { DatatableComponent } from '~/app/shared/components/datatable/datatable.component';
 import { DatatableActionsComponent } from '~/app/shared/components/datatable-actions/datatable-actions.component';
-import { DatatableCustomTopComponent } from '~/app/shared/components/datatable-custom-top/datatable-custom-top.component';
+import { DatatableSecondaryHeaderComponent } from '~/app/shared/components/datatable-secondary-header/datatable-secondary-header.component';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { LanguageButtonComponent } from '~/app/shared/components/language-button/language-button.component';
@@ -45,7 +45,7 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     DashboardWidgetComponent,
     PageTitleComponent,
     DatatableActionsComponent,
-    DatatableCustomTopComponent,
+    DatatableSecondaryHeaderComponent,
     PageActionsComponent,
     TagsInputComponent,
     NotificationBarComponent
@@ -65,7 +65,7 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     DashboardWidgetComponent,
     PageTitleComponent,
     DatatableActionsComponent,
-    DatatableCustomTopComponent,
+    DatatableSecondaryHeaderComponent,
     PageActionsComponent,
     TagsInputComponent,
     NotificationBarComponent

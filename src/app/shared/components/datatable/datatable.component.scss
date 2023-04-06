@@ -33,20 +33,28 @@ tbody > tr {
   }
 }
 
-.actions {
-  display: grid;
-  gap: 0.5rem;
-  grid-auto-flow: column;
+.datatable-primary-header {
+  .datatable-actions-container {
+    display: grid;
+    gap: 0.5rem;
+    grid-auto-flow: column;
 
-  .search {
-    &.input-group {
-      width: inherit;
-      flex-wrap: nowrap;
-    }
+    .search {
+      &.input-group {
+        width: inherit;
+        flex-wrap: nowrap;
+      }
 
-    .btn.btn-input-group {
-      --bs-btn-border-color: var(--bs-gray-400);
+      .btn.btn-input-group {
+        --bs-btn-border-color: var(--bs-gray-400);
+      }
     }
+  }
+}
+
+.datatable-secondary-header {
+  &:empty {
+    display: none;
   }
 }
 
