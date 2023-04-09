@@ -15,7 +15,9 @@
 from typing import AsyncGenerator
 
 import pytest
-from mock_server import MotoService
+
+from backend.api import S3GWClient
+from backend.tests.mock_server import MotoService
 
 
 @pytest.fixture
@@ -27,3 +29,8 @@ def anyio_backend():
 async def s3_server() -> AsyncGenerator[str, None]:
     async with MotoService("s3") as svc:
         yield svc.endpoint_url
+
+
+@pytest.fixture
+async def s3_client(s3_server: str) -> AsyncGenerator[S3GWClient, None]:
+    yield S3GWClient(s3_server, "foo", "bar")

@@ -25,6 +25,9 @@ extend_skip_glob = ["frontend/*"]
 [tool.pyright]
 
 [tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
 addopts = [
     "--cov",
     "--cov-append",

@@ -18,15 +18,13 @@ from backend.api import S3GWClient, bucket
 
 
 @pytest.mark.anyio
-async def test_api_bucket_list(s3_server: str) -> None:
-    s3gw_client = S3GWClient(s3_server, "foo", "bar")
-
+async def test_api_bucket_list(s3_client: S3GWClient) -> None:
     # create a couple of buckets
-    async with s3gw_client.conn() as client:
+    async with s3_client.conn() as client:
         await client.create_bucket(Bucket="foo")
         await client.create_bucket(Bucket="bar")
 
-    res: bucket.BucketListResponse = await bucket.get_bucket_list(s3gw_client)
+    res: bucket.BucketListResponse = await bucket.get_bucket_list(s3_client)
     assert "foo" in res.buckets
     assert "bar" in res.buckets
     assert len(res.buckets) == 2
