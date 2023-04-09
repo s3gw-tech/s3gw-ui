@@ -23,6 +23,7 @@ line_length = 80
 extend_skip_glob = ["frontend/*"]
 
 [tool.pyright]
+typeCheckingMode = "strict"
 
 [tool.pytest.ini_options]
 pythonpath = [
