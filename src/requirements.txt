@@ -1,3 +1,9 @@
 fastapi==0.95.0
 pydantic==1.10.7
 uvicorn==0.21.1
+aioboto3==11.0.1
+types-aiobotocore==2.5.0.post2
+types-aiobotocore-s3==2.5.0.post1
+# for some reason we need the lite version as well to have type annotations
+# on session.create_client(), despite what the documentation says.
+types-aiobotocore-lite==2.5.0.post2

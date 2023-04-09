@@ -22,6 +22,7 @@ from fastapi import FastAPI
 from fastapi.logger import logger
 from fastapi.staticfiles import StaticFiles
 
+from backend.api import bucket
 from backend.logging import setup_logging
 
 
@@ -65,7 +66,7 @@ def s3gw_factory(
     async def on_shutdown():  # type: ignore
         await shutdown(s3gw_app, s3gw_api)
 
-    # s3gw_api.include_router()
+    s3gw_api.include_router(bucket.router)
 
     s3gw_app.mount("/api", s3gw_api, name="api")
     if static_dir is not None:

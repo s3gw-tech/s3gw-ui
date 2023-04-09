@@ -2,4 +2,3 @@
 omit =
   backend/tests/*
   .tox/*
-  *__init__.py
