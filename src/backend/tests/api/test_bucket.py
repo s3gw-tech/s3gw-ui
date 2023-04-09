@@ -17,7 +17,7 @@ import pytest
 from backend.api import S3GWClient, bucket
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_api_bucket_list(s3_server: str) -> None:
     s3gw_client = S3GWClient(s3_server, "foo", "bar")
 

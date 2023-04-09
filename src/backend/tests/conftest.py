@@ -14,11 +14,16 @@
 
 from typing import AsyncGenerator
 
-import pytest_asyncio
+import pytest
 from mock_server import MotoService
 
 
-@pytest_asyncio.fixture  # type: ignore
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
+
+@pytest.fixture
 async def s3_server() -> AsyncGenerator[str, None]:
     async with MotoService("s3") as svc:
         yield svc.endpoint_url

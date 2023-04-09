@@ -19,7 +19,7 @@ from fastapi import HTTPException, status
 from backend.api import S3GWClient, decode_client_error, s3gw_client
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_s3gw_conn_malformed_url() -> None:
     creds = "foo:bar"
     bad_urls = [
@@ -43,7 +43,7 @@ async def test_s3gw_conn_malformed_url() -> None:
         assert error_found
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_s3gw_conn_malformed_creds() -> None:
     url = "https://foo.bar:123"
     bad_creds = [
@@ -70,7 +70,7 @@ async def test_s3gw_conn_malformed_creds() -> None:
         assert error_found
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_s3gw_conn_success() -> None:
     url = "https://foo.bar:123"
     creds = "foo:bar"
@@ -79,7 +79,7 @@ async def test_s3gw_conn_success() -> None:
     assert client is not None
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_s3gw_client_bad_endpoint() -> None:
     s3gw_client = S3GWClient("http://foo.bar", "asd", "qwe")
 
@@ -94,7 +94,7 @@ async def test_s3gw_client_bad_endpoint() -> None:
     assert raised
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_s3server(s3_server: str) -> None:
     s3gw_client = S3GWClient(s3_server, "foo", "bar")
     async with s3gw_client.conn() as client:
