@@ -51,11 +51,11 @@ class S3GWClient:
         self._secret_key = secret_key
 
     @contextlib.asynccontextmanager
-    async def conn(self) -> AsyncGenerator[S3Client, None]:
+    async def conn(self, attempts: int = 1) -> AsyncGenerator[S3Client, None]:
         """
         Yields an `aiobotocore's S3Client` instance, that can be used to
         perform operations against an S3-compatible server. In case of failure,
-        the operation does not perform more attempts.
+        by default, the operation only performs one attempt.
 
         This context manager will catch most exceptions thrown by the
         `S3Client`'s operations, and convert them to `fastapi.HTTPException`.
@@ -68,7 +68,7 @@ class S3GWClient:
             aws_secret_access_key=self._secret_key,
             config=S3Config(
                 retries={
-                    "max_attempts": 1,
+                    "max_attempts": attempts,
                     "mode": "standard",
                 }
             ),
