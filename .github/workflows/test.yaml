@@ -1,20 +1,19 @@
 ---
-name: Lint & Unit Tests for S3GW UI
+name: Lint & Unit Tests for s3gw UI
 on:
   push:
     branches:
-      - '*'
+      - "*"
   pull_request:
     branches:
-      - '*'
+      - "*"
 
 jobs:
   frontend-lint:
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Checkout S3GW UI
+      - name: Checkout s3gw UI
         uses: actions/checkout@v3
 
       - name: Set up node.js
@@ -36,8 +35,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Checkout S3GW UI
+      - name: Checkout s3gw UI
         uses: actions/checkout@v3
 
       - name: Set up node.js
@@ -54,3 +52,63 @@ jobs:
       - name: Run Unit Tests
         working-directory: src/frontend
         run: npm run test:ci
+
+  backend-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout s3gw UI
+        uses: actions/checkout@v3
+
+      - name: Install Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install tox
+        run: pip install tox
+
+      - name: Check code format
+        working-directory: src
+        run: tox -e lint
+
+  backend-types:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout s3gw UI
+        uses: actions/checkout@v3
+
+      - name: Install Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install tox
+        run: pip install tox
+
+      - name: Check types
+        working-directory: src
+        run: tox -e types
+
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout s3gw UI
+        uses: actions/checkout@v3
+
+      - name: Install Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install tox
+        run: pip install tox
+
+      - name: Run tests
+        working-directory: src
+        run: tox -e py310
