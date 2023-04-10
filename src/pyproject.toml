@@ -23,3 +23,12 @@ line_length = 80
 extend_skip_glob = ["frontend/*"]
 
 [tool.pyright]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov",
+    "--cov-append",
+    "--cov-report=term",
+    "--cov-report=xml",
+    "--cov-report=html"
+]
