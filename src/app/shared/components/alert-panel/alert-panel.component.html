@@ -1,5 +1,5 @@
 <ngb-alert *ngIf="!noColor"
-           [ngClass]="{'m-0': noMargin}"
+           [ngClass]="{'no-margin': noMargin, 'no-radius': noRadius}"
            [dismissible]="false"
            [type]="bsType">
   <ng-container *ngTemplateOutlet="renderContent"></ng-container>

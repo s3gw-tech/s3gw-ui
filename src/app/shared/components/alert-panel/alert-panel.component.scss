@@ -1,5 +1,15 @@
-.alert .mdi::before {
-  font-size: 48px;
-  line-height: 48px;
-  top: 0;
+.alert {
+  .mdi::before {
+    font-size: 48px;
+    line-height: 48px;
+    top: 0;
+  }
+
+  &.no-radius {
+    --bs-alert-border-radius: 0;
+  }
+
+  &.no-margin {
+    margin: 0;
+  }
 }

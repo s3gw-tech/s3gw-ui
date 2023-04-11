@@ -38,12 +38,21 @@ export class AlertPanelComponent implements OnInit {
     this._noMargin = coerceBooleanProperty(value);
   }
 
+  @Input()
+  get noRadius(): boolean {
+    return this._noRadius;
+  }
+  set noRadius(value: BooleanInput) {
+    this._noRadius = coerceBooleanProperty(value);
+  }
+
   public bsType = 'danger';
   public icons = Icon;
 
   private _noColor = false;
   private _noIcon = false;
   private _noMargin = false;
+  private _noRadius = false;
 
   ngOnInit(): void {
     switch (this.type) {

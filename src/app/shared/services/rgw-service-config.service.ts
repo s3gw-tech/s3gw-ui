@@ -44,7 +44,7 @@ export class RgwServiceConfigService {
         }),
         map((config: Partial<RgwServiceConfig>) => {
           // Make sure the environment variable has been replaced by a real URL.
-          if (config.url === '$RGW_SERVICE_URL') {
+          if (config?.url === '$RGW_SERVICE_URL') {
             config.url = ''; // Reset to default value.
           }
           // eslint-disable-next-line no-underscore-dangle
