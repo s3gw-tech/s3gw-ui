@@ -64,7 +64,8 @@
 </div>
 <div class="datatable-body">
   <table class="table table-hover border-top border-start border-end">
-    <thead class="table-light">
+    <thead class="table-light"
+           [ngClass]="{'sticky-top': hasStickyHeader}">
       <tr>
         <th *ngFor="let column of columns"
             scope="col"

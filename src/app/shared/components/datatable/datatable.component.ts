@@ -110,7 +110,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
 
   // Row property used as unique identifier for the shown data. Only used if
   // the row selection is enabled. Will throw an error if property not found
-  // in given columns. Defaults to 'id'.
+  // in given columns. Defaults to `id`.
   @Input()
   identifier = 'id';
 
@@ -118,7 +118,7 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   // none: no row selection
   // single: allows single-select
   // multi: allows multi-select
-  // Defaults to no row selection.
+  // Defaults to `none` (no row selection).
   @Input()
   selectionType: 'single' | 'multi' | 'none' = 'none';
 
@@ -130,12 +130,17 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
 
   // Expanded rows can be used to display additional information.
   // An additional column with an icon button to expand or collapse the row
-  // will be added automatically.
+  // will be added automatically. Defaults to `false`.
   @Input()
   hasExpandableRows = false;
 
   @Input()
   isExpandableRow?: (data: DatatableData) => boolean;
+
+  // Stick the table column header to the top of the nearest scrolling
+  // ancestor and containing block. Defaults to `true`.
+  @Input()
+  hasStickyHeader = true;
 
   @Output()
   loadData = new EventEmitter();
