@@ -14,7 +14,8 @@
 
 from typing import Annotated, List
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
+from fastapi.logger import logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel
 from types_aiobotocore_s3.type_defs import ListBucketsOutputTypeDef
@@ -42,3 +43,32 @@ async def get_bucket_list(conn: S3GWClientDep) -> BucketListResponse:
         res = BucketListResponse(buckets=buckets)
 
     return res
+
+
+@router.post(
+    "/create",
+    responses=s3gw_client_responses(),
+)
+async def bucket_create(
+    conn: S3GWClientDep, name: str, enable_object_locking: bool = False
+) -> None:
+    async with conn.conn() as s3:
+        try:
+            await s3.create_bucket(
+                Bucket=name,
+                ObjectLockEnabledForBucket=enable_object_locking,
+            )
+        except s3.exceptions.BucketAlreadyExists:
+            # everything points towards rgw (and even moto's server) to assume
+            # that creating an existing bucket is idempotent; hence this may
+            # never be called, and we are unable to exercise it via tests.
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Bucket already exists",
+            )
+        except s3.exceptions.BucketAlreadyOwnedByYou:
+            logger.error("Unexpected exception")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Bucket already owned by requester",
+            )

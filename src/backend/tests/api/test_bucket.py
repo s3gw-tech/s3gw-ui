@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+from types_aiobotocore_s3.client import Exceptions
 
 from backend.api import S3GWClient, bucket
 
@@ -28,3 +29,20 @@ async def test_api_bucket_list(s3_client: S3GWClient) -> None:
     assert "foo" in res.buckets
     assert "bar" in res.buckets
     assert len(res.buckets) == 2
+
+
+@pytest.mark.anyio
+async def test_api_bucket_create(s3_client: S3GWClient) -> None:
+    await bucket.bucket_create(s3_client, "asdasd", enable_object_locking=False)
+
+    raised = False
+    try:
+        await bucket.bucket_create(
+            s3_client, "asdasd", enable_object_locking=False
+        )
+    except Exceptions.BucketAlreadyExists:
+        raised = True
+
+    # everything seems to point to creating an already existing bucket being an
+    # idempotent operation, returning success.
+    assert not raised
