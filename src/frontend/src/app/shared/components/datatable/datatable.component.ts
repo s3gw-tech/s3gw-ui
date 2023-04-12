@@ -7,7 +7,6 @@ import {
   EventEmitter,
   Input,
   NgZone,
-  OnDestroy,
   OnInit,
   Output,
   TemplateRef,
@@ -17,7 +16,7 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
-import { Throttle } from '~/app/functions.helper';
+import { Throttle, Unsubscribe } from '~/app/functions.helper';
 import { format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { DatatableExpandedRowTemplateDirective } from '~/app/shared/directives/datatable-expanded-row-template.directive';
@@ -50,7 +49,7 @@ export enum SortDirection {
     ])
   ]
 })
-export class DatatableComponent implements Datatable, OnInit, OnDestroy {
+export class DatatableComponent implements Datatable, OnInit {
   @ViewChild('iconTpl', { static: true })
   iconTpl?: TemplateRef<any>;
   @ViewChild('checkIconTpl', { static: true })
@@ -160,6 +159,9 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   @Output()
   expandedRowsChange = new EventEmitter<DatatableData[]>();
 
+  @Unsubscribe()
+  private subscriptions: Subscription = new Subscription();
+
   ////////////////////////////////////////////////////////////////////////////
   // Internal
   public icons = Icon;
@@ -171,7 +173,6 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
   public expandedRows: DatatableData[] = [];
 
   protected _data: DatatableData[] = [];
-  protected subscriptions: Subscription = new Subscription();
 
   private sortableColumns: string[] = [];
 
@@ -276,10 +277,6 @@ export class DatatableComponent implements Datatable, OnInit, OnDestroy {
     }
     this.restoreState();
     this.applyFilters();
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 
   initTemplates() {

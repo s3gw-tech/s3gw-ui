@@ -1,5 +1,5 @@
 import { Clipboard } from '@angular/cdk/clipboard';
-import { AfterViewInit, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -14,7 +14,7 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
 
-import { bytesToSize, toBytes } from '~/app/functions.helper';
+import { bytesToSize, toBytes, Unsubscribe } from '~/app/functions.helper';
 import { S3gwValidators } from '~/app/shared/forms/validators';
 import {
   DeclarativeForm,
@@ -34,7 +34,7 @@ let nextUniqueId = 0;
   templateUrl: './declarative-form.component.html',
   styleUrls: ['./declarative-form.component.scss']
 })
-export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm, OnInit, OnDestroy {
+export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm, OnInit {
   @Input()
   config?: DeclarativeFormConfig;
 
@@ -44,6 +44,7 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
   @Input()
   initValues?: DeclarativeFormValues;
 
+  @Unsubscribe()
   private subscriptions: Subscription = new Subscription();
 
   constructor(
@@ -269,10 +270,6 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
       const control = this.getControl(path);
       control?.updateValueAndValidity({ onlySelf: true, emitEvent: true });
     });
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 
   createForm(): FormGroup {

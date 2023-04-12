@@ -17,6 +17,7 @@
     "declaration": true,
     "declarationMap": true,
     "downlevelIteration": true,
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
