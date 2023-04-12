@@ -82,6 +82,14 @@ $ tox -e py310 -- backend/tests/api/test_api.py
 $ tox -e py310 -- backend/tests/api/test_api.py::test_s3server
 ```
 
+There is one additional testing environment, not recommended unless for very
+specific purposes: `py310-with-s3gw`. This environment is not part of `tox`'s
+list of environments, and will only be run if called explicitly. It is meant to
+run against a live `s3gw` instance running at `http://127.0.0.1:7480`, to test
+both the semantic compatibility of our operations with `s3gw`, given the mock
+server we use for testing (provided by `moto`) is sometimes not exactly true to
+S3 semantics.
+
 ## Developing
 
 We rely on Python 3.10.

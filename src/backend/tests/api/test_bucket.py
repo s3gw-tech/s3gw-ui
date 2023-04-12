@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import pytest
-from types_aiobotocore_s3.client import Exceptions
+from fastapi import HTTPException, status
 
 from backend.api import S3GWClient, bucket
 
@@ -32,7 +32,9 @@ async def test_api_bucket_list(s3_client: S3GWClient) -> None:
 
 
 @pytest.mark.anyio
-async def test_api_bucket_create(s3_client: S3GWClient) -> None:
+async def test_api_bucket_create(
+    s3_client: S3GWClient, is_mock_server: bool
+) -> None:
     await bucket.bucket_create(s3_client, "asdasd", enable_object_locking=False)
 
     raised = False
@@ -40,9 +42,15 @@ async def test_api_bucket_create(s3_client: S3GWClient) -> None:
         await bucket.bucket_create(
             s3_client, "asdasd", enable_object_locking=False
         )
-    except Exceptions.BucketAlreadyExists:
+    except HTTPException as e:
+        assert e.status_code == status.HTTP_409_CONFLICT
+        assert e.detail == "Bucket already exists"
         raised = True
 
-    # everything seems to point to creating an already existing bucket being an
-    # idempotent operation, returning success.
-    assert not raised
+    # apparently the moto mock server will always return success even if a
+    # bucket already exists, whereas s3gw will be compliant with S3 semantics
+    # and return an error about the bucket already existing.
+    if is_mock_server:
+        assert not raised
+    else:
+        assert raised

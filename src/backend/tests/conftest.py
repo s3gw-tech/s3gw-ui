@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import os
 from typing import AsyncGenerator
 
 import pytest
@@ -19,10 +21,28 @@ import pytest
 from backend.api import S3GWClient
 from backend.tests.mock_server import MotoService
 
+if os.environ.get("S3GW_TEST_DEBUG") is not None:
+    logging.basicConfig(level=logging.DEBUG)
+
+
+class S3ServerEndpoint:
+    url: str
+    is_mock: bool
+
+    def __init__(self, url: str, is_mock: bool) -> None:
+        self.url = url
+        self.is_mock = is_mock
+
 
 @pytest.fixture
 def anyio_backend():
     return "asyncio"
+
+
+@pytest.fixture
+def is_mock_server() -> bool:
+    srv = os.getenv("S3GW_TEST_ENDPOINT")
+    return not (srv is not None and len(srv) > 0 and srv.startswith("http"))
 
 
 @pytest.fixture
@@ -33,4 +53,14 @@ async def s3_server() -> AsyncGenerator[str, None]:
 
 @pytest.fixture
 async def s3_client(s3_server: str) -> AsyncGenerator[S3GWClient, None]:
-    yield S3GWClient(s3_server, "foo", "bar")
+    srv = os.getenv("S3GW_TEST_ENDPOINT", s3_server)
+    access = os.getenv("S3GW_TEST_ACCESS_KEY", "foo")
+    secret = os.getenv("S3GW_TEST_SECRET_KEY", "bar")
+
+    logging.debug(f"server: {srv}, access_key: {access}, secret_key: {secret}")
+
+    assert srv is not None and len(srv) > 0
+    assert srv.startswith("http")
+    assert access is not None and len(access) > 0
+    assert secret is not None and len(secret) > 0
+    yield S3GWClient(srv, access, secret)
