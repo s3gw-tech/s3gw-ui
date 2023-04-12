@@ -9,7 +9,7 @@ on:
       - '*'
 
 jobs:
-  lint:
+  frontend-lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,14 +22,17 @@ jobs:
         with:
           node-version: 16
           cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
 
       - name: Install Dependencies
+        working-directory: src/frontend
         run: npm ci
 
       - name: Run Lint
+        working-directory: src/frontend
         run: npm run lint
 
-  test:
+  frontend-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -42,9 +45,12 @@ jobs:
         with:
           node-version: 16
           cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
 
       - name: Install Dependencies
+        working-directory: src/frontend
         run: npm ci
 
       - name: Run Unit Tests
+        working-directory: src/frontend
         run: npm run test:ci
