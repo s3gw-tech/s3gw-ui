@@ -88,6 +88,10 @@ class S3GWClient:
                     status_code=status.HTTP_501_NOT_IMPLEMENTED,
                     detail="SSL not supported",
                 )
+            except HTTPException as e:
+                # probably an error raised by yielded client context; lets
+                # propagate it.
+                raise e
             except Exception as e:
                 logger.error(f"Unknown error: {e}")
                 logger.error(f"  exception: {type(e)}")
