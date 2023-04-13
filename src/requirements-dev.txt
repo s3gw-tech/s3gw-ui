@@ -6,3 +6,4 @@ pytest-cov
 pytest-mock
 pyright
 moto[server,s3]
+pytest-httpx
