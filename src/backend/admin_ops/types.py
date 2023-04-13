@@ -45,6 +45,29 @@ class QuotaInfo(BaseModel):
     max_objects: int
 
 
+class UserKeys(BaseModel):
+    user: str
+    access_key: str
+    secret_key: str
+
+
+class UserInfo(BaseModel):
+    tenant: str
+    user_id: str
+    display_name: str
+    email: str
+    suspended: bool
+    max_buckets: int
+    subusers: List[Any]
+    keys: List[UserKeys]
+    caps: List[Any]
+    op_mask: str
+    system: bool
+    admin: bool
+    bucket_quota: QuotaInfo
+    user_quota: QuotaInfo
+
+
 class Bucket(BaseModel):
     id: str
     bucket: str
