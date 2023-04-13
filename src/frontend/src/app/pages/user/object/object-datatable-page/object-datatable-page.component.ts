@@ -36,8 +36,8 @@ import {
   S3DeleteObjectOutput,
   S3GetObjectAttributesOutput,
   S3GetObjectOutput,
-  S3Object,
-  S3Objects,
+  S3ObjectVersion,
+  S3ObjectVersionList,
   S3UploadProgress
 } from '~/app/shared/services/api/s3-bucket.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
@@ -62,7 +62,7 @@ export class ObjectDatatablePageComponent implements OnInit {
 
   public datatableActions: DatatableAction[];
   public bid: AWS.S3.Types.BucketName = '';
-  public objects: S3Objects = [];
+  public objects: S3ObjectVersionList = [];
   public datatableColumns: DatatableColumn[] = [];
   public icons = Icon;
   public pageActions: PageAction[];
@@ -73,7 +73,8 @@ export class ObjectDatatablePageComponent implements OnInit {
   public expandedRowFormConfig: DeclarativeFormConfig;
 
   private firstLoadComplete = false;
-  private versioningEnabled = false;
+  private objectNumVersions: Record<AWS.S3.Types.ObjectKey, number> = {};
+  private showDeletedObjects = false;
 
   constructor(
     private clipboard: Clipboard,
@@ -91,7 +92,7 @@ export class ObjectDatatablePageComponent implements OnInit {
         type: 'button',
         text: TEXT('Folder'),
         icon: this.icons.folderPlus,
-        callback: (event: Event) => this.doCreateFolder()
+        callback: () => this.doCreateFolder()
       },
       {
         type: 'file',
@@ -106,7 +107,8 @@ export class ObjectDatatablePageComponent implements OnInit {
         enabledConstraints: {
           minSelected: 1
         },
-        callback: (event: Event, table: Datatable) => this.doDownload(table.selected)
+        callback: (event: Event, action: DatatableAction, table: Datatable) =>
+          this.doDownload(table.selected)
       },
       {
         type: 'button',
@@ -115,7 +117,27 @@ export class ObjectDatatablePageComponent implements OnInit {
         enabledConstraints: {
           minSelected: 1
         },
-        callback: (event: Event, table: Datatable) => this.doDelete(table.selected)
+        callback: (event: Event, action: DatatableAction, table: Datatable) =>
+          this.doDelete(table.selected)
+      },
+      {
+        type: 'divider'
+      },
+      {
+        type: 'button',
+        icon: this.icons.show,
+        tooltip: TEXT('Show deleted objects'),
+        callback: (event: Event, action: DatatableAction, table: Datatable) => {
+          this.showDeletedObjects = !this.showDeletedObjects;
+          if (this.showDeletedObjects) {
+            action.icon = this.icons.hide;
+            action.tooltip = translate(TEXT('Hide deleted objects'));
+          } else {
+            action.icon = this.icons.show;
+            action.tooltip = translate(TEXT('Show deleted objects'));
+          }
+          table.reloadData();
+        }
       }
     ];
     this.pageActions = [
@@ -139,6 +161,38 @@ export class ObjectDatatablePageComponent implements OnInit {
           name: 'Size',
           label: TEXT('Size'),
           readonly: true
+        },
+        {
+          type: 'text',
+          name: 'VersionId',
+          label: TEXT('Latest Version ID'),
+          readonly: true,
+          modifiers: [
+            {
+              type: 'hidden',
+              constraint: {
+                operator: 'eq',
+                arg0: { prop: 'VersionId' },
+                arg1: 'null'
+              }
+            }
+          ]
+        },
+        {
+          type: 'text',
+          name: 'NumVersions',
+          label: TEXT('Number Of Versions'),
+          readonly: true,
+          modifiers: [
+            {
+              type: 'hidden',
+              constraint: {
+                operator: 'eq',
+                arg0: { prop: 'VersionId' },
+                arg1: 'null'
+              }
+            }
+          ]
         },
         {
           type: 'text',
@@ -267,6 +321,20 @@ export class ObjectDatatablePageComponent implements OnInit {
         cellTemplateName: DatatableCellTemplateName.localeDateTime
       },
       {
+        name: TEXT('Version'),
+        prop: 'IsDeleted',
+        hidden: true,
+        cellTemplateName: DatatableCellTemplateName.badge,
+        cellTemplateConfig: {
+          map: {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            true: { value: TEXT('Deleted'), class: 'badge-outline danger' },
+            false: { value: TEXT('Latest'), class: 'badge-outline success' }
+            /* eslint-enable @typescript-eslint/naming-convention */
+          }
+        }
+      },
+      {
         name: '',
         prop: '',
         cellTemplateName: DatatableCellTemplateName.actionMenu,
@@ -279,30 +347,40 @@ export class ObjectDatatablePageComponent implements OnInit {
         return;
       }
       this.bid = decodeURIComponent(value['bid']);
-      // Check if bucket versioning is enabled.
-      this.subscriptions.add(
-        this.s3BucketService
-          .getVersioning(this.bid)
-          .subscribe((versioningEnabled: boolean) => (this.versioningEnabled = versioningEnabled))
-      );
     });
   }
 
   loadData(): void {
     this.objects = [];
     this.objectAttrsCache = {};
+    this.objectNumVersions = {};
     this.pageStatus = !this.firstLoadComplete ? PageStatus.loading : PageStatus.reloading;
     this.subscriptions.add(
       this.s3BucketService
-        .listObjects(this.bid, this.s3BucketService.buildPrefix(this.prefixParts, true))
+        .listObjectVersions(this.bid, this.s3BucketService.buildPrefix(this.prefixParts, true))
         .pipe(
           finalize(() => {
             this.firstLoadComplete = true;
           })
         )
         .subscribe({
-          next: (objects: S3Objects) => {
-            this.objects = [...this.objects, ...objects];
+          next: (objects: S3ObjectVersionList) => {
+            // Cache the number of versions per object.
+            _.forEach(objects, (object: S3ObjectVersion) => {
+              const count = _.get(this.objectNumVersions, object.Key!, 0) + 1;
+              this.objectNumVersions[object.Key!] = count;
+            });
+            const newObjects: S3ObjectVersionList = _.filter(objects, {
+              /* eslint-disable @typescript-eslint/naming-convention */
+              IsLatest: true,
+              IsDeleted: false
+              /* eslint-enable @typescript-eslint/naming-convention */
+            });
+            // @ts-ignore
+            if (this.showDeletedObjects) {
+              newObjects.push(..._.filter(objects, ['IsDeleted', true]));
+            }
+            this.objects = [...this.objects, ...newObjects];
           },
           complete: () => {
             this.pageStatus = PageStatus.ready;
@@ -321,7 +399,7 @@ export class ObjectDatatablePageComponent implements OnInit {
   }
 
   onRowSelection(event: any): void {
-    const [row, column] = [...event] as [S3Object, DatatableColumn];
+    const [row, column] = [...event] as [S3ObjectVersion, DatatableColumn];
     // Process row selection if:
     // - it's a folder
     // - the action or checkbox column is not clicked
@@ -331,13 +409,14 @@ export class ObjectDatatablePageComponent implements OnInit {
     }
   }
 
-  onActionMenu(object: S3Object): DatatableRowAction[] {
+  onActionMenu(object: S3ObjectVersion): DatatableRowAction[] {
     const result: DatatableRowAction[] = [];
     if ('OBJECT' === object.Type) {
       result.push(
         {
           title: TEXT('Download'),
           icon: this.icons.download,
+          disabled: object.IsDeleted,
           callback: (data: DatatableData) => this.doDownload([data])
         },
         {
@@ -346,6 +425,7 @@ export class ObjectDatatablePageComponent implements OnInit {
         {
           title: TEXT('Delete'),
           icon: this.icons.delete,
+          disabled: object.IsDeleted,
           callback: (data: DatatableData) => this.doDelete([data])
         }
       );
@@ -370,20 +450,40 @@ export class ObjectDatatablePageComponent implements OnInit {
   }
 
   isExpandableRow(): (data: DatatableData) => boolean {
-    return (data: DatatableData): boolean => (data as S3Object).Type === 'OBJECT';
+    return (data: DatatableData): boolean => (data as S3ObjectVersion).Type === 'OBJECT';
   }
 
   onExpandedRowsChange(event: any): void {
     this.loadingObjectAttrsKeys = [];
-    const objects: S3Objects = event as S3Objects;
+    const objects: S3ObjectVersionList = event as S3ObjectVersionList;
     const sources: Observable<S3GetObjectAttributesOutput>[] = [];
-    _.forEach(objects, (object: S3Object) => {
+    _.forEach(objects, (object: S3ObjectVersion) => {
       const key: AWS.S3.Types.ObjectKey = object.Key!;
       // Only load the object attributes of those rows that haven't been
       // loaded yet.
       if (!_.has(this.objectAttrsCache, key)) {
         this.loadingObjectAttrsKeys.push(key);
-        sources.push(this.s3BucketService.getObjectAttributes(this.bid, key));
+        // Attention, deleted objects must be treated differently. It
+        // is not possible to get more information than already exists.
+        // because of that we can directly append them to the list of
+        // cached object attributes.
+        // For non-deleted objects fetch the extra object attributes.
+        if (object.IsDeleted) {
+          this.objectAttrsCache[object.Key!] = _.merge({}, object, {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            Size: bytesToSize(object.Size),
+            LastModified: this.localeDatePipe.transform(object.LastModified!, 'datetime'),
+            ETag: _.trim(object.ETag, '"'),
+            ObjectLockMode: 'NONE',
+            ObjectLockRetainUntilDate: '',
+            ObjectLockLegalHoldStatus: 'OFF',
+            TagSet: [],
+            NumVersions: this.objectNumVersions[object.Key!]
+            /* eslint-enable @typescript-eslint/naming-convention */
+          });
+        } else {
+          sources.push(this.s3BucketService.getObjectAttributes(this.bid, key, object.VersionId));
+        }
       }
     });
     this.subscriptions.add(
@@ -393,7 +493,7 @@ export class ObjectDatatablePageComponent implements OnInit {
           // Append the data of those expanded rows that haven't been
           // loaded yet.
           _.forEach(objAttrs, (objAttr: Record<string, any>) => {
-            const object: S3Object | undefined = _.find(objects, ['Key', objAttr['Key']]);
+            const object: S3ObjectVersion | undefined = _.find(objects, ['Key', objAttr['Key']]);
             if (object) {
               // Append modified (transformed) data.
               _.merge(objAttr, {
@@ -407,7 +507,8 @@ export class ObjectDatatablePageComponent implements OnInit {
                   'datetime'
                 ),
                 ObjectLockLegalHoldStatus: _.defaultTo(objAttr['ObjectLockLegalHoldStatus'], 'OFF'),
-                TagSet: _.defaultTo(objAttr['TagSet'], [])
+                TagSet: _.defaultTo(objAttr['TagSet'], []),
+                NumVersions: this.objectNumVersions[object.Key!]
                 /* eslint-enable @typescript-eslint/naming-convention */
               });
             }
@@ -483,35 +584,26 @@ export class ObjectDatatablePageComponent implements OnInit {
   }
 
   private doDelete(selected: DatatableData[]): void {
-    this.modalDialogService.confirmDeletion<S3Object>(
-      selected as S3Object[],
+    const objects = selected as S3ObjectVersionList;
+    this.modalDialogService.confirmDeletion<S3ObjectVersion>(
+      objects,
       'danger',
       {
-        singular: TEXT(
-          'Do you really want to delete the object <strong>{{ name }}</strong>?'
-        ).concat(
-          this.versioningEnabled
-            ? '<br>' + TEXT('Note, this will also remove all versions of the object.')
-            : ''
-        ),
-        singularFmtArgs: (value: S3Object) => ({ name: value.Key }),
-        plural: TEXT(
-          'Do you really want to delete these <strong>{{ count }}</strong> objects?'
-        ).concat(
-          this.versioningEnabled
-            ? '<br>' + TEXT('Note, this will also remove all versions of the objects.')
-            : ''
-        )
+        singular: TEXT('Do you really want to delete the object <strong>{{ name }}</strong>?'),
+        singularFmtArgs: (value: S3ObjectVersion) => ({ name: value.Key }),
+        plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> objects?')
       },
       () => {
         const sources: Observable<S3DeleteObjectOutput>[] = [];
-        _.forEach(selected, (data: DatatableData) => {
-          switch (data['Type']) {
+        _.forEach(objects, (object: S3ObjectVersion) => {
+          switch (object.Type) {
             case 'FOLDER':
-              sources.push(this.s3BucketService.deleteObjects(this.bid, data['Key']));
+              sources.push(this.s3BucketService.deleteObjects(this.bid, object.Key!, false));
               break;
             case 'OBJECT':
-              sources.push(this.s3BucketService.deleteObject(this.bid, data['Key']));
+              sources.push(
+                this.s3BucketService.deleteObject(this.bid, object.Key!, object.VersionId)
+              );
               break;
           }
         });

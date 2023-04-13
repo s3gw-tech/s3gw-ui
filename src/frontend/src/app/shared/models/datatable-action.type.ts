@@ -6,7 +6,7 @@ export type DatatableAction = {
   text?: string;
   icon?: string;
   tooltip?: string;
-  callback?: (event: Event, table: Datatable) => void;
+  callback?: (event: Event, action: DatatableAction, table: Datatable) => void;
   // The constraints that must be fulfilled to enable this action.
   enabledConstraints?: {
     minSelected?: number;

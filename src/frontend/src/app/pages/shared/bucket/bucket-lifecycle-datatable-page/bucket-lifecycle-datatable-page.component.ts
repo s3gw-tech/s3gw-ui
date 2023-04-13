@@ -60,7 +60,7 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
         enabledConstraints: {
           minSelected: 1
         },
-        callback: (event: Event, table: Datatable) =>
+        callback: (event: Event, action: DatatableAction, table: Datatable) =>
           this.doDelete(table.selected as AWS.S3.Types.LifecycleRules)
       }
     ];

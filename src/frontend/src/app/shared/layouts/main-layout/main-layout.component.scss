@@ -42,7 +42,7 @@ $notifications-width: 350px;
       right: -$notifications-width;
       top: calc(#{dv.$s3gw-site-header-height} - 1px);
       transition: right 0.3s;
-      z-index: 1030; // Must be > than Bootstraps `.sticky-top`
+      z-index: 1021; // Must be > than Bootstraps $zindex-sticky
 
       &.visible {
         right: 0;

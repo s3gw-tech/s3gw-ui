@@ -44,6 +44,11 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
   @Input()
   initValues?: DeclarativeFormValues;
 
+  // Show/hide the form footer which contains the `buttons` specified in
+  // `config`.
+  @Input()
+  hasFooter?: boolean = true;
+
   @Unsubscribe()
   private subscriptions: Subscription = new Subscription();
 
@@ -262,6 +267,13 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
           if (['visible', 'hidden'].includes(modifier.type)) {
             const props = ConstraintService.getProps(modifier.constraint);
             fieldsToUpdate.push(...props);
+            // If the field itself is in the dependency list, then we need
+            // to apply the modifier manually because the field has not
+            // subscribed itself to `valueChanges` events which is triggered
+            // some lines below via `updateValueAndValidity`.
+            if (props.length === 1 && props.includes(field.name!)) {
+              this.applyModifier(field, modifier);
+            }
           }
         });
       }

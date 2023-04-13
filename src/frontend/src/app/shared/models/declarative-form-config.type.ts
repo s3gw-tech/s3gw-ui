@@ -104,6 +104,7 @@ export type FormButtonConfig = {
   // @param form This form.
   // @param buttonConfig The configuration of the clicked button.
   click?: (event: Event, form: DeclarativeForm, buttonConfig: FormButtonConfig) => void;
+  disabled?: boolean;
 };
 
 export type DeclarativeFormValues = Record<string, any>;
