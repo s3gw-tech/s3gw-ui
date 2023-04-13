@@ -126,3 +126,19 @@ export const isEqualOrUndefined = (value: any, other: any) => {
   }
   return _.isEqual(value, other);
 };
+
+/**
+ * A property decorator that automatically unsubscribes observables.
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
+export function Unsubscribe() {
+  return (target: any, propertyKey: string) => {
+    const originalFn = target.ngOnDestroy;
+    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+    target.ngOnDestroy = function () {
+      const property = this[propertyKey];
+      property?.unsubscribe?.();
+      originalFn?.apply?.(this, arguments);
+    };
+  };
+}

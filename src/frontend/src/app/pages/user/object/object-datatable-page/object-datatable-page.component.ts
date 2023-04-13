@@ -6,10 +6,10 @@ import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { forkJoin, merge, Observable, of, timer } from 'rxjs';
+import { forkJoin, merge, Observable, of, Subscription, timer } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 
-import { bytesToSize, format } from '~/app/functions.helper';
+import { bytesToSize, format, Unsubscribe } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
@@ -57,6 +57,9 @@ export class ObjectDatatablePageComponent implements OnInit {
   @ViewChild('nameColumnTpl', { static: true })
   nameColumnTpl?: TemplateRef<any>;
 
+  @Unsubscribe()
+  private subscriptions: Subscription = new Subscription();
+
   public datatableActions: DatatableAction[];
   public bid: AWS.S3.Types.BucketName = '';
   public objects: S3Objects = [];
@@ -70,6 +73,7 @@ export class ObjectDatatablePageComponent implements OnInit {
   public expandedRowFormConfig: DeclarativeFormConfig;
 
   private firstLoadComplete = false;
+  private versioningEnabled = false;
 
   constructor(
     private clipboard: Clipboard,
@@ -213,17 +217,19 @@ export class ObjectDatatablePageComponent implements OnInit {
               );
             }
             if (sources.length) {
-              this.rxjsUiHelperService
-                .forkJoin(
-                  sources,
-                  format(translate(TEXT('Please wait, updating the object {{ key }}.')), {
-                    key: values['Key']
-                  }),
-                  format(translate(TEXT('The object {{ key }} has been updated.')), {
-                    key: values['Key']
-                  })
-                )
-                .subscribe();
+              this.subscriptions.add(
+                this.rxjsUiHelperService
+                  .forkJoin(
+                    sources,
+                    format(translate(TEXT('Please wait, updating the object {{ key }}.')), {
+                      key: values['Key']
+                    }),
+                    format(translate(TEXT('The object {{ key }} has been updated.')), {
+                      key: values['Key']
+                    })
+                  )
+                  .subscribe()
+              );
             }
           }
         }
@@ -273,6 +279,12 @@ export class ObjectDatatablePageComponent implements OnInit {
         return;
       }
       this.bid = decodeURIComponent(value['bid']);
+      // Check if bucket versioning is enabled.
+      this.subscriptions.add(
+        this.s3BucketService
+          .getVersioning(this.bid)
+          .subscribe((versioningEnabled: boolean) => (this.versioningEnabled = versioningEnabled))
+      );
     });
   }
 
@@ -280,25 +292,27 @@ export class ObjectDatatablePageComponent implements OnInit {
     this.objects = [];
     this.objectAttrsCache = {};
     this.pageStatus = !this.firstLoadComplete ? PageStatus.loading : PageStatus.reloading;
-    this.s3BucketService
-      .listObjects(this.bid, this.s3BucketService.buildPrefix(this.prefixParts, true))
-      .pipe(
-        finalize(() => {
-          this.firstLoadComplete = true;
+    this.subscriptions.add(
+      this.s3BucketService
+        .listObjects(this.bid, this.s3BucketService.buildPrefix(this.prefixParts, true))
+        .pipe(
+          finalize(() => {
+            this.firstLoadComplete = true;
+          })
+        )
+        .subscribe({
+          next: (objects: S3Objects) => {
+            this.objects = [...this.objects, ...objects];
+          },
+          complete: () => {
+            this.pageStatus = PageStatus.ready;
+          },
+          error: () => {
+            this.objects = [];
+            this.pageStatus = PageStatus.loadingError;
+          }
         })
-      )
-      .subscribe({
-        next: (objects: S3Objects) => {
-          this.objects = [...this.objects, ...objects];
-        },
-        complete: () => {
-          this.pageStatus = PageStatus.ready;
-        },
-        error: () => {
-          this.objects = [];
-          this.pageStatus = PageStatus.loadingError;
-        }
-      });
+    );
   }
 
   onPrefixSelect(index: number): void {
@@ -372,40 +386,42 @@ export class ObjectDatatablePageComponent implements OnInit {
         sources.push(this.s3BucketService.getObjectAttributes(this.bid, key));
       }
     });
-    forkJoin(sources)
-      .pipe(finalize(() => (this.loadingObjectAttrsKeys = [])))
-      .subscribe((objAttrs: S3GetObjectAttributesOutput[]) => {
-        // Append the data of those expanded rows that haven't been
-        // loaded yet.
-        _.forEach(objAttrs, (objAttr: Record<string, any>) => {
-          const object: S3Object | undefined = _.find(objects, ['Key', objAttr['Key']]);
-          if (object) {
-            // Append modified (transformed) data.
-            _.merge(objAttr, {
-              /* eslint-disable @typescript-eslint/naming-convention */
-              Size: bytesToSize(object.Size),
-              LastModified: this.localeDatePipe.transform(object.LastModified!, 'datetime'),
-              ETag: _.trim(objAttr['ETag'], '"'),
-              ObjectLockMode: _.defaultTo(objAttr['ObjectLockMode'], 'NONE'),
-              ObjectLockRetainUntilDate: this.localeDatePipe.transform(
-                _.defaultTo(objAttr['ObjectLockRetainUntilDate'], ''),
-                'datetime'
-              ),
-              ObjectLockLegalHoldStatus: _.defaultTo(objAttr['ObjectLockLegalHoldStatus'], 'OFF'),
-              TagSet: _.defaultTo(objAttr['TagSet'], [])
-              /* eslint-enable @typescript-eslint/naming-convention */
-            });
-          }
-          this.objectAttrsCache[objAttr['Key']] = objAttr;
-        });
-        // Purge collapsed rows.
-        this.objectAttrsCache = _.pickBy(
-          this.objectAttrsCache,
-          (value, key: AWS.S3.Types.ObjectKey) => {
-            return 0 <= _.findIndex(objects, ['Key', key]);
-          }
-        );
-      });
+    this.subscriptions.add(
+      forkJoin(sources)
+        .pipe(finalize(() => (this.loadingObjectAttrsKeys = [])))
+        .subscribe((objAttrs: S3GetObjectAttributesOutput[]) => {
+          // Append the data of those expanded rows that haven't been
+          // loaded yet.
+          _.forEach(objAttrs, (objAttr: Record<string, any>) => {
+            const object: S3Object | undefined = _.find(objects, ['Key', objAttr['Key']]);
+            if (object) {
+              // Append modified (transformed) data.
+              _.merge(objAttr, {
+                /* eslint-disable @typescript-eslint/naming-convention */
+                Size: bytesToSize(object.Size),
+                LastModified: this.localeDatePipe.transform(object.LastModified!, 'datetime'),
+                ETag: _.trim(objAttr['ETag'], '"'),
+                ObjectLockMode: _.defaultTo(objAttr['ObjectLockMode'], 'NONE'),
+                ObjectLockRetainUntilDate: this.localeDatePipe.transform(
+                  _.defaultTo(objAttr['ObjectLockRetainUntilDate'], ''),
+                  'datetime'
+                ),
+                ObjectLockLegalHoldStatus: _.defaultTo(objAttr['ObjectLockLegalHoldStatus'], 'OFF'),
+                TagSet: _.defaultTo(objAttr['TagSet'], [])
+                /* eslint-enable @typescript-eslint/naming-convention */
+              });
+            }
+            this.objectAttrsCache[objAttr['Key']] = objAttr;
+          });
+          // Purge collapsed rows.
+          this.objectAttrsCache = _.pickBy(
+            this.objectAttrsCache,
+            (value, key: AWS.S3.Types.ObjectKey) => {
+              return 0 <= _.findIndex(objects, ['Key', key]);
+            }
+          );
+        })
+    );
   }
 
   private doDownload(selected: DatatableData[]): void {
@@ -414,7 +430,7 @@ export class ObjectDatatablePageComponent implements OnInit {
       sources.push(this.s3BucketService.downloadObject(this.bid, data['Key']))
     );
     // Download the files in parallel.
-    merge(...sources).subscribe();
+    this.subscriptions.add(merge(...sources).subscribe());
   }
 
   private doUpload(fileList: FileList | null): void {
@@ -426,42 +442,44 @@ export class ObjectDatatablePageComponent implements OnInit {
         total: fileList.length
       })
     );
-    this.s3BucketService
-      .uploadObjects(this.bid, fileList, this.s3BucketService.buildPrefix(this.prefixParts))
-      .pipe(finalize(() => this.blockUI.stop()))
-      .subscribe({
-        next: (progress: S3UploadProgress) => {
-          this.blockUI.update(
-            format(
-              translate(
-                TEXT(
-                  'Please wait, uploading {{ loaded }} of {{ total }} object(s) ({{ percent }}%) ...'
-                )
-              ),
-              {
-                loaded: progress.loaded,
-                total: progress.total,
-                percent: Math.round((Number(progress.loaded) / Number(progress.total)) * 100)
-              }
-            )
-          );
-        },
-        complete: () => {
-          this.notificationService.showSuccess(
-            format(translate(TEXT('{{ total }} object(s) have been successfully uploaded.')), {
-              total: fileList.length
-            })
-          );
-          this.loadData();
-        },
-        error: (err: Error) => {
-          this.notificationService.showError(
-            format(translate(TEXT('Failed to upload the objects: {{ error }}')), {
-              error: err.message
-            })
-          );
-        }
-      });
+    this.subscriptions.add(
+      this.s3BucketService
+        .uploadObjects(this.bid, fileList, this.s3BucketService.buildPrefix(this.prefixParts))
+        .pipe(finalize(() => this.blockUI.stop()))
+        .subscribe({
+          next: (progress: S3UploadProgress) => {
+            this.blockUI.update(
+              format(
+                translate(
+                  TEXT(
+                    'Please wait, uploading {{ loaded }} of {{ total }} object(s) ({{ percent }}%) ...'
+                  )
+                ),
+                {
+                  loaded: progress.loaded,
+                  total: progress.total,
+                  percent: Math.round((Number(progress.loaded) / Number(progress.total)) * 100)
+                }
+              )
+            );
+          },
+          complete: () => {
+            this.notificationService.showSuccess(
+              format(translate(TEXT('{{ total }} object(s) have been successfully uploaded.')), {
+                total: fileList.length
+              })
+            );
+            this.loadData();
+          },
+          error: (err: Error) => {
+            this.notificationService.showError(
+              format(translate(TEXT('Failed to upload the objects: {{ error }}')), {
+                error: err.message
+              })
+            );
+          }
+        })
+    );
   }
 
   private doDelete(selected: DatatableData[]): void {
@@ -469,9 +487,21 @@ export class ObjectDatatablePageComponent implements OnInit {
       selected as S3Object[],
       'danger',
       {
-        singular: TEXT('Do you really want to delete the object <strong>{{ name }}</strong>?'),
+        singular: TEXT(
+          'Do you really want to delete the object <strong>{{ name }}</strong>?'
+        ).concat(
+          this.versioningEnabled
+            ? '<br>' + TEXT('Note, this will also remove all versions of the object.')
+            : ''
+        ),
         singularFmtArgs: (value: S3Object) => ({ name: value.Key }),
-        plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> objects?')
+        plural: TEXT(
+          'Do you really want to delete these <strong>{{ count }}</strong> objects?'
+        ).concat(
+          this.versioningEnabled
+            ? '<br>' + TEXT('Note, this will also remove all versions of the objects.')
+            : ''
+        )
       },
       () => {
         const sources: Observable<S3DeleteObjectOutput>[] = [];
@@ -485,23 +515,25 @@ export class ObjectDatatablePageComponent implements OnInit {
               break;
           }
         });
-        this.rxjsUiHelperService
-          .concat<S3DeleteObjectOutput>(
-            sources,
-            {
-              start: TEXT('Please wait, deleting {{ total }} object(s) ...'),
-              next: TEXT(
-                'Please wait, deleting object {{ current }} of {{ total }} ({{ percent }}%) ...'
-              )
-            },
-            {
-              next: TEXT('The object {{ name }} has been deleted.'),
-              nextFmtArgs: (output: S3DeleteObjectOutput) => ({ name: output.Key })
-            }
-          )
-          .subscribe({
-            complete: () => this.loadData()
-          });
+        this.subscriptions.add(
+          this.rxjsUiHelperService
+            .concat<S3DeleteObjectOutput>(
+              sources,
+              {
+                start: TEXT('Please wait, deleting {{ total }} object(s) ...'),
+                next: TEXT(
+                  'Please wait, deleting object {{ current }} of {{ total }} ({{ percent }}%) ...'
+                )
+              },
+              {
+                next: TEXT('The object {{ name }} has been deleted.'),
+                nextFmtArgs: (output: S3DeleteObjectOutput) => ({ name: output.Key })
+              }
+            )
+            .subscribe({
+              complete: () => this.loadData()
+            })
+        );
       }
     );
   }
