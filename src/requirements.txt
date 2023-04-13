@@ -9,3 +9,7 @@ types-aiobotocore-s3==2.5.0.post1
 
 # already a dependency of fastapi, but we are now explicitly using it.
 anyio==3.6.2
+
+# httpx is easier than aiohttp for what we want, so we'll bite the bullet of
+# an additional dependency.
+httpx==0.24.0
