@@ -1,3 +1,6 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable @typescript-eslint/member-ordering */
+import { BooleanInput, coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AbstractControl, FormGroup } from '@angular/forms';
 import * as _ from 'lodash';
@@ -16,6 +19,16 @@ export class SubmitButtonComponent implements OnInit {
 
   @Output()
   buttonClick = new EventEmitter<Event>();
+
+  @Input()
+  get disabled(): boolean {
+    return this._disabled;
+  }
+  set disabled(value: BooleanInput) {
+    this._disabled = coerceBooleanProperty(value);
+  }
+
+  private _disabled = false;
 
   constructor() {}
 

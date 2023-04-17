@@ -22,6 +22,7 @@ export enum Icon {
   apps = 'mdi mdi-apps',
   dotsVertical = 'mdi mdi-dots-vertical',
   show = 'mdi mdi-eye',
+  hide = 'mdi mdi-eye-off',
   file = 'mdi mdi-file',
   folder = 'mdi mdi-folder-open',
   folderOpen = 'mdi mdi-folder-open',

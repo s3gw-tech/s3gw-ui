@@ -56,7 +56,8 @@ export class BucketDatatablePageComponent {
         enabledConstraints: {
           minSelected: 1
         },
-        callback: (event: Event, table: Datatable) => this.doDelete(table.selected)
+        callback: (event: Event, action: DatatableAction, table: Datatable) =>
+          this.doDelete(table.selected)
       }
     ];
     this.datatableColumns = [

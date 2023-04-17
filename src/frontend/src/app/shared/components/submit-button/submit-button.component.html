@@ -1,6 +1,7 @@
 <button type="submit"
         class="btn btn-submit"
         [attr.form]="formId"
-        (click)="onSubmit($event)">
+        (click)="onSubmit($event)"
+        [disabled]="disabled">
   <ng-content></ng-content>
 </button>
