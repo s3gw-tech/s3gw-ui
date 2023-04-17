@@ -20,29 +20,22 @@ from types_aiobotocore_s3.literals import ObjectLockRetentionModeType
 from types_aiobotocore_s3.type_defs import TagTypeDef
 
 
-class AdminOpsError(Exception):
-    _msg: str | None
-    _code: int
-
-    def __init__(self, code: int, msg: str | None = None) -> None:
-        self._msg = msg
-        self._code = code
-
-    @property
-    def msg(self) -> str:
-        return self._msg if self._msg is not None else ""
-
-    @property
-    def code(self) -> int:
-        return self._code
-
-
 class QuotaInfo(BaseModel):
     enabled: bool
     check_on_raw: bool
     max_size: int
     max_size_kb: int
     max_objects: int
+
+
+class UserStatistics(BaseModel):
+    size: int
+    size_actual: int
+    size_utilized: int
+    size_kb: int
+    size_kb_actual: int
+    size_kb_utilized: int
+    num_objects: int
 
 
 class UserKeys(BaseModel):
@@ -66,6 +59,52 @@ class UserInfo(BaseModel):
     admin: bool
     bucket_quota: QuotaInfo
     user_quota: QuotaInfo
+    stats: Optional[UserStatistics]
+
+
+class AuthUser(BaseModel):
+    user_id: str
+    display_name: str
+    is_admin: bool
+
+
+def to_dashes(s: str) -> str:
+    return s.replace("_", "-")
+
+
+class ParamsModel(BaseModel):
+    class Config:
+        alias_generator = to_dashes
+        allow_population_by_field_name = True
+
+
+class UserOpParams(ParamsModel):
+    uid: str
+    display_name: Optional[str] = Field(default=None)
+    email: Optional[str] = Field(default=None)
+    key_type: Optional[Literal["s3"]] = Field(default=None)
+    access_key: Optional[str] = Field(default=None)
+    secret_key: Optional[str] = Field(default=None)
+    user_caps: Optional[str] = Field(default=None)
+    generate_key: Optional[bool] = Field(default=None)
+    max_buckets: Optional[int] = Field(default=None)
+    suspended: Optional[bool] = Field(default=None)
+    tenant: Optional[str] = Field(default=None)
+
+
+class UserKeyOpParams(ParamsModel):
+    uid: str
+    key_type: Optional[Literal["s3"]] = Field(default=None)
+    access_key: Optional[str] = Field(default=None)
+    secret_key: Optional[str] = Field(default=None)
+    generate_key: Optional[bool] = Field(default=None)
+
+
+class UserQuotaOpParams(ParamsModel):
+    max_objects: Optional[int] = Field(default=None)
+    max_size: Optional[int] = Field(default=None)
+    quota_type: Literal["user"] | Literal["bucket"]
+    enabled: bool
 
 
 class Bucket(BaseModel):
