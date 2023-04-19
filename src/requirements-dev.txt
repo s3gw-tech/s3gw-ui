@@ -1,0 +1,8 @@
+black
+isort
+tox
+pytest
+pytest-cov
+pytest-mock
+pyright
+moto[server,s3]
