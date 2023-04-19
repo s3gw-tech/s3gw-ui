@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, TypedDict
+from typing import Any, Dict, List, TypedDict
 
-import httpx
 from pydantic import parse_obj_as
 
-from backend.admin_ops import signed_request
-from backend.admin_ops.types import AdminOpsError, Bucket
+from backend.admin_ops import do_request
+from backend.admin_ops.types import Bucket
 
 
 class OptionalUIDParam(TypedDict, total=False):
@@ -40,24 +39,16 @@ async def list(
     bucket available in the system. If `uid` is specified, returns only those
     buckets owned by the specified user id.
     """
-    params: BucketListParams = {
-        "stats": True,
-    }
+    params: Dict[str, Any] = {"stats": True}
     if uid is not None and len(uid) > 0:
         params["uid"] = uid
 
-    req = signed_request(
-        access=access_key,
-        secret=secret_key,
+    res = await do_request(
+        url=url,
+        access_key=access_key,
+        secret_key=secret_key,
+        endpoint="/admin/bucket",
         method="GET",
-        url=f"{url}/admin/bucket",
-        params=dict(params),
-        headers={"Accept": "application/json"},
+        params=params,
     )
-
-    async with httpx.AsyncClient() as client:
-        res: httpx.Response = await client.send(req)
-        if not res.is_success:
-            raise AdminOpsError(res.status_code)
-
-        return parse_obj_as(List[Bucket], res.json())
+    return parse_obj_as(List[Bucket], res.json())

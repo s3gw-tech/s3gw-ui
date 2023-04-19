@@ -30,7 +30,6 @@ from backend.admin_ops.types import (
     UserQuotaOpParams,
 )
 from backend.admin_ops.users import (
-    _model_to_params,
     create,
     create_key,
     delete,
@@ -42,24 +41,6 @@ from backend.admin_ops.users import (
     quota_update,
     update,
 )
-
-
-def test_model_to_params() -> None:
-    res = _model_to_params(
-        UserKeyOpParams(
-            uid="foo",
-            key_type="s3",
-            access_key="bar",
-            secret_key="baz",
-            generate_key=True,
-        )
-    )
-    assert "uid" in res
-    assert "key-type" in res and res["key-type"] == "s3"
-    assert "access-key" in res and res["access-key"] == "bar"
-    assert "secret-key" in res and res["secret-key"] == "baz"
-    assert "generate-key" in res and res["generate-key"] == True
-
 
 res_user_info_json = {
     "tenant": "",
@@ -147,7 +128,7 @@ async def test_list_uids(mocker: MockerFixture) -> None:
         assert params is None
         return httpx.Response(status_code=200, json=["foo", "bar"])
 
-    mocker.patch("backend.admin_ops.users._do_request", new=_mock_do_request)
+    mocker.patch("backend.admin_ops.users.do_request", new=_mock_do_request)
     res = await list_uids("http://fail.tld", access_key="asd", secret_key="qwe")
     assert isinstance(res, list)
     assert len(res) == 2
@@ -241,7 +222,7 @@ async def test_create_user(mocker: MockerFixture) -> None:
         info.display_name = "Foo"
         return httpx.Response(status_code=200, json=info.dict())
 
-    mocker.patch("backend.admin_ops.users._do_request", new=_mock_do_request)
+    mocker.patch("backend.admin_ops.users.do_request", new=_mock_do_request)
     res = await create(
         "http://fail.tld",
         access_key="asd",
@@ -275,7 +256,7 @@ async def test_delete_user(mocker: MockerFixture) -> None:
         assert "uid" in params and params["uid"] == "foo"
         return httpx.Response(status_code=200)
 
-    mocker.patch("backend.admin_ops.users._do_request", _mock_do_request)
+    mocker.patch("backend.admin_ops.users.do_request", _mock_do_request)
     await delete(
         "http://fail.tld",
         access_key="asd",
@@ -313,7 +294,7 @@ async def test_update_user(mocker: MockerFixture) -> None:
             json=info.dict(),
         )
 
-    mocker.patch("backend.admin_ops.users._do_request", _mock_do_request)
+    mocker.patch("backend.admin_ops.users.do_request", _mock_do_request)
     res = await update(
         "http://fail.tld",
         access_key="asd",
@@ -356,7 +337,7 @@ async def test_create_key(mocker: MockerFixture) -> None:
             ],
         )
 
-    mocker.patch("backend.admin_ops.users._do_request", _mock_do_request)
+    mocker.patch("backend.admin_ops.users.do_request", _mock_do_request)
     res = await create_key(
         "http://fail.tld",
         access_key="asd",
@@ -401,7 +382,7 @@ async def test_get_user_keys(mocker: MockerFixture) -> None:
             json=info.dict(),
         )
 
-    mocker.patch("backend.admin_ops.users._do_request", _mock_do_request)
+    mocker.patch("backend.admin_ops.users.do_request", _mock_do_request)
     res = await get_keys(
         "http://fail.tld", access_key="asd", secret_key="qwe", uid="foo"
     )
@@ -432,7 +413,7 @@ async def test_delete_user_key(mocker: MockerFixture) -> None:
         assert "access-key" in params and params["access-key"] == "asdasd"
         return httpx.Response(status_code=200)
 
-    mocker.patch("backend.admin_ops.users._do_request", _mock_do_request)
+    mocker.patch("backend.admin_ops.users.do_request", _mock_do_request)
     await delete_key(
         "http://fail.tld",
         access_key="asd",
@@ -465,7 +446,7 @@ async def test_quota_update(mocker: MockerFixture) -> None:
         assert "enabled" in params and params["enabled"] == True
         return httpx.Response(status_code=200)
 
-    mocker.patch("backend.admin_ops.users._do_request", _mock_do_request)
+    mocker.patch("backend.admin_ops.users.do_request", _mock_do_request)
     await quota_update(
         "http://fail.tld",
         access_key="asd",

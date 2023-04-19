@@ -19,7 +19,8 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 from backend.admin_ops.buckets import list
-from backend.admin_ops.types import AdminOpsError, Bucket
+from backend.admin_ops.errors import AdminOpsError
+from backend.admin_ops.types import Bucket
 
 bucket_list_response: List[Dict[str, Any]] = [
     {

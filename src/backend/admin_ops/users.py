@@ -13,62 +13,21 @@
 # limitations under the License.
 
 import asyncio
-from typing import Any, Dict, List, Literal, cast
+from typing import Any, Dict, List, cast
 
-import httpx
 from pydantic import parse_obj_as
 
-from backend.admin_ops import signed_request
-from backend.admin_ops.errors import MissingParameterError, error_from_response
+from backend.admin_ops import do_request
+from backend.admin_ops.errors import MissingParameterError
 from backend.admin_ops.types import (
     AuthUser,
-    ParamsModel,
     UserInfo,
     UserKeyOpParams,
     UserKeys,
     UserOpParams,
     UserQuotaOpParams,
+    params_model_to_params,
 )
-
-
-def _model_to_params(model: ParamsModel) -> Dict[str, Any]:
-    """
-    Translates a `UserOpParams` class to a dictionary we can consume as
-    parameters for an admin ops api request.
-    """
-    return {k: v for k, v in model.dict(by_alias=True).items() if v is not None}
-
-
-HTTPMethodType = (
-    Literal["GET"] | Literal["POST"] | Literal["PUT"] | Literal["DELETE"]
-)
-
-
-async def _do_request(
-    *,
-    url: str,
-    access_key: str,
-    secret_key: str,
-    endpoint: str,
-    method: HTTPMethodType,
-    params: Dict[str, Any] | None = None,
-) -> httpx.Response:
-    ep = endpoint if endpoint.startswith("/") else f"/{endpoint}"
-
-    req = signed_request(
-        access=access_key,
-        secret=secret_key,
-        method=method,
-        url=f"{url}{ep}",
-        params=params,
-    )
-
-    async with httpx.AsyncClient() as client:
-        res: httpx.Response = await client.send(req)
-        if not res.is_success:
-            raise error_from_response(res)
-
-        return res
 
 
 async def get_user_info(
@@ -86,7 +45,7 @@ async def get_user_info(
     if uid is not None and len(uid) > 0:
         params["uid"] = uid
 
-    res = await _do_request(
+    res = await do_request(
         url=url,
         access_key=access_key,
         secret_key=secret_key,
@@ -113,7 +72,7 @@ async def get_auth_user(url: str, access_key: str, secret_key: str) -> AuthUser:
 async def list_uids(url: str, access_key: str, secret_key: str) -> List[str]:
     """Obtain a list of all user ids."""
 
-    res = await _do_request(
+    res = await do_request(
         url=url,
         access_key=access_key,
         secret_key=secret_key,
@@ -166,9 +125,9 @@ async def create(
 
     user.key_type = "s3"
 
-    params: Dict[str, Any] = _model_to_params(user)
+    params: Dict[str, Any] = params_model_to_params(user)
 
-    res = await _do_request(
+    res = await do_request(
         url=url,
         access_key=access_key,
         secret_key=secret_key,
@@ -183,7 +142,7 @@ async def delete(url: str, access_key: str, secret_key: str, uid: str) -> None:
     """Deletes a user, specified by `uid`."""
 
     params = {"uid": uid}
-    await _do_request(
+    await do_request(
         url=url,
         access_key=access_key,
         secret_key=secret_key,
@@ -198,8 +157,8 @@ async def update(
 ) -> UserInfo:
     """Modifies a user, setting the values specified by `user`."""
 
-    params: Dict[str, Any] = _model_to_params(user)
-    res = await _do_request(
+    params: Dict[str, Any] = params_model_to_params(user)
+    res = await do_request(
         url=url,
         access_key=access_key,
         secret_key=secret_key,
@@ -215,8 +174,8 @@ async def create_key(
 ) -> List[UserKeys]:
     """Creates a new key for a user specified in `key_params`."""
 
-    params: Dict[str, Any] = _model_to_params(key_params)
-    res = await _do_request(
+    params: Dict[str, Any] = params_model_to_params(key_params)
+    res = await do_request(
         url=url,
         access_key=access_key,
         secret_key=secret_key,
@@ -246,7 +205,7 @@ async def delete_key(
     """Deletes the key `user_access_key` from user `uid`."""
 
     params: Dict[str, str] = {"uid": uid, "access-key": user_access_key}
-    await _do_request(
+    await do_request(
         url=url,
         access_key=access_key,
         secret_key=secret_key,
@@ -268,10 +227,10 @@ async def quota_update(
     assert quota.quota_type is not None
     assert quota.quota_type == "user"
 
-    params: Dict[str, Any] = _model_to_params(quota)
+    params: Dict[str, Any] = params_model_to_params(quota)
     params["uid"] = uid
 
-    await _do_request(
+    await do_request(
         url=url,
         access_key=access_key,
         secret_key=secret_key,

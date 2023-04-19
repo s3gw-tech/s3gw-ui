@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from datetime import datetime as dt
-from typing import Any, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 from types_aiobotocore_s3.literals import ObjectLockRetentionModeType
@@ -105,6 +105,14 @@ class UserQuotaOpParams(ParamsModel):
     max_size: Optional[int] = Field(default=None)
     quota_type: Literal["user"] | Literal["bucket"]
     enabled: bool
+
+
+def params_model_to_params(model: ParamsModel) -> Dict[str, Any]:
+    """
+    Translates a `ParamsModel` class to a dictionary we can consume as
+    parameters for an admin ops api request.
+    """
+    return {k: v for k, v in model.dict(by_alias=True).items() if v is not None}
 
 
 class Bucket(BaseModel):

@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict
+from typing import Any, Dict, Literal
 
 import httpx
 from botocore.auth import HmacV1Auth
 from botocore.awsrequest import AWSRequest
 from botocore.credentials import Credentials
+
+from backend.admin_ops.errors import error_from_response
 
 
 def signed_request(
@@ -52,3 +54,35 @@ def signed_request(
         data=awsreq.data,
         headers=dict(awsreq.headers),
     )
+
+
+HTTPMethodType = (
+    Literal["GET"] | Literal["POST"] | Literal["PUT"] | Literal["DELETE"]
+)
+
+
+async def do_request(
+    *,
+    url: str,
+    access_key: str,
+    secret_key: str,
+    endpoint: str,
+    method: HTTPMethodType,
+    params: Dict[str, Any] | None = None,
+) -> httpx.Response:
+    ep = endpoint if endpoint.startswith("/") else f"/{endpoint}"
+
+    req = signed_request(
+        access=access_key,
+        secret=secret_key,
+        method=method,
+        url=f"{url}{ep}",
+        params=params,
+    )
+
+    async with httpx.AsyncClient() as client:
+        res: httpx.Response = await client.send(req)
+        if not res.is_success:
+            raise error_from_response(res)
+
+        return res
