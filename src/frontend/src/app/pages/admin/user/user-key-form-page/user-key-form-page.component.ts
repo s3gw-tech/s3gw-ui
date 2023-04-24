@@ -98,7 +98,11 @@ export class UserKeyFormPageComponent implements OnInit, IsDirty {
             requiredIf: {
               operator: 'falsy',
               arg0: { prop: 'generate_key' }
-            }
+            },
+            // https://docs.aws.amazon.com/IAM/latest/APIReference/API_AccessKey.html
+            pattern: /^[\w]+$/,
+            minLength: 16,
+            maxLength: 128
           },
           modifiers: [
             {
