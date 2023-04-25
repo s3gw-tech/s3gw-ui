@@ -99,6 +99,9 @@ export class UserFormPageComponent implements OnInit, IsDirty {
           autofocus: !editing,
           validators: {
             required: true,
+            // minLength: 16,
+            maxLength: 128,
+            pattern: /^[\w]+$/,
             asyncCustom: this.userIdValidator()
           }
         },
@@ -109,7 +112,10 @@ export class UserFormPageComponent implements OnInit, IsDirty {
           value: '',
           autofocus: editing,
           validators: {
-            required: true
+            required: true,
+            minLength: 1,
+            maxLength: 64,
+            pattern: /^[\w+=,.@-]+$/
           }
         },
         {
