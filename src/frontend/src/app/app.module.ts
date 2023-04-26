@@ -11,7 +11,7 @@ import { getCurrentLanguage, setTranslationService } from '~/app/i18n.helper';
 import { PagesModule } from '~/app/pages/pages.module';
 import { AppConfigService } from '~/app/shared/services/app-config.service';
 import { HttpErrorInterceptorService } from '~/app/shared/services/http-error-interceptor.service';
-import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
+import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 import { SharedModule } from '~/app/shared/shared.module';
 import { TranslocoRootModule } from '~/app/transloco-root.module';
 
@@ -40,10 +40,9 @@ import { TranslocoRootModule } from '~/app/transloco-root.module';
     },
     {
       provide: APP_INITIALIZER,
-      useFactory: (rgwServiceConfigService: RgwServiceConfigService) => () =>
-        rgwServiceConfigService.load(),
+      useFactory: (s3gwConfigService: S3gwConfigService) => () => s3gwConfigService.load(),
       multi: true,
-      deps: [RgwServiceConfigService]
+      deps: [S3gwConfigService]
     },
     {
       provide: APP_INITIALIZER,

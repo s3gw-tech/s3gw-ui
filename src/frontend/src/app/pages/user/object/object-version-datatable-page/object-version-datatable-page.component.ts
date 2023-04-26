@@ -1,7 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
@@ -19,9 +18,11 @@ import {
 import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
 import {
+  S3BucketName,
   S3BucketService,
   S3ObjectVersion,
-  S3ObjectVersionList
+  S3ObjectVersionList,
+  S3Prefix
 } from '~/app/shared/services/api/s3-bucket.service';
 import { BlockUiService } from '~/app/shared/services/block-ui.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
@@ -38,8 +39,8 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
   @Unsubscribe()
   private subscriptions: Subscription = new Subscription();
 
-  public bid: AWS.S3.Types.BucketName = '';
-  public prefix: AWS.S3.Types.Prefix = '';
+  public bid: S3BucketName = '';
+  public prefix: S3Prefix = '';
   public objects: S3ObjectVersionList = [];
   public datatableActions: DatatableAction[] = [];
   public datatableColumns: DatatableColumn[] = [];

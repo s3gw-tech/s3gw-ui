@@ -133,7 +133,7 @@ async def test_get_object_list(
         ),
     )
 
-    res = await objects.get_object_list(s3_client, "test01")
+    res = await objects.list_objects(s3_client, "test01")
     assert [
         Object(
             Name="file2.txt",
@@ -217,7 +217,7 @@ async def test_get_object_list_truncated(
         ],
     )
 
-    res = await objects.get_object_list(s3_client, "test01")
+    res = await objects.list_objects(s3_client, "test01")
     assert s3api_mock.mocked_fn["list_objects_v2"].call_count == 2
     assert [
         Object(
@@ -259,7 +259,7 @@ async def test_get_object_list_truncated(
 async def test_get_object_list_failure(
     s3_client: S3GWClient,
 ) -> None:
-    res = await objects.get_object_list(s3_client, bucket_name="not-exists")
+    res = await objects.list_objects(s3_client, bucket="not-exists")
     assert res is None
 
 
@@ -326,7 +326,7 @@ async def test_object_exists_failure_2(
         await objects.object_exists(
             s3_client, "test01", ObjectRequest(Key="foo.jpg")
         )
-    assert e.value.status_code == 404
+    assert e.value.status_code == 500
     assert e.value.detail == "No such key"
 
 
@@ -354,7 +354,7 @@ async def test_get_object(s3_client: S3GWClient, mocker: MockerFixture) -> None:
         ),
     )
 
-    res: Object = await objects.head_object(
+    res: Object = await objects.get_object(
         s3_client, "test01", ObjectRequest(Key="a/b/file1.jpg")
     )
     assert res.Key == "a/b/file1.jpg"
@@ -366,7 +366,7 @@ async def test_get_object(s3_client: S3GWClient, mocker: MockerFixture) -> None:
 
 
 @pytest.mark.anyio
-async def test_get_object_versions_list(
+async def test_list_object_versions(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
     s3api_mock = S3ApiMock(s3_client, mocker)
@@ -432,7 +432,7 @@ async def test_get_object_versions_list(
         ),
     )
 
-    res = await objects.get_object_versions_list(s3_client, "test01")
+    res = await objects.list_object_versions(s3_client, "test01")
     assert [
         ObjectVersion(
             Key="file2.txt",
@@ -510,6 +510,108 @@ async def test_get_object_versions_list(
             IsLatest=True,
         ),
     ] == res
+
+
+@pytest.mark.anyio
+async def test_list_object_versions_truncated(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(  # pyright: ignore [reportUnusedExpression]
+        "list_object_versions",
+        side_effect=[
+            async_return(
+                {
+                    "IsTruncated": True,
+                    "NextKeyMarker": "asd3asffg4564s124dsdf",
+                    "KeyMarker": "",
+                    "VersionIdMarker": "",
+                    "Versions": [
+                        {
+                            "Key": "file2.txt",
+                            "VersionId": "xSM0CTxpTuqAWDIuHQSP67RKo4.KtoT",
+                            "LastModified": "2023-08-23T12:14:49.483000+00:00",
+                            "ETag": '"d41d8cd98f00b204e9800998ecf8427e-1"',
+                            "ObjectLockMode": None,
+                            "ObjectLockRetainUntilDate": None,
+                            "ObjectLockLegalHoldStatus": None,
+                            "Owner": {
+                                "DisplayName": "M. Tester",
+                                "ID": "testid",
+                            },
+                            "ContentType": None,
+                            "Name": "file2.txt",
+                            "Size": 514,
+                            "Type": "OBJECT",
+                            "IsDeleted": False,
+                            "IsLatest": False,
+                        },
+                        {
+                            "Key": "file2.txt",
+                            "VersionId": "FaWVIZOlsGpB6AkMw9Cv3LdfPtobjtz",
+                            "LastModified": "2023-08-23T12:14:45.444000+00:00",
+                            "ETag": '"d41d8cd98f00b204e9800998ecf8427e-1"',
+                            "ObjectLockMode": None,
+                            "ObjectLockRetainUntilDate": None,
+                            "ObjectLockLegalHoldStatus": None,
+                            "Owner": {
+                                "DisplayName": "M. Tester",
+                                "ID": "testid",
+                            },
+                            "ContentType": None,
+                            "Name": "file2.txt",
+                            "Size": 410,
+                            "Type": "OBJECT",
+                            "IsDeleted": False,
+                            "IsLatest": False,
+                        },
+                    ],
+                    "Name": "test01",
+                    "Prefix": "",
+                    "Delimiter": "/",
+                    "MaxKeys": 1000,
+                }
+            ),
+            async_return(
+                {
+                    "IsTruncated": False,
+                    "KeyMarker": "",
+                    "VersionIdMarker": "",
+                    "Versions": [
+                        {
+                            "Key": "file2.txt",
+                            "VersionId": "7itOD2kyqXLrMD2HYDp.uqT1Izr9Pa9",
+                            "LastModified": "2023-08-23T12:18:56.685000+00:00",
+                            "ETag": '"d41d8cd98f00b204e9800998ecf8427e-1"',
+                            "ObjectLockMode": None,
+                            "ObjectLockRetainUntilDate": None,
+                            "ObjectLockLegalHoldStatus": None,
+                            "Owner": {
+                                "DisplayName": "M. Tester",
+                                "ID": "testid",
+                            },
+                            "ContentType": None,
+                            "Name": "file2.txt",
+                            "Size": 423,
+                            "Type": "OBJECT",
+                            "IsDeleted": False,
+                            "IsLatest": True,
+                        }
+                    ],
+                    "Name": "test01",
+                    "Prefix": "",
+                    "Delimiter": "/",
+                    "MaxKeys": 1000,
+                }
+            ),
+        ],
+    ),
+
+    res = await objects.list_object_versions(s3_client, "test01")
+    assert res is not None
+    assert len(res) == 3
+    assert len([obj for obj in res if obj.Type == "FOLDER"]) == 0
+    assert len([obj for obj in res if obj.IsDeleted is True]) == 0
 
 
 @pytest.mark.anyio
@@ -595,7 +697,7 @@ async def test_get_object_tagging_failure_3(
         await objects.get_object_tagging(
             s3_client, "test01", ObjectRequest(Key="baz.md")
         )
-    assert e.value.status_code == 404
+    assert e.value.status_code == 500
     assert e.value.detail == "No such key"
 
 
@@ -708,7 +810,7 @@ async def test_get_object_retention_failure_3(
         "get_object_retention",
         side_effect=(
             ClientError(
-                {"Error": {"Code": "NoSuchKey"}}, "get_object_retention"
+                {"Error": {"Code": "FooBarBaz"}}, "get_object_retention"
             ),
         ),
     )
@@ -717,8 +819,8 @@ async def test_get_object_retention_failure_3(
         await objects.get_object_retention(
             s3_client, "test01", ObjectRequest(Key="baz.md")
         )
-    assert e.value.status_code == 404
-    assert e.value.detail == "No such key"
+    assert e.value.status_code == 500
+    assert e.value.detail == "Foo bar baz"
 
 
 @pytest.mark.anyio
@@ -783,9 +885,7 @@ async def test_get_object_legal_hold_failure_3(
     s3api_mock.patch(
         "get_object_legal_hold",
         side_effect=(
-            ClientError(
-                {"Error": {"Code": "NoSuchKey"}}, "get_object_legal_hold"
-            ),
+            ClientError({"Error": {"Code": "FooBar"}}, "get_object_legal_hold"),
         ),
     )
 
@@ -793,8 +893,8 @@ async def test_get_object_legal_hold_failure_3(
         await objects.get_object_legal_hold(
             s3_client, "test01", ObjectRequest(Key="abc.jpg")
         )
-    assert e.value.status_code == 404
-    assert e.value.detail == "No such key"
+    assert e.value.status_code == 500
+    assert e.value.detail == "Foo bar"
 
 
 @pytest.mark.anyio
@@ -1011,6 +1111,21 @@ async def test_restore_object(
 ) -> None:
     s3api_mock = S3ApiMock(s3_client, mocker)
     s3api_mock.patch(
+        "list_object_versions",
+        return_value=async_return(
+            {
+                "DeleteMarkers": [
+                    {
+                        "Key": "a/b/file2.txt",
+                        "VersionId": "453bhjb6553hb34j53j5bj34jhjh",
+                        "IsLatest": True,
+                    }
+                ]
+            }
+        ),
+    )
+    s3api_mock.patch("delete_objects", return_value=async_return(None))
+    s3api_mock.patch(
         "copy_object",
         return_value=async_return(
             {
@@ -1030,25 +1145,27 @@ async def test_restore_object(
         ),
     )
 
-    res: Object = await objects.restore_object(
+    await objects.restore_object(
         s3_client,
         "test01",
         RestoreObjectRequest(
             Key="a/b/file2.txt", VersionId="F2b5Z0ezvNExjWH3lolr1BUfOn17Zw6"
         ),
     )
-    assert res.Name == "file2.txt"
-    assert res.Key == "a/b/file2.txt"
-    assert res.Type == "OBJECT"
-    assert res.LastModified == datetime.datetime(
-        2023,
-        8,
-        3,
-        7,
-        38,
-        32,
-        206000,
+    s3api_mock.mocked_fn["list_object_versions"].assert_called()
+    s3api_mock.mocked_fn["delete_objects"].assert_called_with(
+        Bucket="test01",
+        Delete={
+            "Objects": [
+                {
+                    "Key": "a/b/file2.txt",
+                    "VersionId": "453bhjb6553hb34j53j5bj34jhjh",
+                }
+            ],
+            "Quiet": True,
+        },
     )
+    s3api_mock.mocked_fn["copy_object"].assert_called()
 
 
 @pytest.mark.anyio
@@ -1056,6 +1173,11 @@ async def test_restore_object_failure(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
     s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "list_object_versions",
+        return_value=async_return({}),
+    )
+    s3api_mock.patch("delete_objects", return_value=async_return(None))
     s3api_mock.patch(
         "copy_object",
         side_effect=ClientError(
@@ -1073,6 +1195,7 @@ async def test_restore_object_failure(
             ),
         )
     assert e.value.status_code == 500
+    s3api_mock.mocked_fn["delete_objects"].assert_not_called()
 
 
 @pytest.mark.anyio

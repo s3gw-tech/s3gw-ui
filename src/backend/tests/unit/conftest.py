@@ -14,16 +14,12 @@
 
 import logging
 import os
-from typing import Any, AsyncGenerator
+from typing import AsyncGenerator
 
 import pytest
-from fastapi import status
-from pytest_mock import MockerFixture
+from fastapi import Response
 
-from backend.admin_ops.types import Bucket as AdminOpsBucket
-from backend.admin_ops.types import QuotaInfo
 from backend.api import S3GWClient
-from backend.s3gw.errors import S3GWError
 from backend.tests.unit.moto_server import MotoService
 
 if os.environ.get("S3GW_TEST_DEBUG") is not None:
@@ -72,51 +68,5 @@ async def s3_client(s3_server: str) -> AsyncGenerator[S3GWClient, None]:
 
 
 @pytest.fixture
-async def mock_get_bucket(
-    s3_client: S3GWClient, mocker: MockerFixture
-) -> AsyncGenerator[None, Any]:
-    async def _mock_get_bucket(
-        url: str, access_key: str, secret_key: str, bucket_name: str
-    ) -> AdminOpsBucket:
-        print(f"obtain mock bucket: {bucket_name}")
-        async with s3_client.conn() as client:
-            lst = await client.list_buckets()
-            if "Buckets" not in lst:
-                raise S3GWError(status.HTTP_500_INTERNAL_SERVER_ERROR)
-            buckets = lst["Buckets"]
-            for b in buckets:
-                if "Name" not in b:
-                    print(f"WHAT: {b}")
-                    print(f"WHAT: {buckets}")
-                    assert False
-
-                if b["Name"] == bucket_name:
-                    assert "CreationDate" in b
-                    ctime = b["CreationDate"]
-                    ret = AdminOpsBucket(
-                        id="asd",
-                        bucket=bucket_name,
-                        owner="asd",
-                        marker="asd",
-                        index_type="asd",
-                        ver="asd",
-                        master_ver="asd",
-                        mtime=ctime,
-                        creation_time=ctime,
-                        max_marker="asd",
-                        usage=None,
-                        bucket_quota=QuotaInfo(
-                            enabled=False,
-                            check_on_raw=False,
-                            max_size=1000,
-                            max_size_kb=1000,
-                            max_objects=1000,
-                        ),
-                    )
-                    print(f"ret bucket: {ret}")
-                    return ret
-
-            raise S3GWError(status.HTTP_404_NOT_FOUND)
-
-    mocker.patch("backend.admin_ops.buckets.get_bucket", new=_mock_get_bucket)
-    yield
+def response():
+    return Response()

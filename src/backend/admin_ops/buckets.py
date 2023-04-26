@@ -56,16 +56,16 @@ async def list_buckets(
     return parse_obj_as(List[Bucket], res.json())
 
 
-async def get_bucket(
+async def get_bucket_info(
     url: str,
     access_key: str,
     secret_key: str,
-    bucket_name: str,
+    bucket: str,
 ) -> Bucket:
     """
-    See https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#get-bucket
+    See https://docs.ceph.com/en/latest/radosgw/adminops/#get-bucket-info
     """
-    params: Dict[str, Any] = {"bucket": bucket_name, "max-keys": 0}
+    params: Dict[str, Any] = {"bucket": bucket, "max-keys": 0}
     res = await do_request(
         url=url,
         access_key=access_key,
@@ -75,3 +75,51 @@ async def get_bucket(
         params=params,
     )
     return parse_obj_as(Bucket, res.json())
+
+
+async def delete_bucket(
+    url: str,
+    access_key: str,
+    secret_key: str,
+    bucket: str,
+    purge_objects: bool = True,
+) -> str:
+    """
+    See https://docs.ceph.com/en/latest/radosgw/adminops/#remove-bucket
+    """
+    params: Dict[str, Any] = {"bucket": bucket, "purge-objects": purge_objects}
+    await do_request(
+        url=url,
+        access_key=access_key,
+        secret_key=secret_key,
+        endpoint="/admin/bucket",
+        method="DELETE",
+        params=params,
+    )
+    return bucket
+
+
+async def link_bucket(
+    url: str,
+    access_key: str,
+    secret_key: str,
+    bucket: str,
+    bucket_id: str,
+    uid: str,
+) -> None:
+    """
+    See https://docs.ceph.com/en/latest/radosgw/adminops/#link-bucket
+    """
+    params: Dict[str, Any] = {
+        "bucket": bucket,
+        "bucket-id": bucket_id,
+        "uid": uid,
+    }
+    await do_request(
+        url=url,
+        access_key=access_key,
+        secret_key=secret_key,
+        endpoint="/admin/bucket",
+        method="PUT",
+        params=params,
+    )

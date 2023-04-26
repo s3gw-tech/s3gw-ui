@@ -27,7 +27,7 @@ describe('S3UserService', () => {
 
   it('should call stats', () => {
     service.stats().subscribe();
-    const req = httpTesting.expectOne('/?usage=');
+    const req = httpTesting.expectOne('/admin/users/bar/usage-stats');
     expect(req.request.method).toBe('GET');
   });
 });

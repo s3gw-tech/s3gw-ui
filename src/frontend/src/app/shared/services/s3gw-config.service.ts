@@ -4,20 +4,21 @@ import * as _ from 'lodash';
 import { EMPTY, Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
-type RgwServiceConfig = {
-  url: string;
+export type S3gwConfig = {
+  apiUrl: string;
   delimiter: string;
+  url: string;
 };
 
 @Injectable({
   providedIn: 'root'
 })
-export class RgwServiceConfigService {
-  private _config: RgwServiceConfig = { url: '', delimiter: '/' };
+export class S3gwConfigService {
+  private _config: S3gwConfig = { apiUrl: '', delimiter: '/', url: '' };
 
   constructor(private http: HttpClient) {}
 
-  get config(): RgwServiceConfig {
+  get config(): S3gwConfig {
     // eslint-disable-next-line no-underscore-dangle
     return this._config;
   }
@@ -25,11 +26,11 @@ export class RgwServiceConfigService {
   /**
    * Load the configuration file.
    */
-  public load(): Observable<RgwServiceConfig> {
+  public load(): Observable<S3gwConfig> {
     // Try to load the configuration file containing the information
     // to access the RGW.
     return this.http
-      .get<Partial<RgwServiceConfig>>('assets/rgw_service.config.json', {
+      .get<Partial<S3gwConfig>>('assets/rgw_service.config.json', {
         headers: {
           /* eslint-disable @typescript-eslint/naming-convention */
           'Cache-Control': 'no-cache',
@@ -42,8 +43,11 @@ export class RgwServiceConfigService {
           err.preventDefault?.();
           return EMPTY;
         }),
-        map((config: Partial<RgwServiceConfig>) => {
-          // Make sure the environment variable has been replaced by a real URL.
+        map((config: Partial<S3gwConfig>) => {
+          // Make sure the environment variables have been replaced by real URLs.
+          if (config?.apiUrl === '$S3GW_UI_API_URL') {
+            config.apiUrl = 'api/'; // Reset to default value.
+          }
           if (config?.url === '$RGW_SERVICE_URL') {
             config.url = ''; // Reset to default value.
           }
@@ -58,6 +62,6 @@ export class RgwServiceConfigService {
    */
   public isValid(): boolean {
     // At the moment it is enough to check if the URL is empty.
-    return this.config.url !== '';
+    return this.config.apiUrl !== '' && this.config.url !== '';
   }
 }

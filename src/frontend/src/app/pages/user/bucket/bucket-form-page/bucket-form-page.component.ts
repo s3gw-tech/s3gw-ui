@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { Observable, of, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -14,7 +13,11 @@ import { S3gwValidators } from '~/app/shared/forms/validators';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { IsDirty } from '~/app/shared/models/is-dirty.interface';
 import { PageAction } from '~/app/shared/models/page-action.type';
-import { S3BucketAttributes, S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
+import {
+  S3BucketAttributes,
+  S3BucketName,
+  S3BucketService
+} from '~/app/shared/services/api/s3-bucket.service';
 
 @Component({
   selector: 's3gw-bucket-form-page',
@@ -50,7 +53,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
         this.pageStatus = PageStatus.ready;
         return;
       }
-      const bid: AWS.S3.Types.BucketName = decodeURIComponent(value['bid']);
+      const bid: S3BucketName = decodeURIComponent(value['bid']);
       this.pageActions = [
         {
           type: 'button',

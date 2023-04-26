@@ -16,11 +16,11 @@ from typing import Any, Dict, List
 
 import httpx
 import pytest
+from fastapi import HTTPException
 from pytest_httpx import HTTPXMock
 
-from backend.admin_ops.buckets import list_buckets
+import backend.admin_ops.buckets as buckets
 from backend.admin_ops.types import Bucket
-from backend.s3gw.errors import S3GWError
 
 bucket_list_response: List[Dict[str, Any]] = [
     {
@@ -90,7 +90,7 @@ async def test_bucket_list(httpx_mock: HTTPXMock) -> None:
         json=bucket_list_response,
     )
 
-    res: List[Bucket] = await list_buckets(
+    res: List[Bucket] = await buckets.list_buckets(
         url="http://foo.bar:123",
         access_key="asd",
         secret_key="qwe",
@@ -108,18 +108,14 @@ async def test_bucket_list_failure(httpx_mock: HTTPXMock) -> None:
         status_code=404  # any error, really
     )
 
-    raised = False
-    try:
-        await list_buckets(
+    with pytest.raises(HTTPException) as e:
+        await buckets.list_buckets(
             url="http://foo.bar:123",
             access_key="asd",
             secret_key="qwe",
             uid=None,
         )
-    except S3GWError:
-        raised = True
-
-    assert raised
+    assert e.value.status_code == 404
 
 
 @pytest.mark.anyio
@@ -136,7 +132,7 @@ async def test_bucket_list_with_uid(httpx_mock: HTTPXMock) -> None:
         check_uid
     )
 
-    res: List[Bucket] = await list_buckets(
+    res: List[Bucket] = await buckets.list_buckets(
         url="http://foo.bar:123",
         access_key="asd",
         secret_key="qwe",
@@ -146,5 +142,51 @@ async def test_bucket_list_with_uid(httpx_mock: HTTPXMock) -> None:
     assert len(res) == 2
     assert res[0].bucket == "foo"
     assert res[1].bucket == "bar"
-
     assert called_cb
+
+
+@pytest.mark.anyio
+async def test_delete_bucket(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response()  # pyright: ignore [reportUnknownMemberType]
+
+    res = await buckets.delete_bucket(
+        url="http://foo.bar:123",
+        access_key="asd",
+        secret_key="qwe",
+        bucket="bucket01",
+        purge_objects=False,
+    )
+
+    assert res == "bucket01"
+
+
+@pytest.mark.anyio
+async def test_link_bucket(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response()  # pyright: ignore [reportUnknownMemberType]
+
+    await buckets.link_bucket(
+        url="http://foo.bar:123",
+        access_key="asd",
+        secret_key="qwe",
+        uid="user01",
+        bucket="bucket01",
+        bucket_id="12345",
+    )
+
+
+@pytest.mark.anyio
+async def test_get_bucket_info(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(  # pyright: ignore [reportUnknownMemberType]
+        json=bucket_list_response[0]
+    )
+
+    res: Bucket = await buckets.get_bucket_info(
+        url="http://foo.bar:123",
+        access_key="test",
+        secret_key="test",
+        bucket="foo",
+    )
+
+    assert res.id == "foo.1681284188914692706"
+    assert res.bucket == "foo"
+    assert res.owner == "testid"

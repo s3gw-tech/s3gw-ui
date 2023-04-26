@@ -1,18 +1,15 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { Injectable } from '@angular/core';
-import * as AWS from 'aws-sdk';
 import { saveAs } from 'file-saver';
 import * as _ from 'lodash';
-import { defer, forkJoin, from, merge, Observable, of, Subscriber, throwError } from 'rxjs';
-import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
+import { merge, Observable, of, throwError } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 
-import { isEqualOrUndefined } from '~/app/functions.helper';
 import { Credentials } from '~/app/shared/models/credentials.type';
-import { RgwService } from '~/app/shared/services/api/rgw.service';
-import { S3ClientService } from '~/app/shared/services/api/s3-client.service';
+import { S3gwApiService } from '~/app/shared/services/api/s3gw-api.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
-import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
+import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
 function CatchErrors(errors: string[]) {
@@ -65,37 +62,117 @@ function CatchAuthErrors() {
   };
 }
 
-export type S3Bucket = AWS.S3.Types.Bucket;
+//////////////////////////////////////////////////////////////////////////////
+// Types returned by the REST API.
+//////////////////////////////////////////////////////////////////////////////
+type BucketResponse = {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Name: string;
+  CreationDate?: string; // <--- differs from `S3Bucket`
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+type BucketListResponse = BucketResponse[];
+
+type BucketAttributesResponse = BucketResponse &
+  S3BucketObjectLockConfiguration &
+  S3Tagging & {
+    /* eslint-disable @typescript-eslint/naming-convention */
+    VersioningEnabled?: boolean;
+    /* eslint-enable @typescript-eslint/naming-convention */
+  };
+
+//////////////////////////////////////////////////////////////////////////////
+// Types used by the service methods.
+//////////////////////////////////////////////////////////////////////////////
+
+export type S3BucketName = string;
+export type S3Prefix = string;
+export type S3ObjectKey = string;
+export type S3ObjectVersionId = string;
+export type S3ETag = string;
+export type S3ID = string;
+export type S3ObjectLockLegalHoldStatus = 'ON' | 'OFF';
+
+export type S3Bucket = {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Name?: S3BucketName;
+  CreationDate?: Date;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+export type S3Buckets = S3Bucket[];
 
 export type S3BucketObjectLockConfiguration = {
   /* eslint-disable @typescript-eslint/naming-convention */
   ObjectLockEnabled?: boolean;
   RetentionEnabled?: boolean;
-  RetentionMode?: AWS.S3.Types.ObjectLockRetentionMode;
+  RetentionMode?: 'GOVERNANCE' | 'COMPLIANCE';
   RetentionValidity?: number;
   RetentionUnit?: 'Days' | 'Years';
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 
+export type S3Owner = {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  DisplayName?: string;
+  ID?: S3ID;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+export type S3Tag = {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Key: string;
+  Value: string;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
+export type S3TagSet = S3Tag[];
+
+export type S3Tagging = {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  TagSet?: S3TagSet;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
 export type S3BucketAttributes = S3Bucket &
-  S3BucketObjectLockConfiguration & {
+  S3BucketObjectLockConfiguration &
+  S3Tagging & {
     /* eslint-disable @typescript-eslint/naming-convention */
-    TagSet?: AWS.S3.Types.TagSet;
     VersioningEnabled?: boolean;
     /* eslint-enable @typescript-eslint/naming-convention */
   };
 
-export type S3Object = AWS.S3.Types.Object & {
+export type S3Object = {
   /* eslint-disable @typescript-eslint/naming-convention */
+  Key?: S3ObjectKey;
+  VersionId?: string;
+  LastModified?: string;
+  ETag?: S3ETag;
+  ObjectLockMode?: 'COMPLIANCE' | 'GOVERNANCE';
+  ObjectLockRetainUntilDate?: string;
+  ObjectLockLegalHoldStatus?: S3ObjectLockLegalHoldStatus;
+  Owner?: S3Owner;
+  ContentType?: string;
   Name: string;
+  Size?: number;
   Type: 'OBJECT' | 'FOLDER';
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 
+export type S3ObjectAttributes = S3Object & S3BucketObjectLockConfiguration & S3Tagging;
+
 export type S3Objects = S3Object[];
 
-export type S3ObjectVersion = AWS.S3.Types.ObjectVersion & {
+export type S3ObjectVersion = {
   /* eslint-disable @typescript-eslint/naming-convention */
+  ETag?: S3ETag;
+  Size?: number;
+  Key?: S3ObjectKey;
+  VersionId?: string;
+  IsLatest?: boolean;
+  LastModified?: string;
+  Owner?: S3Owner;
   Name: string;
   Type: 'OBJECT' | 'FOLDER';
   IsDeleted: boolean;
@@ -104,104 +181,50 @@ export type S3ObjectVersion = AWS.S3.Types.ObjectVersion & {
 
 export type S3ObjectVersionList = S3ObjectVersion[];
 
-export type S3UploadProgress = AWS.S3.Types.ManagedUpload.Progress & {
-  sendData: AWS.S3.Types.ManagedUpload.SendData;
+export type S3UploadProgress = {
+  loaded: number;
+  total: number;
 };
 
-export type S3GetObjectLockConfigurationOutput = S3BucketObjectLockConfiguration & {
+export type S3LifecycleRuleFilter = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
+  Prefix?: string;
+  Tag?: S3Tag;
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 
-export type S3PutObjectLockConfigurationOutput = AWS.S3.Types.PutObjectLockConfigurationOutput & {
+export type S3LifecycleExpiration = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
+  Date?: Date;
+  Days?: number;
+  ExpiredObjectDeleteMarker?: boolean;
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 
-export type S3GetBucketTaggingOutput = AWS.S3.Types.GetBucketTaggingOutput & {
+export type S3LifecycleRule = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
+  Expiration?: S3LifecycleExpiration;
+  ID?: S3ID;
+  Prefix?: string;
+  Filter?: S3LifecycleRuleFilter;
+  Status: 'Enabled' | 'Disabled';
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 
-export type S3DeleteObjectOutput = AWS.S3.Types.DeleteObjectOutput & {
+export type S3LifecycleRules = S3LifecycleRule[];
+
+export type S3GetBucketLifecycleConfiguration = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
-  Key: AWS.S3.Types.ObjectKey;
+  Rules?: S3LifecycleRules;
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 
-export type S3GetObjectOutput = AWS.S3.Types.GetObjectOutput & {
+export type S3DeletedObject = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
-  Key: AWS.S3.Types.ObjectKey;
-  /* eslint-enable @typescript-eslint/naming-convention */
-};
-
-export type S3HeadObjectOutput = AWS.S3.Types.HeadObjectOutput & {
-  /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
-  Key: AWS.S3.Types.ObjectKey;
-  /* eslint-enable @typescript-eslint/naming-convention */
-};
-
-export type S3GetObjectTaggingOutput = AWS.S3.Types.GetObjectTaggingOutput & {
-  /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
-  Key: AWS.S3.Types.ObjectKey;
-  /* eslint-enable @typescript-eslint/naming-convention */
-};
-
-export type S3PutObjectTaggingOutput = AWS.S3.Types.PutObjectTaggingOutput & {
-  /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
-  Key: AWS.S3.Types.ObjectKey;
-  /* eslint-enable @typescript-eslint/naming-convention */
-};
-
-export type S3GetObjectAttributesOutput = S3HeadObjectOutput &
-  S3GetObjectTaggingOutput & {
-    /* eslint-disable @typescript-eslint/naming-convention */
-    Bucket: AWS.S3.Types.BucketName;
-    Key: AWS.S3.Types.ObjectKey;
-    /* eslint-enable @typescript-eslint/naming-convention */
-  };
-
-export type S3PutObjectOutput = AWS.S3.Types.PutObjectOutput & {
-  /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
-  Key: AWS.S3.Types.ObjectKey;
-  /* eslint-enable @typescript-eslint/naming-convention */
-};
-
-export type S3GetObjectRetentionOutput = AWS.S3.Types.GetObjectRetentionOutput & {
-  /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
-  Key: AWS.S3.Types.ObjectKey;
-  /* eslint-enable @typescript-eslint/naming-convention */
-};
-
-export type S3GetObjectLegalHoldOutput = AWS.S3.Types.GetObjectLegalHoldOutput & {
-  /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
-  Key: AWS.S3.Types.ObjectKey;
-  /* eslint-enable @typescript-eslint/naming-convention */
-};
-
-export type S3PutObjectLegalHoldOutput = AWS.S3.Types.PutObjectLegalHoldOutput & {
-  /* eslint-disable @typescript-eslint/naming-convention */
-  Bucket: AWS.S3.Types.BucketName;
-  Key: AWS.S3.Types.ObjectKey;
-  /* eslint-enable @typescript-eslint/naming-convention */
-};
-
-type S3ListAllObjectVersions = {
-  /* eslint-disable @typescript-eslint/naming-convention */
-  Versions: AWS.S3.Types.ObjectVersionList;
-  DeleteMarkers: AWS.S3.Types.DeleteMarkers;
-  CommonPrefixes: AWS.S3.Types.CommonPrefixList;
+  Key: S3ObjectKey;
+  VersionId?: S3ObjectVersionId;
+  DeleteMarker?: boolean;
+  DeleteMarkerVersionId?: string;
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 
@@ -215,13 +238,12 @@ export class S3BucketService {
   constructor(
     private authSessionService: AuthSessionService,
     private notificationService: NotificationService,
-    private rgwService: RgwService,
-    private rgwServiceConfigService: RgwServiceConfigService,
-    private s3ClientService: S3ClientService
+    private s3gwConfigService: S3gwConfigService,
+    private s3gwApiService: S3gwApiService
   ) {}
 
   get delimiter(): string {
-    return this.rgwServiceConfigService.config.delimiter;
+    return this.s3gwConfigService.config.delimiter;
   }
 
   /**
@@ -232,7 +254,7 @@ export class S3BucketService {
    * @param trailingDelimiter If `true`, a delimiter will be appended.
    *  Defaults to `false`.
    */
-  public buildPrefix(parts: string[], trailingDelimiter = false): AWS.S3.Types.Prefix {
+  public buildPrefix(parts: string[], trailingDelimiter = false): S3Prefix {
     const result: string = parts.length ? _.join(parts, this.delimiter) : '';
     return result.length && trailingDelimiter ? `${result}${this.delimiter}` : result;
   }
@@ -247,10 +269,7 @@ export class S3BucketService {
    * @param key The object key.
    * @param prefix The optional prefix.
    */
-  public buildKey(
-    key: AWS.S3.Types.ObjectKey,
-    prefix?: AWS.S3.Types.Prefix | string[]
-  ): AWS.S3.Types.ObjectKey {
+  public buildKey(key: S3ObjectKey, prefix?: S3Prefix | string[]): S3ObjectKey {
     const parts = this.splitKey(key);
     if (_.isString(prefix) && prefix.length) {
       prefix = this.splitKey(prefix);
@@ -268,7 +287,7 @@ export class S3BucketService {
    * @param key The object key.
    * @return An array of strings.
    */
-  public splitKey(key: AWS.S3.Types.ObjectKey): string[] {
+  public splitKey(key: S3ObjectKey): string[] {
     if (!key.length) {
       return [];
     }
@@ -282,15 +301,19 @@ export class S3BucketService {
    *
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listBuckets-property
    */
   @CatchAuthErrors()
-  public list(credentials?: Credentials): Observable<AWS.S3.Types.Buckets> {
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).listBuckets().promise()
-    ).pipe(map((resp: AWS.S3.Types.ListBucketsOutput) => resp.Buckets!));
+  public list(credentials?: Credentials): Observable<S3Buckets> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    return this.s3gwApiService.get<BucketListResponse>('buckets/', { credentials }).pipe(
+      map((resp: BucketListResponse): S3Buckets => {
+        return _.map(resp, (bucket: BucketResponse): S3Bucket => {
+          /* eslint-disable @typescript-eslint/naming-convention */
+          return { ...bucket, CreationDate: new Date(bucket.CreationDate!) };
+          /* eslint-enable @typescript-eslint/naming-convention */
+        });
+      })
+    );
   }
 
   /**
@@ -301,7 +324,7 @@ export class S3BucketService {
    */
   @CatchAuthErrors()
   public count(credentials?: Credentials): Observable<number> {
-    return this.list(credentials).pipe(map((resp: AWS.S3.Types.Buckets) => resp.length));
+    return this.list(credentials).pipe(map((resp: S3Buckets) => resp.length));
   }
 
   /**
@@ -310,15 +333,17 @@ export class S3BucketService {
    * @param bucket The name of the bucket.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#get-bucket
    */
   @CatchAuthErrors()
-  public get(bucket: AWS.S3.Types.BucketName, credentials?: Credentials): Observable<S3Bucket> {
+  public get(bucket: S3BucketName, credentials?: Credentials): Observable<S3Bucket> {
     credentials = credentials ?? this.authSessionService.getCredentials();
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params: Record<string, any> = { 'max-keys': 0 };
-    return this.rgwService.get<S3Bucket>(bucket, { credentials, params });
+    return this.s3gwApiService.get<BucketResponse>(`buckets/${bucket}`, { credentials }).pipe(
+      map((resp: BucketResponse): S3Bucket => {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        return { ...resp, CreationDate: new Date(resp.CreationDate!) };
+        /* eslint-enable @typescript-eslint/naming-convention */
+      })
+    );
   }
 
   /**
@@ -331,26 +356,19 @@ export class S3BucketService {
    */
   @CatchAuthErrors()
   public getAttributes(
-    bucket: AWS.S3.Types.BucketName,
+    bucket: S3BucketName,
     credentials?: Credentials
   ): Observable<S3BucketAttributes> {
-    return forkJoin({
-      bucket: this.get(bucket, credentials),
-      versioning: this.getVersioning(bucket, credentials),
-      tagging: this.getTagging(bucket, credentials),
-      locking: this.getObjectLocking(bucket, credentials)
-    }).pipe(
-      map((resp) => {
-        return {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    return this.s3gwApiService
+      .get<BucketAttributesResponse>(`buckets/${bucket}/attributes`, { credentials })
+      .pipe(
+        map((resp: BucketAttributesResponse): S3BucketAttributes => {
           /* eslint-disable @typescript-eslint/naming-convention */
-          ...resp.bucket,
-          ...resp.tagging,
-          VersioningEnabled: resp.versioning,
-          ...resp.locking
+          return { ...resp, CreationDate: new Date(resp.CreationDate!) };
           /* eslint-enable @typescript-eslint/naming-convention */
-        };
-      })
-    );
+        })
+      );
   }
 
   /**
@@ -359,16 +377,10 @@ export class S3BucketService {
    * @param bucket The name of the bucket.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#headBucket-property
    */
-  public exists(bucket: AWS.S3.Types.BucketName, credentials?: Credentials): Observable<boolean> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params: AWS.S3.Types.HeadBucketRequest = { Bucket: bucket };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).headBucket(params).promise()
-    ).pipe(
+  public exists(bucket: S3BucketName, credentials?: Credentials): Observable<boolean> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    return this.s3gwApiService.head(`buckets/${bucket}`, { credentials }).pipe(
       map(() => true),
       catchError((err) => {
         if (_.isFunction(err.preventDefault)) {
@@ -382,82 +394,50 @@ export class S3BucketService {
   /**
    * Create the specified bucket.
    *
-   * @param bucket The bucket to create.
+   * @param bucketAttrs The bucket to create.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#createBucket-property
    */
   @CatchAuthErrors()
-  public create(bucket: S3BucketAttributes, credentials?: Credentials): Observable<S3Bucket> {
-    const params: AWS.S3.Types.CreateBucketRequest = {
+  public create(bucketAttrs: S3BucketAttributes, credentials?: Credentials): Observable<S3Bucket> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const params = {
       /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket.Name!,
-      CreateBucketConfiguration: { LocationConstraint: '' },
-      ObjectLockEnabledForBucket: _.defaultTo(bucket.ObjectLockEnabled, false)
+      bucket: bucketAttrs.Name!,
+      enable_object_locking: _.defaultTo(bucketAttrs.ObjectLockEnabled, false)
       /* eslint-enable @typescript-eslint/naming-convention */
     };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).createBucket(params).promise()
-    ).pipe(switchMap(() => this.update(bucket, credentials)));
+    return this.s3gwApiService.post(`buckets/`, { credentials, params }).pipe(
+      switchMap(() => {
+        return this.update(bucketAttrs, credentials);
+      })
+    );
   }
 
   /**
    * Update the specified bucket.
    *
-   * @param bucket The bucket to update.
+   * @param bucketAttrs The bucket to update.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
   public update(
-    bucket: Partial<S3BucketAttributes>,
+    bucketAttrs: Partial<S3BucketAttributes>,
     credentials?: Credentials
-  ): Observable<S3Bucket> {
-    // First get the original bucket data to find out what needs to be
-    // updated.
-    return this.getAttributes(bucket.Name!, credentials).pipe(
-      switchMap((currentBucket: S3BucketAttributes) => {
-        const sources = [];
-        // Update versioning?
-        if (!isEqualOrUndefined(bucket.VersioningEnabled, currentBucket.VersioningEnabled)) {
-          currentBucket.VersioningEnabled = bucket.VersioningEnabled;
-          sources.push(this.setVersioning(bucket.Name!, bucket.VersioningEnabled, credentials));
-        }
-        // Update the tags?
-        if (_.isArray(bucket.TagSet) && !isEqualOrUndefined(bucket.TagSet, currentBucket.TagSet)) {
-          currentBucket.TagSet = bucket.TagSet;
-          sources.push(this.setTagging(bucket.Name!, bucket.TagSet, credentials));
-        }
-        // Update object locking?
-        if (
-          currentBucket.ObjectLockEnabled === true &&
-          (!isEqualOrUndefined(bucket.RetentionEnabled, currentBucket.RetentionEnabled) ||
-            !isEqualOrUndefined(bucket.RetentionMode, currentBucket.RetentionMode) ||
-            !isEqualOrUndefined(bucket.RetentionValidity, currentBucket.RetentionValidity) ||
-            !isEqualOrUndefined(bucket.RetentionUnit, currentBucket.RetentionUnit))
-        ) {
-          const objectLockConfiguration: S3BucketObjectLockConfiguration = {
-            /* eslint-disable @typescript-eslint/naming-convention */
-            ObjectLockEnabled: true,
-            RetentionEnabled: true,
-            RetentionMode: bucket.RetentionMode,
-            RetentionValidity: bucket.RetentionValidity,
-            RetentionUnit: bucket.RetentionUnit
-            /* eslint-enable @typescript-eslint/naming-convention */
-          };
-          currentBucket.RetentionEnabled = bucket.RetentionEnabled;
-          currentBucket.RetentionMode = bucket.RetentionMode;
-          currentBucket.RetentionValidity = bucket.RetentionValidity;
-          currentBucket.RetentionUnit = bucket.RetentionUnit;
-          sources.push(this.setObjectLocking(bucket.Name!, objectLockConfiguration, credentials));
-        }
-        if (sources.length) {
-          return forkJoin(sources).pipe(map(() => currentBucket));
-        }
-        return of(currentBucket);
+  ): Observable<S3BucketAttributes> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    return this.s3gwApiService
+      .put<BucketAttributesResponse>(`buckets/${bucketAttrs.Name}`, {
+        body: bucketAttrs,
+        credentials
       })
-    );
+      .pipe(
+        map((resp: BucketAttributesResponse): S3BucketAttributes => {
+          /* eslint-disable @typescript-eslint/naming-convention */
+          return { ...resp, CreationDate: new Date(resp.CreationDate!) };
+          /* eslint-enable @typescript-eslint/naming-convention */
+        })
+      );
   }
 
   /**
@@ -466,115 +446,11 @@ export class S3BucketService {
    * @param bucket The name of the bucket.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteBucket-property
    */
   @CatchAuthErrors()
-  public delete(
-    bucket: AWS.S3.Types.BucketName,
-    credentials?: Credentials
-  ): Observable<AWS.S3.Types.BucketName> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params: AWS.S3.Types.DeleteBucketRequest = { Bucket: bucket };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).deleteBucket(params).promise()
-    ).pipe(map(() => bucket));
-  }
-
-  /**
-   * Get the Object Lock configuration for the specified bucket.
-   *
-   * @param bucket The name of the bucket.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   */
-  @CatchAuthErrors()
-  public getObjectLocking(
-    bucket: AWS.S3.Types.BucketName,
-    credentials?: Credentials
-  ): Observable<S3GetObjectLockConfigurationOutput> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params: AWS.S3.Types.GetBucketVersioningRequest = { Bucket: bucket };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).getObjectLockConfiguration(params).promise()
-    ).pipe(
-      catchError((err) => {
-        if (['ObjectLockConfigurationNotFoundError'].includes(err.code)) {
-          return of({
-            /* eslint-disable @typescript-eslint/naming-convention */
-            ObjectLockConfiguration: { ObjectLockEnabled: 'Disabled' }
-            /* eslint-enable @typescript-eslint/naming-convention */
-          });
-        }
-        return throwError(err);
-      }),
-      map((resp: AWS.S3.Types.GetObjectLockConfigurationOutput) => {
-        /* eslint-disable @typescript-eslint/naming-convention */
-        return {
-          Bucket: bucket,
-          ObjectLockEnabled: resp.ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled',
-          RetentionEnabled: _.isString(resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Mode),
-          RetentionMode: resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Mode,
-          RetentionValidity:
-            resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Days ||
-            resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Years,
-          RetentionUnit: _.isNumber(resp.ObjectLockConfiguration?.Rule?.DefaultRetention?.Years)
-            ? 'Years'
-            : 'Days'
-          /* eslint-enable @typescript-eslint/naming-convention */
-        };
-      })
-    );
-  }
-
-  /**
-   * Places an Object Lock configuration on the specified bucket.
-   *
-   * @param bucket The name of the bucket.
-   * @param objectLockConfiguration The Object Lock configuration.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObjectLockConfiguration-property
-   */
-  @CatchInvalidRequest()
-  @CatchAuthErrors()
-  public setObjectLocking(
-    bucket: AWS.S3.Types.BucketName,
-    objectLockConfiguration: S3BucketObjectLockConfiguration,
-    credentials?: Credentials
-  ): Observable<S3PutObjectLockConfigurationOutput> {
-    const params: AWS.S3.Types.PutObjectLockConfigurationRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      ObjectLockConfiguration: {
-        ObjectLockEnabled: 'Enabled',
-        Rule: {
-          DefaultRetention: {
-            Mode: objectLockConfiguration.RetentionMode,
-            Days:
-              'Days' === objectLockConfiguration.RetentionUnit
-                ? objectLockConfiguration.RetentionValidity
-                : undefined,
-            Years:
-              'Years' === objectLockConfiguration.RetentionUnit
-                ? objectLockConfiguration.RetentionValidity
-                : undefined
-          }
-        }
-      }
-      /* eslint-enable @typescript-eslint/naming-convention */
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).putObjectLockConfiguration(params).promise()
-    ).pipe(
-      map((resp: AWS.S3.Types.PutObjectLockConfigurationOutput) =>
-        _.merge(resp, _.pick(params, ['Bucket']))
-      )
-    );
+  public delete(bucket: S3BucketName, credentials?: Credentials): Observable<string> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    return this.s3gwApiService.delete(`buckets/${bucket}`, { credentials }).pipe(map(() => bucket));
   }
 
   /**
@@ -583,114 +459,11 @@ export class S3BucketService {
    * @param bucket The name of the bucket.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getBucketVersioning-property
    */
   @CatchAuthErrors()
-  public getVersioning(
-    bucket: AWS.S3.Types.BucketName,
-    credentials?: Credentials
-  ): Observable<boolean> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params: AWS.S3.Types.GetBucketVersioningRequest = { Bucket: bucket };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).getBucketVersioning(params).promise()
-    ).pipe(map((resp: AWS.S3.Types.GetBucketVersioningOutput) => resp.Status === 'Enabled'));
-  }
-
-  /**
-   * Set the versioning state of the specified bucket.
-   *
-   * @param bucket The name of the bucket.
-   * @param enabled Set to `true` to enable the versioning of the bucket.
-   *   Defaults to `false`.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketVersioning-property
-   */
-  @CatchInvalidRequest()
-  @CatchAuthErrors()
-  public setVersioning(
-    bucket: AWS.S3.Types.BucketName,
-    enabled: boolean = false,
-    credentials?: Credentials
-  ): Observable<void> {
-    const params: AWS.S3.Types.PutBucketVersioningRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      VersioningConfiguration: { Status: enabled ? 'Enabled' : 'Suspended' }
-      /* eslint-enable @typescript-eslint/naming-convention */
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).putBucketVersioning(params).promise()
-    ).pipe(map(() => void 0));
-  }
-
-  /**
-   * Returns the tag set associated with the bucket.
-   * Note, a `NoSuchTagSet` is caught and handled properly.
-   *
-   * @param bucket The name of the bucket.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getBucketTagging-property
-   */
-  @CatchAuthErrors()
-  public getTagging(
-    bucket: AWS.S3.Types.BucketName,
-    credentials?: Credentials
-  ): Observable<S3GetBucketTaggingOutput> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params: AWS.S3.Types.GetBucketTaggingRequest = { Bucket: bucket };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).getBucketTagging(params).promise()
-    ).pipe(
-      catchError((err) => {
-        if (['NoSuchTagSetError', 'NoSuchTagSet'].includes(err.code)) {
-          return of({
-            /* eslint-disable @typescript-eslint/naming-convention */
-            TagSet: []
-            /* eslint-enable @typescript-eslint/naming-convention */
-          });
-        }
-        return throwError(err);
-      }),
-      map((resp: AWS.S3.Types.GetBucketTaggingOutput) => _.merge(resp, params))
-    );
-  }
-
-  /**
-   * Sets the tags for a bucket.
-   *
-   * @param bucket The name of the bucket.
-   * @param tags The list of tags to add.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketTagging-property
-   */
-  @CatchInvalidRequest()
-  @CatchAuthErrors()
-  public setTagging(
-    bucket: AWS.S3.Types.BucketName,
-    tags: AWS.S3.Types.TagSet,
-    credentials?: Credentials
-  ): Observable<void> {
-    const params: AWS.S3.Types.PutBucketTaggingRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      Tagging: { TagSet: tags }
-      /* eslint-enable @typescript-eslint/naming-convention */
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).putBucketTagging(params).promise()
-    ).pipe(map(() => void 0));
+  public getVersioning(bucket: S3BucketName, credentials?: Credentials): Observable<boolean> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    return this.s3gwApiService.get<boolean>(`buckets/${bucket}/versioning`, { credentials });
   }
 
   /**
@@ -700,30 +473,18 @@ export class S3BucketService {
    * @param bucket The name of the bucket.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getBucketLifecycleConfiguration-property
    */
   @CatchAuthErrors()
   public getLifecycleConfiguration(
-    bucket: AWS.S3.Types.BucketName,
+    bucket: S3BucketName,
     credentials?: Credentials
-  ): Observable<AWS.S3.Types.GetBucketLifecycleConfigurationOutput> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params: AWS.S3.Types.GetBucketLifecycleConfigurationRequest = { Bucket: bucket };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).getBucketLifecycleConfiguration(params).promise()
-    ).pipe(
-      catchError((err) => {
-        if (['NoSuchLifecycleConfiguration'].includes(err.code)) {
-          return of({
-            /* eslint-disable @typescript-eslint/naming-convention */
-            Rules: []
-            /* eslint-enable @typescript-eslint/naming-convention */
-          });
-        }
-        return throwError(err);
-      })
+  ): Observable<S3GetBucketLifecycleConfiguration> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    return this.s3gwApiService.get<S3GetBucketLifecycleConfiguration>(
+      `buckets/${bucket}/lifecycle-configuration`,
+      {
+        credentials
+      }
     );
   }
 
@@ -734,38 +495,23 @@ export class S3BucketService {
    * @param rules The list of rules to set.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putBucketLifecycleConfiguration-property
    */
   @CatchInvalidRequest()
   @CatchAuthErrors()
   public setLifecycleConfiguration(
-    bucket: AWS.S3.Types.BucketName,
-    rules: AWS.S3.Types.LifecycleRules,
+    bucket: S3BucketName,
+    rules: S3LifecycleRules,
     credentials?: Credentials
-  ): Observable<void> {
-    return defer(() => {
-      // Note, we need to convert the hot promise to a cold observable.
-      if (0 === rules.length) {
-        return this.s3ClientService
-          .get(credentials)
-          .deleteBucketLifecycle({
-            /* eslint-disable @typescript-eslint/naming-convention */
-            Bucket: bucket
-            /* eslint-enable @typescript-eslint/naming-convention */
-          })
-          .promise();
-      }
-      return this.s3ClientService
-        .get(credentials)
-        .putBucketLifecycleConfiguration({
-          /* eslint-disable @typescript-eslint/naming-convention */
-          Bucket: bucket,
-          LifecycleConfiguration: { Rules: rules }
-          /* eslint-enable @typescript-eslint/naming-convention */
-        })
-        .promise();
-    }).pipe(map(() => void 0));
+  ): Observable<boolean> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    return this.s3gwApiService.put<boolean>(`buckets/${bucket}/lifecycle-configuration`, {
+      body: {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        Rules: rules
+        /* eslint-enable @typescript-eslint/naming-convention */
+      },
+      credentials
+    });
   }
 
   /**
@@ -776,59 +522,25 @@ export class S3BucketService {
    *   with the specified prefix.
    * @param credentials The AWS credentials to sign requests with.
    *   Defaults to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectsV2-property
    */
   @CatchAuthErrors()
   public listObjects(
-    bucket: AWS.S3.Types.BucketName,
-    prefix?: AWS.S3.Types.Prefix,
+    bucket: S3BucketName,
+    prefix?: S3Prefix,
     credentials?: Credentials
   ): Observable<S3Objects> {
-    return new Observable<S3Objects>((observer: Subscriber<S3Objects>) => {
-      const s3Client = this.s3ClientService.get(credentials);
-      const params: AWS.S3.Types.ListObjectsV2Request = {
-        /* eslint-disable @typescript-eslint/naming-convention */
-        Bucket: bucket,
-        Delimiter: this.delimiter,
-        Prefix: prefix
-        /* eslint-enable @typescript-eslint/naming-convention */
-      };
-      let aborted = false;
-      (async () => {
-        try {
-          do {
-            const resp: AWS.S3.Types.ListObjectsV2Output = await s3Client
-              .listObjectsV2(params)
-              .promise();
-            params.ContinuationToken = resp.NextContinuationToken;
-            const value = _.map(resp.Contents ?? [], (object: AWS.S3.Types.Object) => {
-              return _.merge(object, {
-                /* eslint-disable @typescript-eslint/naming-convention */
-                Name: this.splitKey(object.Key!).pop(),
-                Type: 'OBJECT'
-                /* eslint-enable @typescript-eslint/naming-convention */
-              });
-            });
-            if (resp.CommonPrefixes?.length) {
-              _.forEach(resp.CommonPrefixes, (cp: AWS.S3.Types.CommonPrefix) => {
-                value.push({
-                  /* eslint-disable @typescript-eslint/naming-convention */
-                  Key: this.buildKey(cp.Prefix!),
-                  Name: this.splitKey(cp.Prefix!).pop(),
-                  Type: 'FOLDER'
-                  /* eslint-enable @typescript-eslint/naming-convention */
-                });
-              });
-            }
-            observer.next(value as S3Objects);
-          } while (params.ContinuationToken && !aborted);
-        } catch (error) {
-          observer.error(error);
-        }
-        observer.complete();
-      })();
-      return () => (aborted = true);
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Delimiter: this.delimiter
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    if (_.isString(prefix)) {
+      body['Prefix'] = prefix;
+    }
+    return this.s3gwApiService.post<S3Objects>(`objects/${bucket}`, {
+      body,
+      credentials
     });
   }
 
@@ -846,53 +558,23 @@ export class S3BucketService {
    */
   @CatchAuthErrors()
   public listObjectVersions(
-    bucket: AWS.S3.Types.BucketName,
-    prefix?: AWS.S3.Types.Prefix,
+    bucket: S3BucketName,
+    prefix?: S3Prefix,
     credentials?: Credentials
   ): Observable<S3ObjectVersionList> {
-    return this.listAllObjectVersions(bucket, prefix, credentials).pipe(
-      map((resp: S3ListAllObjectVersions): S3ObjectVersionList => {
-        const value: S3ObjectVersionList = _.map(
-          resp.Versions,
-          (objectVersion: AWS.S3.Types.ObjectVersion) => {
-            return _.merge(objectVersion, {
-              /* eslint-disable @typescript-eslint/naming-convention */
-              Name: this.splitKey(objectVersion.Key!).pop(),
-              Type: 'OBJECT',
-              IsDeleted: false
-              /* eslint-enable @typescript-eslint/naming-convention */
-            }) as S3ObjectVersion;
-          }
-        );
-        // Process and append folder like objects. Folders do not really
-        // exist in S3.
-        _.forEach(resp.CommonPrefixes, (cp: AWS.S3.Types.CommonPrefix) => {
-          value.push({
-            /* eslint-disable @typescript-eslint/naming-convention */
-            Key: this.buildKey(cp.Prefix!),
-            Name: this.splitKey(cp.Prefix!).pop(),
-            Type: 'FOLDER',
-            IsDeleted: false,
-            IsLatest: true
-            /* eslint-enable @typescript-eslint/naming-convention */
-          } as S3ObjectVersion);
-        });
-        // Append deleted objects.
-        _.forEach(resp.DeleteMarkers, (deleteMarker: AWS.S3.Types.DeleteMarkerEntry) => {
-          value.push(
-            _.merge(deleteMarker, {
-              /* eslint-disable @typescript-eslint/naming-convention */
-              Name: this.splitKey(deleteMarker.Key!).pop(),
-              Type: 'OBJECT',
-              Size: 0,
-              IsDeleted: true
-              /* eslint-enable @typescript-eslint/naming-convention */
-            }) as S3ObjectVersion
-          );
-        });
-        return value;
-      })
-    );
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Delimiter: this.delimiter
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    if (_.isString(prefix)) {
+      body['Prefix'] = prefix;
+    }
+    return this.s3gwApiService.post<S3ObjectVersionList>(`objects/${bucket}/versions`, {
+      body,
+      credentials
+    });
   }
 
   /**
@@ -904,55 +586,26 @@ export class S3BucketService {
    *   of the object.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteObject-property
    */
   @CatchErrors(['AccessDenied', 'InvalidRequest'])
   @CatchAuthErrors()
   public deleteObject(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    versionId?: AWS.S3.Types.ObjectVersionId,
+    bucket: S3BucketName,
+    key: S3ObjectKey,
+    versionId?: S3ObjectVersionId,
     credentials?: Credentials
-  ): Observable<S3DeleteObjectOutput> {
-    const params: AWS.S3.Types.DeleteObjectRequest = {
+  ): Observable<S3DeletedObject> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
       /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
       Key: key,
       VersionId: versionId
       /* eslint-enable @typescript-eslint/naming-convention */
     };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).deleteObject(params).promise()
-    ).pipe(map((resp: AWS.S3.Types.DeleteObjectOutput) => _.merge(resp, params)));
-  }
-
-  /**
-   * Delete the specified objects in a bunch.
-   *
-   * @param bucket The name of the bucket.
-   * @param objects The list of objects, identified by key and versionID,
-   *   that are going to be deleted.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   */
-  @CatchAuthErrors()
-  public deleteObjects(
-    bucket: AWS.S3.Types.BucketName,
-    objects: AWS.S3.Types.ObjectIdentifierList,
-    credentials?: Credentials
-  ): Observable<AWS.S3.Types.DeleteObjectsOutput> {
-    const params: AWS.S3.Types.DeleteObjectsRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      Delete: { Objects: objects }
-      /* eslint-enable @typescript-eslint/naming-convention */
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).deleteObjects(params).promise()
-    );
+    return this.s3gwApiService.delete<S3DeletedObject>(`objects/${bucket}/delete`, {
+      body,
+      credentials
+    });
   }
 
   /**
@@ -962,49 +615,30 @@ export class S3BucketService {
    * @param prefix The prefix of the objects to delete. Note, a prefix
    *   like `a/b/` will delete all objects starting with that prefix,
    *   whereas `a/b` will only delete this specific object.
-   * @param deep If `true`, all versions will be deleted, otherwise
-   *   the latest one. Defaults to `false`.
+   * @param allVersions If `true`, all versions will be deleted, otherwise
+   *   only the latest one. Defaults to `false`.
    * @param credentials The AWS credentials to sign requests with.
    *   Defaults to the credentials of the currently logged-in user.
    */
   @CatchAuthErrors()
   public deleteObjectByPrefix(
-    bucket: AWS.S3.Types.BucketName,
-    prefix: AWS.S3.Prefix,
-    deep?: boolean,
+    bucket: S3BucketName,
+    prefix: S3Prefix,
+    allVersions?: boolean,
     credentials?: Credentials
-  ): Observable<S3DeleteObjectOutput> {
-    deep = _.defaultTo(deep, false);
-    return this.listObjectVersions(bucket, prefix, credentials).pipe(
-      switchMap((objects: S3ObjectVersionList) =>
-        from(objects).pipe(
-          filter((object: S3ObjectVersion) => deep || (object.IsLatest! && !object.IsDeleted!)),
-          switchMap((object: S3ObjectVersion) => {
-            return 'OBJECT' === object.Type
-              ? this.deleteObject(
-                  bucket,
-                  object.Key!,
-                  deep ? object.VersionId : undefined,
-                  credentials
-                )
-              : this.deleteObjectByPrefix(
-                  bucket,
-                  `${object.Key!}${this.delimiter}`,
-                  deep,
-                  credentials
-                );
-          })
-        )
-      ),
-      map(() => {
-        return {
-          /* eslint-disable @typescript-eslint/naming-convention */
-          Bucket: bucket,
-          Key: prefix
-          /* eslint-enable @typescript-eslint/naming-convention */
-        };
-      })
-    );
+  ): Observable<S3DeletedObject[]> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Prefix: prefix,
+      Delimiter: this.delimiter,
+      AllVersions: allVersions
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return this.s3gwApiService.delete<S3DeletedObject[]>(`objects/${bucket}/delete-by-prefix`, {
+      body,
+      credentials
+    });
   }
 
   /**
@@ -1015,28 +649,22 @@ export class S3BucketService {
    * @param prefix Optional prefix that is added to the object key.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
    */
   @CatchAuthErrors()
   public uploadObject(
-    bucket: AWS.S3.Types.BucketName,
+    bucket: S3BucketName,
     file: File,
-    prefix?: AWS.S3.Types.Prefix,
+    prefix?: S3Prefix,
     credentials?: Credentials
-  ): Observable<AWS.S3.Types.ManagedUpload.SendData> {
-    const params: AWS.S3.Types.PutObjectRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      Key: this.buildKey(file.name, prefix),
-      Body: file,
-      ContentType: file.type
-      /* eslint-enable @typescript-eslint/naming-convention */
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).upload(params).promise()
-    );
+  ): Observable<void> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('key', this.buildKey(file.name, prefix));
+    return this.s3gwApiService.post<void>(`objects/${bucket}/upload`, {
+      body: formData,
+      credentials
+    });
   }
 
   /**
@@ -1049,18 +677,18 @@ export class S3BucketService {
    *   to the credentials of the currently logged-in user.
    */
   public uploadObjects(
-    bucket: AWS.S3.Types.BucketName,
+    bucket: S3BucketName,
     fileList: FileList,
-    prefix?: AWS.S3.Types.Prefix,
+    prefix?: S3Prefix,
     credentials?: Credentials
   ): Observable<S3UploadProgress> {
-    const sources: Observable<AWS.S3.Types.ManagedUpload.SendData>[] = [];
+    const sources: Observable<void>[] = [];
     _.forEach(fileList, (file: File) =>
       sources.push(this.uploadObject(bucket, file, prefix, credentials))
     );
     return merge(...sources).pipe(
-      map((sendData: AWS.S3.Types.ManagedUpload.SendData, index: number) => {
-        return { loaded: index + 1, total: fileList.length, sendData };
+      map((data: void, index: number): S3UploadProgress => {
+        return { loaded: index + 1, total: fileList.length };
       })
     );
   }
@@ -1074,11 +702,17 @@ export class S3BucketService {
    *   to the credentials of the currently logged-in user.
    */
   public existsObject(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
+    bucket: S3BucketName,
+    key: S3ObjectKey,
     credentials?: Credentials
   ): Observable<boolean> {
-    return this.headObject(bucket, key, undefined, credentials).pipe(
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Key: key
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return this.s3gwApiService.post(`objects/${bucket}/exists`, { body, credentials }).pipe(
       map(() => true),
       catchError((error) => {
         if (_.isFunction(error.preventDefault)) {
@@ -1087,104 +721,6 @@ export class S3BucketService {
         return of(false);
       })
     );
-  }
-
-  /**
-   * Get the specified object.
-   *
-   * @param bucket The name of the bucket.
-   * @param key The object key.
-   * @param optionalParams Optional parameters.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObject-property
-   */
-  @CatchAuthErrors()
-  public getObject(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    optionalParams?: Partial<AWS.S3.Types.GetObjectRequest>,
-    credentials?: Credentials
-  ): Observable<S3GetObjectOutput> {
-    const params: AWS.S3.Types.GetObjectRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      Key: key,
-      /* eslint-enable @typescript-eslint/naming-convention */
-      ...optionalParams
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).getObject(params).promise()
-    ).pipe(
-      map((resp: AWS.S3.Types.GetObjectOutput) => _.merge(resp, _.pick(params, ['Bucket', 'Key'])))
-    );
-  }
-
-  /**
-   * Adds an object to a bucket.
-   *
-   * @param bucket The name of the bucket.
-   * @param key The object key.
-   * @param optionalParams Optional parameters.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
-   */
-  @CatchInvalidRequest()
-  @CatchAuthErrors()
-  public putObject(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    optionalParams?: Partial<AWS.S3.Types.PutObjectRequest>,
-    credentials?: Credentials
-  ): Observable<S3PutObjectOutput> {
-    const params: AWS.S3.Types.PutObjectRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      Key: key,
-      /* eslint-enable @typescript-eslint/naming-convention */
-      ...optionalParams
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).putObject(params).promise()
-    ).pipe(
-      map((resp: AWS.S3.Types.PutObjectOutput) => _.merge(resp, _.pick(params, ['Bucket', 'Key'])))
-    );
-  }
-
-  /**
-   * Retrieves metadata from an object without returning the object itself.
-   *
-   * @param bucket The name of the bucket.
-   * @param key The object key.
-   * @param optionalParams Optional parameters to the request.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#headObject-property
-   */
-  @CatchAuthErrors()
-  public headObject(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    optionalParams?: Partial<AWS.S3.Types.HeadObjectRequest>,
-    credentials?: Credentials
-  ): Observable<S3HeadObjectOutput> {
-    const params: AWS.S3.Types.HeadObjectRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      Key: key,
-      /* eslint-enable @typescript-eslint/naming-convention */
-      ...optionalParams
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).headObject(params).promise()
-    ).pipe(map((resp: AWS.S3.Types.HeadObjectOutput) => _.merge(resp, params)));
   }
 
   /**
@@ -1200,32 +736,26 @@ export class S3BucketService {
    */
   @CatchAuthErrors()
   public getObjectAttributes(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    versionId?: AWS.S3.Types.ObjectVersionId,
+    bucket: S3BucketName,
+    key: S3ObjectKey,
+    versionId?: S3ObjectVersionId,
     credentials?: Credentials
-  ): Observable<S3GetObjectAttributesOutput> {
-    return forkJoin({
+  ): Observable<S3ObjectAttributes> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
       /* eslint-disable @typescript-eslint/naming-convention */
-      object: this.headObject(bucket, key, { VersionId: versionId }, credentials),
-      tagging: this.getObjectTagging(bucket, key, versionId, credentials),
-      legalHold: this.getObjectLegalHold(bucket, key, versionId, credentials)
+      Key: key,
+      VersionId: versionId
       /* eslint-enable @typescript-eslint/naming-convention */
-    }).pipe(
-      map((resp) => {
-        return {
-          ...resp.object,
-          ...resp.tagging,
-          /* eslint-disable @typescript-eslint/naming-convention */
-          ObjectLockLegalHoldStatus: resp.legalHold.LegalHold?.Status
-          /* eslint-enable @typescript-eslint/naming-convention */
-        };
-      })
-    );
+    };
+    return this.s3gwApiService.post<S3ObjectAttributes>(`objects/${bucket}/attributes`, {
+      body,
+      credentials
+    });
   }
 
   /**
-   * Download the specified object.
+   * Download the specified object and save it as file.
    *
    * @param bucket The name of the bucket.
    * @param key The object key.
@@ -1235,73 +765,30 @@ export class S3BucketService {
    *   Defaults to the credentials of the currently logged-in user.
    */
   public downloadObject(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    versionId?: AWS.S3.Types.ObjectVersionId,
+    bucket: S3BucketName,
+    key: S3ObjectKey,
+    versionId?: S3ObjectVersionId,
     credentials?: Credentials
-  ): Observable<S3GetObjectOutput> {
-    return this.getObject(
-      bucket,
-      key,
-      {
-        /* eslint-disable @typescript-eslint/naming-convention */
-        VersionId: versionId
-        /* eslint-enable @typescript-eslint/naming-convention */
-      },
-      credentials
-    ).pipe(
-      tap((resp: S3GetObjectOutput) => {
-        // @ts-ignore
-        const blob: Blob = new Blob([resp.Body!]);
-        const filename: string = _.split(key, '/').slice(-1)[0];
-        saveAs(blob, filename);
-      })
-    );
-  }
-
-  /**
-   * Returns the tag-set of an object.
-   * Note, a `NoSuchTagSetError` or `NoSuchTagSet` is caught and handled properly.
-   *
-   * @param bucket The name of the bucket.
-   * @param key The object key.
-   * @param versionId The version ID used to reference a specific version
-   *   of the object.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObjectTagging-property
-   */
-  @CatchAuthErrors()
-  public getObjectTagging(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    versionId?: AWS.S3.Types.ObjectVersionId,
-    credentials?: Credentials
-  ): Observable<S3GetObjectTaggingOutput> {
-    const params: AWS.S3.Types.GetObjectTaggingRequest = {
+  ): Observable<Blob> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
       /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
       Key: key,
       VersionId: versionId
       /* eslint-enable @typescript-eslint/naming-convention */
     };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).getObjectTagging(params).promise()
-    ).pipe(
-      catchError((err) => {
-        if (['NoSuchTagSetError', 'NoSuchTagSet'].includes(err.code)) {
-          return of({
-            /* eslint-disable @typescript-eslint/naming-convention */
-            TagSet: []
-            /* eslint-enable @typescript-eslint/naming-convention */
-          });
-        }
-        return throwError(err);
-      }),
-      map((resp: AWS.S3.Types.GetObjectTaggingOutput) => _.merge(resp, params))
-    );
+    return this.s3gwApiService
+      .download(`objects/${bucket}/download`, {
+        body,
+        credentials
+      })
+      .pipe(
+        tap((data: Blob): void => {
+          // @ts-ignore
+          const filename: string = _.split(key, '/').slice(-1)[0];
+          saveAs(data, filename);
+        })
+      );
   }
 
   /**
@@ -1313,112 +800,26 @@ export class S3BucketService {
    * @param tags The list of tags to add.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObjectTagging-property
    */
   @CatchInvalidRequest()
   @CatchAuthErrors()
   public setObjectTagging(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    tags: AWS.S3.Types.TagSet,
+    bucket: S3BucketName,
+    key: S3ObjectKey,
+    tags: S3TagSet,
     credentials?: Credentials
-  ): Observable<S3PutObjectTaggingOutput> {
-    const params: AWS.S3.Types.PutObjectTaggingRequest = {
+  ): Observable<boolean> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
       /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
       Key: key,
-      Tagging: { TagSet: tags }
+      TagSet: tags
       /* eslint-enable @typescript-eslint/naming-convention */
     };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).putObjectTagging(params).promise()
-    ).pipe(map((resp: AWS.S3.Types.PutObjectTaggingOutput) => _.merge(resp, params)));
-  }
-
-  /**
-   * Retrieves an object's retention settings.
-   * Note, a `InvalidRequest` or `ObjectLockConfigurationNotFoundError` is
-   * caught and handled properly.
-   *
-   * @param bucket The name of the bucket.
-   * @param key The object key.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObjectRetention-property
-   */
-  @CatchAuthErrors()
-  public getObjectRetention(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    credentials?: Credentials
-  ): Observable<S3GetObjectRetentionOutput> {
-    const params: AWS.S3.Types.GetObjectRetentionRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      Key: key
-      /* eslint-enable @typescript-eslint/naming-convention */
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).getObjectRetention(params).promise()
-    ).pipe(
-      catchError((err) => {
-        if (['InvalidRequest', 'ObjectLockConfigurationNotFoundError'].includes(err.code)) {
-          return of({});
-        }
-        return throwError(err);
-      }),
-      map((resp: AWS.S3.Types.GetObjectRetentionOutput) => {
-        return _.merge(resp, params);
-      })
-    );
-  }
-
-  /**
-   * Gets an object's current legal hold status.
-   * Note, a `InvalidRequest` or `ObjectLockConfigurationNotFoundError` is
-   * caught and handled properly.
-   *
-   * @param bucket The name of the bucket.
-   * @param key The object key.
-   * @param versionId The version ID used to reference a specific version
-   *   of the object.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObjectLegalHold-property
-   */
-  @CatchAuthErrors()
-  public getObjectLegalHold(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    versionId?: AWS.S3.Types.ObjectVersionId,
-    credentials?: Credentials
-  ): Observable<S3GetObjectLegalHoldOutput> {
-    const params: AWS.S3.Types.GetObjectLegalHoldRequest = {
-      /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      Key: key,
-      VersionId: versionId
-      /* eslint-enable @typescript-eslint/naming-convention */
-    };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).getObjectLegalHold(params).promise()
-    ).pipe(
-      catchError((err) => {
-        if (['InvalidRequest', 'ObjectLockConfigurationNotFoundError'].includes(err.code)) {
-          return of({});
-        }
-        return throwError(err);
-      }),
-      map((resp: AWS.S3.Types.GetObjectLegalHoldOutput) => {
-        return _.merge(resp, params);
-      })
-    );
+    return this.s3gwApiService.put<boolean>(`objects/${bucket}/tags`, {
+      body,
+      credentials
+    });
   }
 
   /**
@@ -1435,22 +836,22 @@ export class S3BucketService {
   @CatchInvalidRequest()
   @CatchAuthErrors()
   public setObjectLegalHold(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    status: AWS.S3.Types.ObjectLockLegalHoldStatus,
+    bucket: S3BucketName,
+    key: S3ObjectKey,
+    status: S3ObjectLockLegalHoldStatus,
     credentials?: Credentials
-  ): Observable<S3PutObjectLegalHoldOutput> {
-    const params: AWS.S3.Types.PutObjectLegalHoldRequest = {
+  ): Observable<boolean> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
       /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
       Key: key,
       LegalHold: { Status: status }
       /* eslint-enable @typescript-eslint/naming-convention */
     };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).putObjectLegalHold(params).promise()
-    ).pipe(map((resp: AWS.S3.Types.PutObjectLegalHoldOutput) => _.merge(resp, params)));
+    return this.s3gwApiService.put<boolean>(`objects/${bucket}/legal-hold`, {
+      body,
+      credentials
+    });
   }
 
   /**
@@ -1462,88 +863,25 @@ export class S3BucketService {
    *   of the object.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#copyObject-property
-   * @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/RestoringPreviousVersions.html
    */
   @CatchErrors(['NoSuchKey', 'InvalidRequest'])
   @CatchAuthErrors()
   public restoreObject(
-    bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.Types.ObjectKey,
-    versionId?: AWS.S3.Types.ObjectVersionId,
+    bucket: S3BucketName,
+    key: S3ObjectKey,
+    versionId?: S3ObjectVersionId,
     credentials?: Credentials
-  ): Observable<AWS.S3.Types.CopyObjectOutput> {
-    let copySource: AWS.S3.Types.CopySource = encodeURIComponent(`${this.buildKey(key, bucket)}`);
-    if (_.isString(versionId)) {
-      copySource = `${copySource}?versionId=${versionId}`;
-    }
-    const params: AWS.S3.Types.CopyObjectRequest = {
+  ): Observable<void> {
+    credentials = credentials ?? this.authSessionService.getCredentials();
+    const body: Record<string, any> = {
       /* eslint-disable @typescript-eslint/naming-convention */
-      Bucket: bucket,
-      CopySource: copySource,
       Key: key,
-      MetadataDirective: 'COPY',
-      TaggingDirective: 'COPY'
+      VersionId: versionId
       /* eslint-enable @typescript-eslint/naming-convention */
     };
-    return defer(() =>
-      // Note, we need to convert the hot promise to a cold observable.
-      this.s3ClientService.get(credentials).copyObject(params).promise()
-    );
-  }
-
-  /**
-   * Returns metadata about all versions of the objects in a bucket.
-   *
-   * @param bucket The name of the bucket.
-   * @param prefix Limits the response to objects with keys that begin
-   *   with the specified prefix.
-   * @param credentials The AWS credentials to sign requests with.
-   *   Defaults to the credentials of the currently logged-in user.
-   *
-   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectVersions-property
-   */
-  private listAllObjectVersions(
-    bucket: AWS.S3.Types.BucketName,
-    prefix?: AWS.S3.Types.Prefix,
-    credentials?: Credentials
-  ): Observable<S3ListAllObjectVersions> {
-    return new Observable<S3ListAllObjectVersions>(
-      (observer: Subscriber<S3ListAllObjectVersions>) => {
-        const s3Client: AWS.S3 = this.s3ClientService.get(credentials);
-        const params: AWS.S3.Types.ListObjectVersionsRequest = {
-          /* eslint-disable @typescript-eslint/naming-convention */
-          Bucket: bucket,
-          Delimiter: this.delimiter,
-          Prefix: prefix
-          /* eslint-enable @typescript-eslint/naming-convention */
-        };
-        let aborted = false;
-        (async () => {
-          try {
-            do {
-              const resp: AWS.S3.Types.ListObjectVersionsOutput = await s3Client
-                .listObjectVersions(params)
-                .promise();
-              params.KeyMarker = resp.NextKeyMarker;
-              // Sanitize the response, so we do not need to take care
-              // about that anymore.
-              observer.next({
-                /* eslint-disable @typescript-eslint/naming-convention */
-                Versions: resp.Versions ?? [],
-                DeleteMarkers: resp.DeleteMarkers ?? [],
-                CommonPrefixes: resp.CommonPrefixes ?? []
-                /* eslint-enable @typescript-eslint/naming-convention */
-              });
-            } while (params.KeyMarker && !aborted);
-          } catch (error) {
-            observer.error(error);
-          }
-          observer.complete();
-        })();
-        return () => (aborted = true);
-      }
-    );
+    return this.s3gwApiService.put<void>(`objects/${bucket}/restore`, {
+      body,
+      credentials
+    });
   }
 }

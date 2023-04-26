@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { Observable, throwError } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
@@ -18,7 +17,12 @@ import {
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
-import { S3Bucket, S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
+import {
+  S3Bucket,
+  S3BucketName,
+  S3Buckets,
+  S3BucketService
+} from '~/app/shared/services/api/s3-bucket.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.service';
@@ -29,7 +33,7 @@ import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.servic
   styleUrls: ['./bucket-datatable-page.component.scss']
 })
 export class BucketDatatablePageComponent {
-  public buckets: AWS.S3.Types.Buckets = [];
+  public buckets: S3Buckets = [];
   public datatableActions: DatatableAction[];
   public datatableColumns: DatatableColumn[];
   public icons = Icon;
@@ -104,7 +108,7 @@ export class BucketDatatablePageComponent {
         })
       )
       .subscribe({
-        next: (buckets: AWS.S3.Types.Buckets) => {
+        next: (buckets: S3Buckets) => {
           this.buckets = buckets;
           this.pageStatus = PageStatus.ready;
         },
@@ -152,7 +156,7 @@ export class BucketDatatablePageComponent {
         plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> buckets?')
       },
       () => {
-        const sources: Observable<AWS.S3.Types.BucketName>[] = [];
+        const sources: Observable<S3BucketName>[] = [];
         _.forEach(selected, (data: DatatableData) => {
           sources.push(
             this.s3bucketService.delete(data['Name']).pipe(
@@ -169,7 +173,7 @@ export class BucketDatatablePageComponent {
           );
         });
         this.rxjsUiHelperService
-          .concat<AWS.S3.Types.BucketName>(
+          .concat<S3BucketName>(
             sources,
             {
               start: TEXT('Please wait, deleting {{ total }} bucket(s) ...'),
@@ -179,7 +183,7 @@ export class BucketDatatablePageComponent {
             },
             {
               next: TEXT('Bucket {{ name }} has been deleted.'),
-              nextFmtArgs: (name: AWS.S3.Types.BucketName) => ({ name })
+              nextFmtArgs: (name: S3BucketName) => ({ name })
             }
           )
           .subscribe({

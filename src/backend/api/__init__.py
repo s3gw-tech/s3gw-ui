@@ -19,6 +19,7 @@ import re
 from typing import Annotated, Any, AsyncGenerator, Dict, Tuple, cast
 
 import boto3.utils
+import pydash
 from aiobotocore.session import AioSession
 from botocore.config import Config as S3Config
 from botocore.exceptions import ClientError, EndpointConnectionError, SSLError
@@ -29,7 +30,7 @@ from types_aiobotocore_s3.client import S3Client
 
 class S3GWClient:
     """
-    Represents a client connection to an s3gw server.
+    Represents the client connection to the s3gw server.
 
     A connection is not opened by this class. Instead, a client is created when
     requesting a connection via the `conn()` context manager, and the connection
@@ -93,6 +94,7 @@ class S3GWClient:
             endpoint_url=self.endpoint,
             aws_access_key_id=self.access_key,
             aws_secret_access_key=self.secret_key,
+            verify=False,
             config=S3Config(
                 retries={
                     "max_attempts": attempts,
@@ -108,8 +110,8 @@ class S3GWClient:
                     detail="Bucket not found",
                 )
             except ClientError as e:
-                (code, msg) = decode_client_error(e)
-                raise HTTPException(status_code=code, detail=msg)
+                (status_code, detail) = decode_client_error(e)
+                raise HTTPException(status_code=status_code, detail=detail)
             except EndpointConnectionError:
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
@@ -127,30 +129,30 @@ class S3GWClient:
             except Exception as e:
                 logger.error(f"Unknown error: {e}")
                 logger.error(f"  exception: {type(e)}")
-                raise HTTPException(status_code=500)
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
 
 def decode_client_error(e: ClientError) -> Tuple[int, str]:
     """
-    Returns a tuple of `(status_code, error_message)` according to the
+    Returns a tuple of `(status_code, detail)` according to the
     `botocore's ClientError` exception that is passed as an argument.
     """
-    status_code = 500
-    msg = "Unknown Error"
-
-    if "Error" in e.response:
-        if "Code" in e.response["Error"]:
-            if e.response["Error"]["Code"] == "InvalidAccessKeyId":
-                msg = "Invalid credentials"
-                status_code = status.HTTP_401_UNAUTHORIZED
-            elif e.response["Error"]["Code"] == "NoSuchKey":
-                msg = "No such key"
-                status_code = status.HTTP_404_NOT_FOUND
-            elif e.response["Error"]["Code"].isnumeric():
-                status_code = int(e.response["Error"]["Code"])
-                if "Message" in e.response["Error"]:
-                    msg = e.response["Error"]["Message"]
-    return (status_code, msg)
+    status_code = pydash.get(
+        e.response,
+        "ResponseMetadata.HTTPStatusCode",
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )
+    detail = None
+    code = pydash.get(e.response, "Error.Code")
+    if code is not None:
+        if code.isnumeric():
+            status_code = int(code)
+            detail = pydash.get(e.response, "Error.Message")
+        else:
+            detail = pydash.human_case(code)
+    return status_code, pydash.default_to(detail, "Unknown error")
 
 
 async def s3gw_client(

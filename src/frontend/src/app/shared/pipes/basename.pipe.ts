@@ -1,15 +1,15 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 import { basename } from '~/app/functions.helper';
-import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
+import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 
 @Pipe({
   name: 'basename'
 })
 export class BasenamePipe implements PipeTransform {
-  constructor(private rgwServiceConfigService: RgwServiceConfigService) {}
+  constructor(private s3gwConfigService: S3gwConfigService) {}
 
   transform(value: string, delimiter: string = '/'): string | unknown {
-    return basename(value, this.rgwServiceConfigService.config.delimiter);
+    return basename(value, this.s3gwConfigService.config.delimiter);
   }
 }

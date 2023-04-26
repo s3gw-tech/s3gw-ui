@@ -1,19 +1,19 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
+import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 import { TestingModule } from '~/app/testing.module';
 
-describe('RgwServiceConfigService', () => {
-  let service: RgwServiceConfigService;
+describe('S3gwConfigService', () => {
+  let service: S3gwConfigService;
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [RgwServiceConfigService],
+      providers: [S3gwConfigService],
       imports: [TestingModule]
     });
-    service = TestBed.inject(RgwServiceConfigService);
+    service = TestBed.inject(S3gwConfigService);
     httpTesting = TestBed.inject(HttpTestingController);
   });
 

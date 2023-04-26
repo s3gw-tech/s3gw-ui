@@ -38,7 +38,7 @@ class UserStatistics(BaseModel):
     num_objects: int
 
 
-class UserKeys(BaseModel):
+class UserKey(BaseModel):
     user: str
     access_key: str
     secret_key: str
@@ -52,7 +52,7 @@ class UserInfo(BaseModel):
     suspended: bool
     max_buckets: int
     subusers: List[Any]
-    keys: List[UserKeys]
+    keys: List[UserKey]
     caps: List[Any]
     op_mask: str
     system: bool
@@ -60,12 +60,6 @@ class UserInfo(BaseModel):
     bucket_quota: QuotaInfo
     user_quota: QuotaInfo
     stats: Optional[UserStatistics]
-
-
-class AuthUser(BaseModel):
-    user_id: str
-    display_name: str
-    is_admin: bool
 
 
 def to_dashes(s: str) -> str:
@@ -138,3 +132,9 @@ class Bucket(BaseModel):
     retention_mode: Optional[ObjectLockRetentionModeType] = None
     retention_validity: Optional[int] = None
     retention_unit: Optional[Literal["Days"] | Literal["Years"]] = None
+
+
+class UsageStats(BaseModel):
+    Entries: List[Any]
+    Summary: List[int]
+    CapacityUsed: List[Any]

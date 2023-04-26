@@ -22,7 +22,6 @@
           "options": {
             "allowedCommonJsDependencies": [
               "@ngneat/transloco-keys-manager/marker",
-              "aws-sdk",
               "crypto-js",
               "dayjs",
               "file-saver",

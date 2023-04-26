@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 
 import { AppConfigService } from '~/app/shared/services/app-config.service';
-import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
+import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 
 @Component({
   selector: 's3gw-root',
@@ -10,14 +10,14 @@ import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-confi
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  public isRgwServiceConfigValid: boolean;
+  public isS3gwConfigValid: boolean;
 
   constructor(
     private appConfigService: AppConfigService,
-    private rgwServiceConfigService: RgwServiceConfigService,
+    private s3gwConfigService: S3gwConfigService,
     private title: Title
   ) {
-    this.isRgwServiceConfigValid = rgwServiceConfigService.isValid();
+    this.isS3gwConfigValid = s3gwConfigService.isValid();
     if (appConfigService.config?.title) {
       this.title.setTitle(appConfigService.config.title);
     }

@@ -18,13 +18,14 @@ from typing import Any, Dict, List
 
 import httpx
 import pytest
+from fastapi import HTTPException
 from pytest_httpx import HTTPXMock
 from pytest_mock import MockerFixture
 
 from backend.admin_ops.types import (
     UserInfo,
+    UserKey,
     UserKeyOpParams,
-    UserKeys,
     UserOpParams,
     UserQuotaOpParams,
 )
@@ -34,13 +35,13 @@ from backend.admin_ops.users import (
     delete,
     delete_key,
     get_keys,
+    get_usage_stats,
     get_user_info,
     list_uids,
     list_users,
     quota_update,
     update,
 )
-from backend.s3gw.errors import S3GWError
 
 res_user_info_json = {
     "tenant": "",
@@ -80,7 +81,7 @@ res_user_info_json = {
 
 
 @pytest.mark.anyio
-async def test_get_user_info(httpx_mock: HTTPXMock) -> None:
+async def test_get_user_info_1(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(  # pyright: ignore [reportUnknownMemberType]
         json=res_user_info_json,
     )
@@ -93,20 +94,48 @@ async def test_get_user_info(httpx_mock: HTTPXMock) -> None:
 
 
 @pytest.mark.anyio
+async def test_get_user_info_2(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(  # pyright: ignore [reportUnknownMemberType]
+        json=res_user_info_json,
+    )
+
+    res: UserInfo = await get_user_info(
+        url="http://foo.bar:123",
+        access_key="asd",
+        secret_key="qwe",
+        user_access_key="test",
+    )
+    assert res.user_id == "testid"
+    assert res.admin
+
+
+@pytest.mark.anyio
+async def test_get_user_info_3(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(  # pyright: ignore [reportUnknownMemberType]
+        json=res_user_info_json,
+    )
+
+    res: UserInfo = await get_user_info(
+        url="http://foo.bar:123",
+        access_key="asd",
+        secret_key="qwe",
+        uid="testid",
+    )
+    assert res.user_id == "testid"
+    assert res.admin
+
+
+@pytest.mark.anyio
 async def test_get_user_info_failure(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(  # pyright: ignore [reportUnknownMemberType]
         status_code=404,  # any error, really
     )
 
-    raised = False
-    try:
+    with pytest.raises(HTTPException) as e:
         await get_user_info(
             url="http://foo.bar:123", access_key="asd", secret_key="qwe"
         )
-    except S3GWError:
-        raised = True
-
-    assert raised
+    assert e.value.status_code == 404
 
 
 @pytest.mark.anyio
@@ -173,12 +202,13 @@ async def test_list_users(mocker: MockerFixture) -> None:
         "http://fail.tld",
         access_key="asd",
         secret_key="qwe",
-        with_statistics=False,
+        stats=False,
     )
     assert isinstance(res, list)
     assert len(res) == 2
     found_foo = False
     found_bar = False
+    entry: UserInfo
     for entry in res:
         if entry.user_id == "foo":
             assert entry.email == "foo@fail.tld"
@@ -331,7 +361,7 @@ async def test_create_key(mocker: MockerFixture) -> None:
         return httpx.Response(
             status_code=200,
             json=[
-                UserKeys(
+                UserKey(
                     user="foo", access_key="asdasd", secret_key="qweqwe"
                 ).dict(),
             ],
@@ -375,7 +405,7 @@ async def test_get_user_keys(mocker: MockerFixture) -> None:
         info = UserInfo.parse_obj(res_user_info_json)
         info.user_id = "foo"
         info.keys = [
-            UserKeys(user="foo", access_key="asdasd", secret_key="qweqwe")
+            UserKey(user="foo", access_key="asdasd", secret_key="qweqwe")
         ]
         return httpx.Response(
             status_code=200,
@@ -457,4 +487,15 @@ async def test_quota_update(mocker: MockerFixture) -> None:
             max_objects=1337,
             enabled=True,
         ),
+    )
+
+
+@pytest.mark.anyio
+async def test_get_usage_stats(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(  # pyright: ignore [reportUnknownMemberType]
+        json={"Entries": [], "Summary": [], "CapacityUsed": []},
+    )
+
+    await get_usage_stats(
+        url="http://foo.bar:123", access_key="asd", secret_key="qwe"
     )

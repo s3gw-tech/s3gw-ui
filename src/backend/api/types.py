@@ -27,6 +27,12 @@ from types_aiobotocore_s3.literals import (
 from types_aiobotocore_s3.type_defs import OwnerTypeDef
 
 
+class AuthUser(BaseModel):
+    ID: str
+    DisplayName: str
+    IsAdmin: bool
+
+
 class Bucket(BaseModel):
     Name: str
     CreationDate: Optional[dt] = None
@@ -48,7 +54,7 @@ class Tag(BaseModel):
     def __eq__(self, other: Tag) -> bool:
         return self.Key == other.Key and self.Value == other.Value
 
-    def __hash__(self):
+    def __hash__(self):  # pyright: ignore [reportIncompatibleVariableOverride]
         return hash((self.Key, self.Value))
 
 

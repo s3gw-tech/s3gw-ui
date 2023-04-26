@@ -16,7 +16,7 @@ import validator from 'validator';
 import { format } from '~/app/functions.helper';
 import { Constraint } from '~/app/shared/models/constraint.type';
 import { ConstraintService } from '~/app/shared/services/constraint.service';
-import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
+import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 
 const isEmptyInputValue = (value: any): boolean =>
   value == null || ((typeof value === 'string' || Array.isArray(value)) && value.length === 0);
@@ -239,12 +239,12 @@ export class S3gwValidators {
         return { custom: format(TEXT('Maximum length is {{ num }} characters.'), { num: 1024 }) };
       }
       const injector = Injector.create([
-        { provide: RgwServiceConfigService, useClass: RgwServiceConfigService, deps: [] }
+        { provide: S3gwConfigService, useClass: S3gwConfigService, deps: [] }
       ]);
-      const rgwServiceConfigService = injector.get(RgwServiceConfigService);
+      const s3gwConfigService = injector.get(S3gwConfigService);
       const parts: string[] = _.split(
-        _.trim(control.value, rgwServiceConfigService.config.delimiter),
-        rgwServiceConfigService.config.delimiter
+        _.trim(control.value, s3gwConfigService.config.delimiter),
+        s3gwConfigService.config.delimiter
       );
       _.remove(parts, _.isEmpty);
       const valid = _.every(parts, (part: string) =>
@@ -258,7 +258,7 @@ export class S3gwValidators {
                 "The value contains invalid characters. Only letters, numbers, blanks, !_*'()&$@=;/:+,?.- and the delimiter {{ delimiter }} are allowed."
               ),
               {
-                delimiter: rgwServiceConfigService.config.delimiter
+                delimiter: s3gwConfigService.config.delimiter
               }
             )
           )

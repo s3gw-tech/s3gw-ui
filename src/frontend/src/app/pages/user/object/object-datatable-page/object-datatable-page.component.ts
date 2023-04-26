@@ -3,7 +3,6 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { forkJoin, merge, Observable, of, Subscription, timer } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
@@ -31,10 +30,11 @@ import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form
 import { PageAction } from '~/app/shared/models/page-action.type';
 import { LocaleDatePipe } from '~/app/shared/pipes/locale-date.pipe';
 import {
+  S3BucketName,
   S3BucketService,
-  S3DeleteObjectOutput,
-  S3GetObjectAttributesOutput,
-  S3GetObjectOutput,
+  S3DeletedObject,
+  S3ObjectAttributes,
+  S3ObjectKey,
   S3ObjectVersion,
   S3ObjectVersionList,
   S3UploadProgress
@@ -58,19 +58,19 @@ export class ObjectDatatablePageComponent implements OnInit {
   private subscriptions: Subscription = new Subscription();
 
   public datatableActions: DatatableAction[];
-  public bid: AWS.S3.Types.BucketName = '';
+  public bid: S3BucketName = '';
   public objects: S3ObjectVersionList = [];
   public datatableColumns: DatatableColumn[] = [];
   public icons = Icon;
   public pageActions: PageAction[] = [];
   public pageStatus: PageStatus = PageStatus.none;
   public prefixParts: string[] = [];
-  public objectAttrsCache: Record<AWS.S3.Types.ObjectKey, Record<string, any>> = {};
-  public loadingObjectAttrsKeys: AWS.S3.Types.ObjectKey[] = [];
+  public objectAttrsCache: Record<S3ObjectKey, Record<string, any>> = {};
+  public loadingObjectAttrsKeys: S3ObjectKey[] = [];
   public expandedRowFormConfig: DeclarativeFormConfig;
 
   private firstLoadComplete = false;
-  private objectNumVersions: Record<AWS.S3.Types.ObjectKey, number> = {};
+  private objectNumVersions: Record<S3ObjectKey, number> = {};
   private showDeletedObjects = false;
   private isBucketVersioned = false;
 
@@ -524,9 +524,9 @@ export class ObjectDatatablePageComponent implements OnInit {
   onExpandedRowsChange(event: any): void {
     this.loadingObjectAttrsKeys = [];
     const objects: S3ObjectVersionList = event as S3ObjectVersionList;
-    const sources: Observable<S3GetObjectAttributesOutput>[] = [];
+    const sources: Observable<S3ObjectAttributes>[] = [];
     _.forEach(objects, (object: S3ObjectVersion) => {
-      const key: AWS.S3.Types.ObjectKey = object.Key!;
+      const key: S3ObjectKey = object.Key!;
       // Only load the object attributes of those rows that haven't been
       // loaded yet.
       if (!_.has(this.objectAttrsCache, key)) {
@@ -558,7 +558,7 @@ export class ObjectDatatablePageComponent implements OnInit {
     this.subscriptions.add(
       forkJoin(sources)
         .pipe(finalize(() => (this.loadingObjectAttrsKeys = [])))
-        .subscribe((objAttrs: S3GetObjectAttributesOutput[]) => {
+        .subscribe((objAttrs: S3ObjectAttributes[]) => {
           // Append the data of those expanded rows that haven't been
           // loaded yet.
           _.forEach(objAttrs, (objAttr: Record<string, any>) => {
@@ -585,18 +585,15 @@ export class ObjectDatatablePageComponent implements OnInit {
             this.objectAttrsCache[objAttr['Key']] = objAttr;
           });
           // Purge collapsed rows.
-          this.objectAttrsCache = _.pickBy(
-            this.objectAttrsCache,
-            (value, key: AWS.S3.Types.ObjectKey) => {
-              return 0 <= _.findIndex(objects, ['Key', key]);
-            }
-          );
+          this.objectAttrsCache = _.pickBy(this.objectAttrsCache, (value, key: S3ObjectKey) => {
+            return 0 <= _.findIndex(objects, ['Key', key]);
+          });
         })
     );
   }
 
   private doDownload(selected: DatatableData[]): void {
-    const sources: Observable<S3GetObjectOutput>[] = [];
+    const sources: Observable<Blob>[] = [];
     _.forEach(selected, (data: DatatableData) =>
       sources.push(this.s3BucketService.downloadObject(this.bid, data['Key']))
     );
@@ -659,8 +656,8 @@ export class ObjectDatatablePageComponent implements OnInit {
       plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> objects?'),
       checkbox: TEXT('Delete all versions')
     };
-    const callbackFn = (deep: boolean) => {
-      const sources: Observable<S3DeleteObjectOutput>[] = [];
+    const callbackFn = (allVersions: boolean) => {
+      const sources: Observable<S3DeletedObject[]>[] = [];
       _.forEach(items, (item: S3ObjectVersion) => {
         switch (item.Type) {
           case 'FOLDER':
@@ -668,18 +665,20 @@ export class ObjectDatatablePageComponent implements OnInit {
               this.s3BucketService.deleteObjectByPrefix(
                 this.bid,
                 `${item.Key!}${this.delimiter}`,
-                deep
+                allVersions
               )
             );
             break;
           case 'OBJECT':
-            sources.push(this.s3BucketService.deleteObjectByPrefix(this.bid, item.Key!, deep));
+            sources.push(
+              this.s3BucketService.deleteObjectByPrefix(this.bid, item.Key!, allVersions)
+            );
             break;
         }
       });
       this.subscriptions.add(
         this.rxjsUiHelperService
-          .concat<S3DeleteObjectOutput>(
+          .concat<S3DeletedObject[]>(
             sources,
             {
               start: TEXT('Please wait, deleting {{ total }} object(s) ...'),
@@ -688,8 +687,11 @@ export class ObjectDatatablePageComponent implements OnInit {
               )
             },
             {
-              next: TEXT('The object {{ name }} has been deleted.'),
-              nextFmtArgs: (output: S3DeleteObjectOutput) => ({ name: output.Key })
+              next: TEXT('The object(s) {{ name }} have been deleted.'),
+              nextFmtArgs: (output: S3DeletedObject[]) => {
+                const keys: string[] = _.map(output, 'Key');
+                return { name: _.uniq(keys).join(', ') };
+              }
             }
           )
           .subscribe({
