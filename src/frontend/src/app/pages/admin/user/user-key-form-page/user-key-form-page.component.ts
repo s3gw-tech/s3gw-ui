@@ -100,7 +100,10 @@ export class UserKeyFormPageComponent implements OnInit, IsDirty {
               arg0: { prop: 'generate_key' }
             },
             // https://docs.aws.amazon.com/IAM/latest/APIReference/API_AccessKey.html
-            pattern: /^[\w]+$/,
+            pattern: /^\w+$/,
+            patternErrorMessage: TEXT(
+              'The access key is invalid. Valid characters are a-z, A-Z, 0-9 and _'
+            ),
             minLength: 16,
             maxLength: 128
           },
