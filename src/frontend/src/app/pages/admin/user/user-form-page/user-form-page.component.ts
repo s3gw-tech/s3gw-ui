@@ -99,9 +99,13 @@ export class UserFormPageComponent implements OnInit, IsDirty {
           autofocus: !editing,
           validators: {
             required: true,
+            // https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html
             // minLength: 16,
             maxLength: 128,
-            pattern: /^[\w]+$/,
+            pattern: /^\w+$/,
+            patternErrorMessage: TEXT(
+              'The user ID is invalid. Valid characters are a-z, A-Z, 0-9 and _'
+            ),
             asyncCustom: this.userIdValidator()
           }
         },
@@ -113,9 +117,13 @@ export class UserFormPageComponent implements OnInit, IsDirty {
           autofocus: editing,
           validators: {
             required: true,
+            // https://docs.aws.amazon.com/IAM/latest/APIReference/API_User.html
             minLength: 1,
             maxLength: 64,
-            pattern: /^[\w+=,.@-]+$/
+            pattern: /^[\w+=,.@-]+$/,
+            patternErrorMessage: TEXT(
+              'The full name is invalid. Valid characters are a-z, A-Z, 0-9 and + = , . @ _ -'
+            )
           }
         },
         {

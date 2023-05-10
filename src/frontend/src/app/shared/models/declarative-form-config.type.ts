@@ -49,6 +49,7 @@ export type FormFieldConfig = {
     requiredIf?: Constraint;
     pattern?: string | RegExp;
     patternType?: 'email' | 'hostAddress' | 'numeric' | 'binaryUnit';
+    patternErrorMessage?: string; // Defaults to 'The value is invalid.'
     constraint?: {
       constraint: Constraint;
       errorMessage: string;

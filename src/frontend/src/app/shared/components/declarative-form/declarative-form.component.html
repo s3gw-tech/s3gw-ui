@@ -71,8 +71,8 @@
                   transloco="This field is required.">
             </span>
             <span *ngIf="showError(field.name, frm, 'pattern')"
-                  class="invalid-feedback"
-                  transloco="The value is invalid.">
+                  class="invalid-feedback">
+              {{ field.validators?.patternErrorMessage ?? 'The value is invalid.' | transloco }}
             </span>
             <span *ngIf="showError(field.name, frm, 'minlength')"
                   class="invalid-feedback"
@@ -129,8 +129,8 @@
                   transloco="This field is required.">
             </span>
             <span *ngIf="showError(field.name, frm, 'pattern')"
-                  class="invalid-feedback"
-                  transloco="The value is invalid.">
+                  class="invalid-feedback">
+              {{ field.validators?.patternErrorMessage ?? 'The value is invalid.' | transloco }}
             </span>
             <span *ngIf="showError(field.name, frm, 'hostAddress')"
                   class="invalid-feedback"
@@ -204,8 +204,8 @@
               {{ formGroup.getError('custom', field.name) | transloco }}
             </span>
             <span *ngIf="showError(field.name, frm, 'pattern')"
-                  class="invalid-feedback"
-                  transloco="The value is invalid.">
+                  class="invalid-feedback">
+              {{ field.validators?.patternErrorMessage ?? 'The value is invalid.' | transloco }}
             </span>
           </div>
         </ng-template>
@@ -360,8 +360,8 @@
               {{ formGroup.getError('custom', field.name) | transloco }}
             </span>
             <span *ngIf="showError(field.name, frm, 'pattern')"
-                  class="invalid-feedback"
-                  transloco="The value is invalid.">
+                  class="invalid-feedback">
+              {{ field.validators?.patternErrorMessage ?? 'The value is invalid.' | transloco }}
             </span>
           </div>
         </ng-template>
