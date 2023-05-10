@@ -179,244 +179,244 @@ export class UserFormPageComponent implements OnInit, IsDirty {
           name: 'suspended',
           label: TEXT('Suspended'),
           value: false
-        },
-        // -------------- User quota --------------
-        {
-          type: 'divider',
-          title: TEXT('User Quota')
-        },
-        {
-          type: 'paragraph',
-          icon: 'mdi mdi-alert',
-          iconClass: 's3gw-color-background-pair-warning',
-          text: TEXT('This feature is non-functional in s3gw right now.')
-        },
-        {
-          type: 'checkbox',
-          name: 'user_quota_enabled',
-          label: TEXT('Enabled'),
-          value: false,
-          submitValue: false
-        },
-        {
-          type: 'select',
-          name: 'user_quota_max_size_mode',
-          label: TEXT('Max. Size'),
-          value: 'unlimited',
-          submitValue: false,
-          hint: TEXT('The maximum overall storage size.'),
-          options: {
-            unlimited: TEXT('Unlimited'),
-            custom: TEXT('Custom')
-          },
-          modifiers: [
-            {
-              type: 'visible',
-              constraint: {
-                operator: 'truthy',
-                arg0: { prop: 'user_quota_enabled' }
-              }
-            }
-          ]
-        },
-        {
-          type: 'binary',
-          name: 'user_quota_max_size',
-          submitValue: false,
-          placeholder: '750 TiB',
-          modifiers: [
-            {
-              type: 'visible',
-              constraint: {
-                operator: 'and',
-                arg0: { operator: 'truthy', arg0: { prop: 'user_quota_enabled' } },
-                arg1: { operator: 'eq', arg0: { prop: 'user_quota_max_size_mode' }, arg1: 'custom' }
-              }
-            }
-          ],
-          validators: {
-            requiredIf: {
-              operator: 'and',
-              arg0: { operator: 'truthy', arg0: { prop: 'user_quota_enabled' } },
-              arg1: { operator: 'eq', arg0: { prop: 'user_quota_max_size_mode' }, arg1: 'custom' }
-            },
-            patternType: 'binaryUnit'
-          }
-        },
-        {
-          type: 'select',
-          name: 'user_quota_max_objects_mode',
-          label: TEXT('Max. Objects'),
-          value: 'unlimited',
-          submitValue: false,
-          hint: TEXT('The maximum total number of objects.'),
-          options: {
-            unlimited: TEXT('Unlimited'),
-            custom: TEXT('Custom')
-          },
-          modifiers: [
-            {
-              type: 'visible',
-              constraint: {
-                operator: 'truthy',
-                arg0: { prop: 'user_quota_enabled' }
-              }
-            }
-          ]
-        },
-        {
-          type: 'number',
-          name: 'user_quota_max_objects',
-          submitValue: false,
-          modifiers: [
-            {
-              type: 'visible',
-              constraint: {
-                operator: 'and',
-                arg0: { operator: 'truthy', arg0: { prop: 'user_quota_enabled' } },
-                arg1: {
-                  operator: 'eq',
-                  arg0: { prop: 'user_quota_max_objects_mode' },
-                  arg1: 'custom'
-                }
-              }
-            }
-          ],
-          validators: {
-            min: 0,
-            patternType: 'numeric',
-            requiredIf: {
-              operator: 'and',
-              arg0: { operator: 'truthy', arg0: { prop: 'user_quota_enabled' } },
-              arg1: {
-                operator: 'eq',
-                arg0: { prop: 'user_quota_max_objects_mode' },
-                arg1: 'custom'
-              }
-            }
-          }
-        },
-        // -------------- Bucket quota --------------
-        {
-          type: 'divider',
-          title: TEXT('Bucket Quota')
-        },
-        {
-          type: 'paragraph',
-          icon: 'mdi mdi-alert',
-          iconClass: 's3gw-color-background-pair-warning',
-          text: TEXT('This feature is non-functional in s3gw right now.')
-        },
-        {
-          type: 'checkbox',
-          name: 'bucket_quota_enabled',
-          label: TEXT('Enabled'),
-          value: false,
-          submitValue: false
-        },
-        {
-          type: 'select',
-          name: 'bucket_quota_max_size_mode',
-          label: TEXT('Max. Size'),
-          value: 'unlimited',
-          submitValue: false,
-          placeholder: '500 GiB',
-          hint: TEXT('The maximum storage size a bucket can hold.'),
-          options: {
-            unlimited: TEXT('Unlimited'),
-            custom: TEXT('Custom')
-          },
-          modifiers: [
-            {
-              type: 'visible',
-              constraint: {
-                operator: 'truthy',
-                arg0: { prop: 'bucket_quota_enabled' }
-              }
-            }
-          ]
-        },
-        {
-          type: 'binary',
-          name: 'bucket_quota_max_size',
-          submitValue: false,
-          placeholder: '750 GiB',
-          modifiers: [
-            {
-              type: 'visible',
-              constraint: {
-                operator: 'and',
-                arg0: { operator: 'truthy', arg0: { prop: 'bucket_quota_enabled' } },
-                arg1: {
-                  operator: 'eq',
-                  arg0: { prop: 'bucket_quota_max_size_mode' },
-                  arg1: 'custom'
-                }
-              }
-            }
-          ],
-          validators: {
-            requiredIf: {
-              operator: 'and',
-              arg0: { operator: 'truthy', arg0: { prop: 'bucket_quota_enabled' } },
-              arg1: { operator: 'eq', arg0: { prop: 'bucket_quota_max_size_mode' }, arg1: 'custom' }
-            },
-            patternType: 'binaryUnit'
-          }
-        },
-        {
-          type: 'select',
-          name: 'bucket_quota_max_objects_mode',
-          label: TEXT('Max. Objects'),
-          value: 'unlimited',
-          submitValue: false,
-          hint: TEXT('The maximum number of objects in a bucket.'),
-          options: {
-            unlimited: TEXT('Unlimited'),
-            custom: TEXT('Custom')
-          },
-          modifiers: [
-            {
-              type: 'visible',
-              constraint: {
-                operator: 'truthy',
-                arg0: { prop: 'bucket_quota_enabled' }
-              }
-            }
-          ]
-        },
-        {
-          type: 'number',
-          name: 'bucket_quota_max_objects',
-          submitValue: false,
-          modifiers: [
-            {
-              type: 'visible',
-              constraint: {
-                operator: 'and',
-                arg0: { operator: 'truthy', arg0: { prop: 'bucket_quota_enabled' } },
-                arg1: {
-                  operator: 'eq',
-                  arg0: { prop: 'bucket_quota_max_objects_mode' },
-                  arg1: 'custom'
-                }
-              }
-            }
-          ],
-          validators: {
-            min: 0,
-            patternType: 'numeric',
-            requiredIf: {
-              operator: 'and',
-              arg0: { operator: 'truthy', arg0: { prop: 'bucket_quota_enabled' } },
-              arg1: {
-                operator: 'eq',
-                arg0: { prop: 'bucket_quota_max_objects_mode' },
-                arg1: 'custom'
-              }
-            }
-          }
         }
+        // -------------- User quota --------------
+        // {
+        //   type: 'divider',
+        //   title: TEXT('User Quota')
+        // },
+        // {
+        //   type: 'paragraph',
+        //   icon: 'mdi mdi-alert',
+        //   iconClass: 's3gw-color-background-pair-warning',
+        //   text: TEXT('This feature is non-functional in s3gw right now.')
+        // },
+        // {
+        //   type: 'checkbox',
+        //   name: 'user_quota_enabled',
+        //   label: TEXT('Enabled'),
+        //   value: false,
+        //   submitValue: false
+        // },
+        // {
+        //   type: 'select',
+        //   name: 'user_quota_max_size_mode',
+        //   label: TEXT('Max. Size'),
+        //   value: 'unlimited',
+        //   submitValue: false,
+        //   hint: TEXT('The maximum overall storage size.'),
+        //   options: {
+        //     unlimited: TEXT('Unlimited'),
+        //     custom: TEXT('Custom')
+        //   },
+        //   modifiers: [
+        //     {
+        //       type: 'visible',
+        //       constraint: {
+        //         operator: 'truthy',
+        //         arg0: { prop: 'user_quota_enabled' }
+        //       }
+        //     }
+        //   ]
+        // },
+        // {
+        //   type: 'binary',
+        //   name: 'user_quota_max_size',
+        //   submitValue: false,
+        //   placeholder: '750 TiB',
+        //   modifiers: [
+        //     {
+        //       type: 'visible',
+        //       constraint: {
+        //         operator: 'and',
+        //         arg0: { operator: 'truthy', arg0: { prop: 'user_quota_enabled' } },
+        //         arg1: { operator: 'eq', arg0: { prop: 'user_quota_max_size_mode' }, arg1: 'custom' }
+        //       }
+        //     }
+        //   ],
+        //   validators: {
+        //     requiredIf: {
+        //       operator: 'and',
+        //       arg0: { operator: 'truthy', arg0: { prop: 'user_quota_enabled' } },
+        //       arg1: { operator: 'eq', arg0: { prop: 'user_quota_max_size_mode' }, arg1: 'custom' }
+        //     },
+        //     patternType: 'binaryUnit'
+        //   }
+        // },
+        // {
+        //   type: 'select',
+        //   name: 'user_quota_max_objects_mode',
+        //   label: TEXT('Max. Objects'),
+        //   value: 'unlimited',
+        //   submitValue: false,
+        //   hint: TEXT('The maximum total number of objects.'),
+        //   options: {
+        //     unlimited: TEXT('Unlimited'),
+        //     custom: TEXT('Custom')
+        //   },
+        //   modifiers: [
+        //     {
+        //       type: 'visible',
+        //       constraint: {
+        //         operator: 'truthy',
+        //         arg0: { prop: 'user_quota_enabled' }
+        //       }
+        //     }
+        //   ]
+        // },
+        // {
+        //   type: 'number',
+        //   name: 'user_quota_max_objects',
+        //   submitValue: false,
+        //   modifiers: [
+        //     {
+        //       type: 'visible',
+        //       constraint: {
+        //         operator: 'and',
+        //         arg0: { operator: 'truthy', arg0: { prop: 'user_quota_enabled' } },
+        //         arg1: {
+        //           operator: 'eq',
+        //           arg0: { prop: 'user_quota_max_objects_mode' },
+        //           arg1: 'custom'
+        //         }
+        //       }
+        //     }
+        //   ],
+        //   validators: {
+        //     min: 0,
+        //     patternType: 'numeric',
+        //     requiredIf: {
+        //       operator: 'and',
+        //       arg0: { operator: 'truthy', arg0: { prop: 'user_quota_enabled' } },
+        //       arg1: {
+        //         operator: 'eq',
+        //         arg0: { prop: 'user_quota_max_objects_mode' },
+        //         arg1: 'custom'
+        //       }
+        //     }
+        //   }
+        // },
+        // -------------- Bucket quota --------------
+        // {
+        //   type: 'divider',
+        //   title: TEXT('Bucket Quota')
+        // },
+        // {
+        //   type: 'paragraph',
+        //   icon: 'mdi mdi-alert',
+        //   iconClass: 's3gw-color-background-pair-warning',
+        //   text: TEXT('This feature is non-functional in s3gw right now.')
+        // },
+        // {
+        //   type: 'checkbox',
+        //   name: 'bucket_quota_enabled',
+        //   label: TEXT('Enabled'),
+        //   value: false,
+        //   submitValue: false
+        // },
+        // {
+        //   type: 'select',
+        //   name: 'bucket_quota_max_size_mode',
+        //   label: TEXT('Max. Size'),
+        //   value: 'unlimited',
+        //   submitValue: false,
+        //   placeholder: '500 GiB',
+        //   hint: TEXT('The maximum storage size a bucket can hold.'),
+        //   options: {
+        //     unlimited: TEXT('Unlimited'),
+        //     custom: TEXT('Custom')
+        //   },
+        //   modifiers: [
+        //     {
+        //       type: 'visible',
+        //       constraint: {
+        //         operator: 'truthy',
+        //         arg0: { prop: 'bucket_quota_enabled' }
+        //       }
+        //     }
+        //   ]
+        // },
+        // {
+        //   type: 'binary',
+        //   name: 'bucket_quota_max_size',
+        //   submitValue: false,
+        //   placeholder: '750 GiB',
+        //   modifiers: [
+        //     {
+        //       type: 'visible',
+        //       constraint: {
+        //         operator: 'and',
+        //         arg0: { operator: 'truthy', arg0: { prop: 'bucket_quota_enabled' } },
+        //         arg1: {
+        //           operator: 'eq',
+        //           arg0: { prop: 'bucket_quota_max_size_mode' },
+        //           arg1: 'custom'
+        //         }
+        //       }
+        //     }
+        //   ],
+        //   validators: {
+        //     requiredIf: {
+        //       operator: 'and',
+        //       arg0: { operator: 'truthy', arg0: { prop: 'bucket_quota_enabled' } },
+        //       arg1: { operator: 'eq', arg0: { prop: 'bucket_quota_max_size_mode' }, arg1: 'custom' }
+        //     },
+        //     patternType: 'binaryUnit'
+        //   }
+        // },
+        // {
+        //   type: 'select',
+        //   name: 'bucket_quota_max_objects_mode',
+        //   label: TEXT('Max. Objects'),
+        //   value: 'unlimited',
+        //   submitValue: false,
+        //   hint: TEXT('The maximum number of objects in a bucket.'),
+        //   options: {
+        //     unlimited: TEXT('Unlimited'),
+        //     custom: TEXT('Custom')
+        //   },
+        //   modifiers: [
+        //     {
+        //       type: 'visible',
+        //       constraint: {
+        //         operator: 'truthy',
+        //         arg0: { prop: 'bucket_quota_enabled' }
+        //       }
+        //     }
+        //   ]
+        // },
+        // {
+        //   type: 'number',
+        //   name: 'bucket_quota_max_objects',
+        //   submitValue: false,
+        //   modifiers: [
+        //     {
+        //       type: 'visible',
+        //       constraint: {
+        //         operator: 'and',
+        //         arg0: { operator: 'truthy', arg0: { prop: 'bucket_quota_enabled' } },
+        //         arg1: {
+        //           operator: 'eq',
+        //           arg0: { prop: 'bucket_quota_max_objects_mode' },
+        //           arg1: 'custom'
+        //         }
+        //       }
+        //     }
+        //   ],
+        //   validators: {
+        //     min: 0,
+        //     patternType: 'numeric',
+        //     requiredIf: {
+        //       operator: 'and',
+        //       arg0: { operator: 'truthy', arg0: { prop: 'bucket_quota_enabled' } },
+        //       arg1: {
+        //         operator: 'eq',
+        //         arg0: { prop: 'bucket_quota_max_objects_mode' },
+        //         arg1: 'custom'
+        //       }
+        //     }
+        //   }
+        // }
       ]
     };
   }
