@@ -221,7 +221,7 @@ export class AdminOpsUserService {
     if (_.isString(user.display_name) && !_.isEmpty(user.display_name)) {
       _.set(params, 'display-name', user.display_name);
     }
-    if (_.isString(user.email) && !_.isEmpty(user.email)) {
+    if (_.isString(user.email)) {
       _.set(params, 'email', user.email);
     }
     if (_.isNumber(user.max_buckets)) {
