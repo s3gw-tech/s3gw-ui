@@ -4,9 +4,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslocoModule } from '@ngneat/transloco';
-import { BlockUIModule } from 'ng-block-ui';
 
 import { AlertPanelComponent } from '~/app/shared/components/alert-panel/alert-panel.component';
+import { BlockUiComponent } from '~/app/shared/components/block-ui/block-ui.component';
 import { BreadcrumbsComponent } from '~/app/shared/components/breadcrumbs/breadcrumbs.component';
 import { DashboardWidgetComponent } from '~/app/shared/components/dashboard-widget/dashboard-widget.component';
 import { DatatableComponent } from '~/app/shared/components/datatable/datatable.component';
@@ -48,7 +48,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     DatatableSecondaryHeaderComponent,
     PageActionsComponent,
     TagsInputComponent,
-    NotificationBarComponent
+    NotificationBarComponent,
+    BlockUiComponent
   ],
   exports: [
     AlertPanelComponent,
@@ -68,10 +69,10 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     DatatableSecondaryHeaderComponent,
     PageActionsComponent,
     TagsInputComponent,
-    NotificationBarComponent
+    NotificationBarComponent,
+    BlockUiComponent
   ],
   imports: [
-    BlockUIModule,
     CommonModule,
     DirectivesModule,
     FormsModule,

@@ -4,7 +4,6 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
-import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
 import { format } from '~/app/functions.helper';
@@ -26,15 +25,13 @@ import { S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
+
 @Component({
   selector: 's3gw-bucket-lifecycle-datatable-page',
   templateUrl: './bucket-lifecycle-datatable-page.component.html',
   styleUrls: ['./bucket-lifecycle-datatable-page.component.scss']
 })
 export class BucketLifecycleDatatablePageComponent implements OnInit {
-  @BlockUI()
-  blockUI!: NgBlockUI;
-
   public bid: AWS.S3.Types.BucketName = '';
   public rules: AWS.S3.Types.LifecycleRules = [];
   public datatableActions: DatatableAction[];

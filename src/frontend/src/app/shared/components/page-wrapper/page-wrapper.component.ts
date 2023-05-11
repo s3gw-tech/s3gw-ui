@@ -1,9 +1,9 @@
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { translate } from '~/app/i18n.helper';
 import { PageAction } from '~/app/shared/models/page-action.type';
+import { BlockUiService } from '~/app/shared/services/block-ui.service';
 
 export enum PageStatus {
   none = 0,
@@ -21,9 +21,6 @@ export enum PageStatus {
   styleUrls: ['./page-wrapper.component.scss']
 })
 export class PageWrapperComponent implements OnChanges, OnDestroy {
-  @BlockUI()
-  blockUI!: NgBlockUI;
-
   @Input()
   pageStatus: PageStatus = PageStatus.ready;
 
@@ -39,18 +36,20 @@ export class PageWrapperComponent implements OnChanges, OnDestroy {
   @Input()
   actions?: PageAction[] = [];
 
+  constructor(private blockUiService: BlockUiService) {}
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['pageStatus'].currentValue === PageStatus.saving) {
-      this.blockUI.start(translate(this.savingText!));
+      this.blockUiService.start(translate(this.savingText!));
     }
     if (changes['pageStatus'].previousValue === PageStatus.saving) {
-      this.blockUI.stop();
+      this.blockUiService.stop();
     }
   }
 
   ngOnDestroy(): void {
     if (this.pageStatus === PageStatus.saving) {
-      this.blockUI.stop();
+      this.blockUiService.stop();
     }
   }
 }

@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
-import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { EMPTY, Observable, throwError } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 
@@ -29,9 +28,6 @@ import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.servic
   styleUrls: ['./bucket-datatable-page.component.scss']
 })
 export class BucketDatatablePageComponent {
-  @BlockUI()
-  blockUI!: NgBlockUI;
-
   public buckets: Bucket[] = [];
   public datatableActions: DatatableAction[];
   public datatableColumns: DatatableColumn[];

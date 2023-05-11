@@ -2,13 +2,13 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
-import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { AuthResponse, AuthService } from '~/app/shared/services/api/auth.service';
+import { BlockUiService } from '~/app/shared/services/block-ui.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 
@@ -18,9 +18,6 @@ import { NotificationService } from '~/app/shared/services/notification.service'
   styleUrls: ['./login-page.component.scss']
 })
 export class LoginPageComponent implements OnInit {
-  @BlockUI()
-  blockUI!: NgBlockUI;
-
   @ViewChild(DeclarativeFormComponent, { static: true })
   form!: DeclarativeFormComponent;
 
@@ -58,24 +55,29 @@ export class LoginPageComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private blockUiService: BlockUiService,
     private dialogService: DialogService,
     private notificationService: NotificationService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.blockUI.resetGlobal();
+    this.blockUiService.resetGlobal();
     // Ensure all open modal dialogs are closed.
     this.dialogService.dismissAll();
   }
 
   onLogin(): void {
     this.errorMessage = undefined;
-    this.blockUI.start(translate(TEXT('Please wait ...')));
+    this.blockUiService.start(translate(TEXT('Please wait ...')));
     const values = this.form.values;
     this.authService
       .login(values['accessKey'], values['secretKey'])
-      .pipe(finalize(() => this.blockUI.stop()))
+      .pipe(
+        finalize(() => {
+          this.blockUiService.stop();
+        })
+      )
       .subscribe({
         next: (resp: AuthResponse) => {
           this.router.navigate(['/dashboard']);

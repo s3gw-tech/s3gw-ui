@@ -1,20 +1,20 @@
 import { Injectable } from '@angular/core';
-import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { concat, forkJoin, Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
 import { format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
+import { BlockUiService } from '~/app/shared/services/block-ui.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RxjsUiHelperService {
-  @BlockUI()
-  blockUI!: NgBlockUI;
-
-  constructor(private notificationService: NotificationService) {}
+  constructor(
+    private blockUiService: BlockUiService,
+    private notificationService: NotificationService
+  ) {}
 
   /**
    * Sequentially process the given observables.
@@ -53,17 +53,17 @@ export class RxjsUiHelperService {
     return new Observable<T>((observer: any) => {
       let current = 0;
       const total = sources.length;
-      this.blockUI.start(format(translate(messages.start), { total }));
+      this.blockUiService.start(format(translate(messages.start), { total }));
       concat(...sources)
         .pipe(
           finalize(() => {
-            this.blockUI.stop();
+            this.blockUiService.stop();
           })
         )
         .subscribe({
           next: (value: T) => {
             current += 1;
-            this.blockUI.update(
+            this.blockUiService.update(
               format(translate(messages.next), {
                 current,
                 total,
@@ -100,11 +100,11 @@ export class RxjsUiHelperService {
     successNotification: string
   ): Observable<any> {
     return new Observable((observer: any) => {
-      this.blockUI.start(translate(message));
+      this.blockUiService.start(translate(message));
       forkJoin(sources)
         .pipe(
           finalize(() => {
-            this.blockUI.stop();
+            this.blockUiService.stop();
           })
         )
         .subscribe({
