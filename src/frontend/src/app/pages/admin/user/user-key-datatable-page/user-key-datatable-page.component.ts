@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as _ from 'lodash';
-import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
@@ -30,9 +29,6 @@ import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.servic
   styleUrls: ['./user-key-datatable-page.component.scss']
 })
 export class UserKeyDatatablePageComponent implements OnInit {
-  @BlockUI()
-  blockUI!: NgBlockUI;
-
   public datatableActions: DatatableAction[];
   public datatableColumns: DatatableColumn[];
   public icons = Icon;

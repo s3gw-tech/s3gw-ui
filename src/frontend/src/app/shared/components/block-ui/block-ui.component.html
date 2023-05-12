@@ -1,0 +1,8 @@
+<div *ngIf="blockUiService.visible$ | async"
+     class="w-100 h-100 wrapper"
+     @fadeInOut>
+  <div class="container">
+    <div class="spinner"></div>
+    <div class="fs-5 text-center text-white mt-1">{{ blockUiService.message$ | async | transloco | sanitize }}</div>
+  </div>
+</div>

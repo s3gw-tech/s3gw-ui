@@ -1,24 +1,22 @@
-<block-ui>
-  <div class="main-layout"
-       [ngClass]="{'collapsed': navigationCollapsed}">
-    <header>
-      <s3gw-top-bar class="w-100"
-                    (toggleNavigation)="navigationCollapsed = !navigationCollapsed"
-                    (toggleNotifications)="notificationsCollapsed = !notificationsCollapsed">
-      </s3gw-top-bar>
-    </header>
-    <aside class="navigation">
-      <s3gw-navigation-bar class="w-100"
-                           [items]="navigationItems">
-      </s3gw-navigation-bar>
-    </aside>
-    <main>
-      <router-outlet></router-outlet>
-    </main>
-    <aside class="shadow notifications"
-           [ngClass]="{'visible': !notificationsCollapsed}">
-      <s3gw-notification-bar></s3gw-notification-bar>
-    </aside>
-    <footer></footer>
-  </div>
-</block-ui>
+<div class="main-layout"
+     [ngClass]="{'collapsed': navigationCollapsed}">
+  <header>
+    <s3gw-top-bar class="w-100"
+                  (toggleNavigation)="navigationCollapsed = !navigationCollapsed"
+                  (toggleNotifications)="notificationsCollapsed = !notificationsCollapsed">
+    </s3gw-top-bar>
+  </header>
+  <aside class="navigation">
+    <s3gw-navigation-bar class="w-100"
+                         [items]="navigationItems">
+    </s3gw-navigation-bar>
+  </aside>
+  <main>
+    <router-outlet></router-outlet>
+  </main>
+  <aside class="shadow notifications"
+         [ngClass]="{'visible': !notificationsCollapsed}">
+    <s3gw-notification-bar></s3gw-notification-bar>
+  </aside>
+  <footer></footer>
+</div>

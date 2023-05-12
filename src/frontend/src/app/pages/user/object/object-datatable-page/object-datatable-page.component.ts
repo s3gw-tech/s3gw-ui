@@ -5,7 +5,6 @@ import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
-import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { forkJoin, merge, Observable, of, Subscription, timer } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 
@@ -40,6 +39,7 @@ import {
   S3ObjectVersionList,
   S3UploadProgress
 } from '~/app/shared/services/api/s3-bucket.service';
+import { BlockUiService } from '~/app/shared/services/block-ui.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
@@ -51,9 +51,6 @@ import { RxjsUiHelperService } from '~/app/shared/services/rxjs-ui-helper.servic
   styleUrls: ['./object-datatable-page.component.scss']
 })
 export class ObjectDatatablePageComponent implements OnInit {
-  @BlockUI()
-  blockUI!: NgBlockUI;
-
   @ViewChild('nameColumnTpl', { static: true })
   nameColumnTpl?: TemplateRef<any>;
 
@@ -77,6 +74,7 @@ export class ObjectDatatablePageComponent implements OnInit {
   private showDeletedObjects = false;
 
   constructor(
+    private blockUiService: BlockUiService,
     private clipboard: Clipboard,
     private dialogService: DialogService,
     private localeDatePipe: LocaleDatePipe,
@@ -538,7 +536,7 @@ export class ObjectDatatablePageComponent implements OnInit {
     if (!fileList) {
       return;
     }
-    this.blockUI.start(
+    this.blockUiService.start(
       format(translate(TEXT('Please wait, uploading {{ total }} object(s) ...')), {
         total: fileList.length
       })
@@ -546,10 +544,10 @@ export class ObjectDatatablePageComponent implements OnInit {
     this.subscriptions.add(
       this.s3BucketService
         .uploadObjects(this.bid, fileList, this.s3BucketService.buildPrefix(this.prefixParts))
-        .pipe(finalize(() => this.blockUI.stop()))
+        .pipe(finalize(() => this.blockUiService.stop()))
         .subscribe({
           next: (progress: S3UploadProgress) => {
-            this.blockUI.update(
+            this.blockUiService.update(
               format(
                 translate(
                   TEXT(

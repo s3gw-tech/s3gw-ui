@@ -1,0 +1,39 @@
+@use 'src/scss/defaults/colors' as dc;
+
+.wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: dc.$s3gw-color-transparent-black;
+  z-index: 30000; // Must be > than Bootstraps $zindex-sticky
+  cursor: wait;
+
+  .container {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    .spinner {
+      animation: spinner-animation 1s infinite linear;
+      box-sizing: border-box;
+      border: 5px solid dc.$s3gw-color-cerulean-900;
+      border-radius: 50%;
+      border-top-color: dc.$s3gw-color-cerulean-500;
+      height: 80px;
+      width: 80px;
+      margin: 0 auto;
+    }
+  }
+}
+
+@keyframes spinner-animation {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(359deg);
+  }
+}
