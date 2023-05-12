@@ -20,7 +20,15 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "allowedCommonJsDependencies": ["aws-sdk", "crypto-js", "lodash", "validator"],
+            "allowedCommonJsDependencies": [
+              "aws-sdk",
+              "crypto-js",
+              "lodash",
+              "validator",
+              "flat",
+              "dayjs",
+              "@ngneat/transloco-keys-manager/marker"
+            ],
             "outputPath": "dist/s3gw-ui",
             "index": "src/index.html",
             "main": "src/main.ts",
@@ -34,8 +42,8 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/@fontsource/lato",
-              "node_modules/@fontsource/roboto-mono",
+              "node_modules/@fontsource/lato/index.css",
+              "node_modules/@fontsource/roboto-mono/index.css",
               "node_modules/@mdi/font/scss/materialdesignicons.scss",
               "node_modules/ngx-toastr/toastr.css",
               "src/styles.scss"
@@ -125,6 +133,5 @@
   },
   "cli": {
     "analytics": false
-  },
-  "defaultProject": "s3gw-ui"
+  }
 }
