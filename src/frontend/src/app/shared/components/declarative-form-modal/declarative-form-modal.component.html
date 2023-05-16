@@ -16,7 +16,7 @@
     </button>
     <s3gw-submit-button *ngIf="config.submitButtonVisible"
                         class="ms-2"
-                        [form]="form?.formGroup"
+                        [form]="form.formGroup"
                         [formId]="config.formConfig.id"
                         (buttonClick)="onSubmit()">
       {{ config.submitButtonText! | transloco }}
