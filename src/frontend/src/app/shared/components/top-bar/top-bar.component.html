@@ -4,8 +4,11 @@
           (click)="onToggleNavigation($event)">
     <i class="mdi mdi-menu"></i>
   </button>
-  <div class="logo ms-2"></div>
-  <div class="title ms-2">s3gw</div>
+  <div>
+    <img class="mx-2 logo"
+         src="./assets/images/logo.svg"
+         alt="logo">
+  </div>
   <div class="flex-fill"></div>
   <ng-container *ngIf="isAdmin">
     <div class="form-check form-switch me-2">
