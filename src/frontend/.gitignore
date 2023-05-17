@@ -32,3 +32,6 @@ Thumbs.db
 
 # Angular development server
 proxy.conf.json
+
+# e2e
+/cypress/downloads

@@ -1,5 +1,4 @@
 describe('Login s3gw-ui', () => {
-
   beforeEach(() => {
     // Login to s3gw page
     cy.visit('/');
@@ -14,33 +13,29 @@ describe('Login s3gw-ui', () => {
     cy.get('#accessKey').type(accessKey);
     cy.get('#secretKey').type(secretKey);
     cy.contains('Log in').click();
-
   });
 
   it('Check top bar and dashboard', () => {
- 
-    //Top bar
+    // Top bar
     cy.contains('s3gw').should('be.visible');
     cy.contains('Dashboard').should('be.visible');
     cy.contains('Buckets').should('be.visible');
 
-    //Visit dashboard page
-    cy.visit('/#/dashboard');
+    // Visit dashboard page
+    cy.navigate('/dashboard');
 
-    //Assert that we are redirected to the correct page    
+    // Assert that we are redirected to the correct page
     cy.url().should('include', '/dashboard');
-
   });
 
   it('Buckets page view', () => {
+    // buckets
+    cy.navigate('/buckets');
 
-    //buckets
-    cy.visit('/#/buckets');
-
-    //Assert that we are redirected to the correct page
+    // Assert that we are redirected to the correct page
     cy.url().should('include', '/#/buckets');
-    
-    //Create page view
+
+    // Create page view
     cy.contains('Create').click();
     cy.contains('Bucket: Create').should('be.visible');
     cy.contains('Versioning').should('be.visible');
@@ -49,8 +44,7 @@ describe('Login s3gw-ui', () => {
 
     // Click the button to create a new bucket with only Versioning enabled
     cy.contains('Enabled').click();
-    cy.get('#Name').type("test-bucket");
+    cy.get('#Name').type('test-bucket');
     cy.get('button:contains("Create")').filter(':visible').click();
-    
   });
 });
