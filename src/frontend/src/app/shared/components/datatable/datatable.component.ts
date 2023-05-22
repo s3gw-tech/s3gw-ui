@@ -87,11 +87,13 @@ export class DatatableComponent implements Datatable, OnInit {
   @Input()
   pageSize = 25;
 
+  // The name of the column used for sorting.
+  // Defaults to the first item in `columns`.
   @Input()
   sortHeader?: string;
 
   @Input()
-  sortDirection: SortDirection.ascending | SortDirection.descending = SortDirection.ascending;
+  sortDirection: 'asc' | 'desc' = SortDirection.ascending;
 
   @Input()
   hasPageSize = true;

@@ -7,7 +7,7 @@ import { DatatableAction } from '~/app/shared/models/datatable-action.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { ConstraintService } from '~/app/shared/services/constraint.service';
 
-type ValidatorFn = (selected: DatatableData[]) => boolean;
+type ValidatorFn = (selected: DatatableData[], table?: Datatable) => boolean;
 
 @Component({
   selector: 's3gw-datatable-actions',
@@ -46,8 +46,11 @@ export class DatatableActionsComponent {
           );
         });
       }
+      if (_.isFunction(action.enabledConstraints.callback)) {
+        validators.push(action.enabledConstraints.callback);
+      }
       const disabled = !_.every(validators, (validator: ValidatorFn) =>
-        validator(this.table?.selected ?? [])
+        validator(this.table?.selected ?? [], this.table)
       );
       return disabled;
     }

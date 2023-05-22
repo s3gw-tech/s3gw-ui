@@ -62,7 +62,7 @@ export class ObjectDatatablePageComponent implements OnInit {
   public objects: S3ObjectVersionList = [];
   public datatableColumns: DatatableColumn[] = [];
   public icons = Icon;
-  public pageActions: PageAction[];
+  public pageActions: PageAction[] = [];
   public pageStatus: PageStatus = PageStatus.none;
   public prefixParts: string[] = [];
   public objectAttrsCache: Record<AWS.S3.Types.ObjectKey, Record<string, any>> = {};
@@ -113,7 +113,9 @@ export class ObjectDatatablePageComponent implements OnInit {
         text: TEXT('Delete'),
         icon: this.icons.delete,
         enabledConstraints: {
-          minSelected: 1
+          minSelected: 1,
+          callback: (selected: DatatableData[]) =>
+            _.every(selected as S3ObjectVersionList, (object: S3ObjectVersion) => !object.IsDeleted)
         },
         callback: (event: Event, action: DatatableAction, table: Datatable) =>
           this.doDelete(table.selected)
@@ -163,7 +165,7 @@ export class ObjectDatatablePageComponent implements OnInit {
         {
           type: 'text',
           name: 'VersionId',
-          label: TEXT('Latest Version ID'),
+          label: TEXT('Version ID'),
           readonly: true,
           modifiers: [
             {
@@ -213,7 +215,16 @@ export class ObjectDatatablePageComponent implements OnInit {
             ON: TEXT('On'),
             OFF: TEXT('Off')
             /* eslint-enable @typescript-eslint/naming-convention */
-          }
+          },
+          modifiers: [
+            {
+              type: 'readonly',
+              constraint: {
+                operator: 'truthy',
+                arg0: { prop: 'IsDeleted' }
+              }
+            }
+          ]
         },
         {
           type: 'select',
@@ -243,13 +254,43 @@ export class ObjectDatatablePageComponent implements OnInit {
         {
           type: 'tags',
           name: 'TagSet',
-          label: TEXT('Tags')
+          label: TEXT('Tags'),
+          modifiers: [
+            {
+              type: 'readonly',
+              constraint: {
+                operator: 'truthy',
+                arg0: { prop: 'IsDeleted' }
+              }
+            }
+          ]
+        },
+        {
+          type: 'hidden',
+          name: 'IsDeleted'
         }
       ],
       buttons: [
         {
+          type: 'default',
+          text: TEXT('Show versions'),
+          hidden: (form: DeclarativeForm): boolean => {
+            const values = form.values;
+            return _.get(values, 'VersionId', null) || _.get(values, 'NumVersions', 0) < 1;
+          },
+          click: (event: Event, form: DeclarativeForm): void => {
+            this.router.navigate([
+              `/objects/${this.bid}/versions/${encodeURIComponent(form.values['Key'])}`
+            ]);
+          }
+        },
+        {
           type: 'submit',
           text: TEXT('Update'),
+          hidden: (form: DeclarativeForm): boolean => {
+            const values = form.values;
+            return _.get(values, 'IsDeleted', false);
+          },
           click: (event: Event, form: DeclarativeForm): void => {
             const sources: Observable<any>[] = [];
             const values: DeclarativeFormValues = form.values;
@@ -319,7 +360,7 @@ export class ObjectDatatablePageComponent implements OnInit {
         cellTemplateName: DatatableCellTemplateName.localeDateTime
       },
       {
-        name: TEXT('Version'),
+        name: TEXT('Status'),
         prop: 'IsDeleted',
         hidden: true,
         cellTemplateName: DatatableCellTemplateName.badge,
@@ -365,8 +406,13 @@ export class ObjectDatatablePageComponent implements OnInit {
           next: (objects: S3ObjectVersionList) => {
             // Cache the number of versions per object.
             _.forEach(objects, (object: S3ObjectVersion) => {
-              const count = _.get(this.objectNumVersions, object.Key!, 0) + 1;
-              this.objectNumVersions[object.Key!] = count;
+              if (!_.has(this.objectNumVersions, object.Key!)) {
+                this.objectNumVersions[object.Key!] = 0;
+              }
+              if (object.VersionId && object.VersionId !== 'null') {
+                const count: number = this.objectNumVersions[object.Key!];
+                this.objectNumVersions[object.Key!] = count + 1;
+              }
             });
             const newObjects: S3ObjectVersionList = _.filter(objects, {
               /* eslint-disable @typescript-eslint/naming-convention */
@@ -423,6 +469,15 @@ export class ObjectDatatablePageComponent implements OnInit {
           icon: this.icons.download,
           disabled: object.IsDeleted,
           callback: (data: DatatableData) => this.doDownload([data])
+        },
+        {
+          title: TEXT('Show versions'),
+          icon: this.icons.fileTree,
+          disabled: this.objectNumVersions[object.Key!] < 1,
+          callback: (data: DatatableData) =>
+            this.router.navigate([
+              `/objects/${this.bid}/versions/${encodeURIComponent(object.Key!)}`
+            ])
         },
         {
           type: 'divider'
@@ -483,7 +538,8 @@ export class ObjectDatatablePageComponent implements OnInit {
             ObjectLockRetainUntilDate: '',
             ObjectLockLegalHoldStatus: 'OFF',
             TagSet: [],
-            NumVersions: this.objectNumVersions[object.Key!]
+            NumVersions: this.objectNumVersions[object.Key!],
+            IsDeleted: object.IsDeleted
             /* eslint-enable @typescript-eslint/naming-convention */
           });
         } else {
@@ -513,7 +569,8 @@ export class ObjectDatatablePageComponent implements OnInit {
                 ),
                 ObjectLockLegalHoldStatus: _.defaultTo(objAttr['ObjectLockLegalHoldStatus'], 'OFF'),
                 TagSet: _.defaultTo(objAttr['TagSet'], []),
-                NumVersions: this.objectNumVersions[object.Key!]
+                NumVersions: this.objectNumVersions[object.Key!],
+                IsDeleted: object.IsDeleted
                 /* eslint-enable @typescript-eslint/naming-convention */
               });
             }

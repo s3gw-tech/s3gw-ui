@@ -9,6 +9,7 @@ import { BucketDatatablePageComponent } from '~/app/pages/user/bucket/bucket-dat
 import { BucketFormPageComponent } from '~/app/pages/user/bucket/bucket-form-page/bucket-form-page.component';
 import { DashboardPageComponent } from '~/app/pages/user/dashboard-page/dashboard-page.component';
 import { ObjectDatatablePageComponent } from '~/app/pages/user/object/object-datatable-page/object-datatable-page.component';
+import { ObjectVersionDatatablePageComponent } from '~/app/pages/user/object/object-version-datatable-page/object-version-datatable-page.component';
 import { UserPagesRoutingModule } from '~/app/pages/user/user-pages-routing.module';
 import { SharedModule } from '~/app/shared/shared.module';
 
@@ -17,7 +18,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     BucketDatatablePageComponent,
     BucketFormPageComponent,
     DashboardPageComponent,
-    ObjectDatatablePageComponent
+    ObjectDatatablePageComponent,
+    ObjectVersionDatatablePageComponent
   ],
   imports: [
     UserPagesRoutingModule,

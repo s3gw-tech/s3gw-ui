@@ -21,13 +21,15 @@
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "allowedCommonJsDependencies": [
+              "@ngneat/transloco-keys-manager/marker",
               "aws-sdk",
               "crypto-js",
-              "lodash",
-              "validator",
-              "flat",
               "dayjs",
-              "@ngneat/transloco-keys-manager/marker"
+              "file-saver",
+              "flat",
+              "lodash",
+              "nunjucks",
+              "validator"
             ],
             "outputPath": "dist/s3gw-ui",
             "index": "src/index.html",

@@ -15,6 +15,7 @@
     <s3gw-datatable-actions [actions]="datatableActions"
                             [table]="table">
     </s3gw-datatable-actions>
+
     <s3gw-datatable-secondary-header>
       <div class="border d-flex flex-row align-items-center">
         <button type="button"
@@ -52,6 +53,7 @@
         </button>
       </div>
     </s3gw-datatable-secondary-header>
+
     <ng-template s3gw-datatable-expanded-row-template
                  let-row="row">
       <div class="expanded-row m-3">
@@ -64,8 +66,7 @@
         </div>
         <s3gw-declarative-form *ngIf="!loadingObjectAttrsKeys.includes(row.Key)"
                                [config]="expandedRowFormConfig"
-                               [initValues]="objectAttrsCache[row.Key]"
-                               [hasFooter]="!row.IsDeleted">
+                               [initValues]="objectAttrsCache[row.Key]">
         </s3gw-declarative-form>
       </div>
     </ng-template>

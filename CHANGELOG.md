@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.17.0]
 
+### Added
+
+- Add object version management (gh#aquarist-labs/s3gw#255).
+
 ### Fixed
 
 - Do not display objects that have also a delete marker (gh#aquarist-labs/s3gw#548).

@@ -319,6 +319,20 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
     }
   }
 
+  isButtonDisabled(buttonConfig: FormButtonConfig): boolean | undefined {
+    if (_.isFunction(buttonConfig.disabled)) {
+      return buttonConfig.disabled(this, buttonConfig);
+    }
+    return buttonConfig.disabled;
+  }
+
+  isButtonHidden(buttonConfig: FormButtonConfig): boolean | undefined {
+    if (_.isFunction(buttonConfig.hidden)) {
+      return buttonConfig.hidden(this, buttonConfig);
+    }
+    return buttonConfig.hidden;
+  }
+
   patchValues(values: DeclarativeFormValues, markAsDirty: boolean = true): void {
     this.formGroup?.patchValue(values);
     if (markAsDirty) {

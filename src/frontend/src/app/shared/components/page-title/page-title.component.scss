@@ -1,7 +1,13 @@
 h1 {
-  line-height: unset;
+  display: grid;
+  grid-auto-flow: column;
 
   a {
     color: var(--bs-primary);
+  }
+
+  .subtitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

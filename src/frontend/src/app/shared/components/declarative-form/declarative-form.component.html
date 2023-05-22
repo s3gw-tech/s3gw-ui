@@ -462,14 +462,16 @@
                   class="btn btn-outline-primary ms-2"
                   [class]="button.class"
                   (click)="onButtonClick($event, button)"
-                  [disabled]="button.disabled">
+                  [hidden]="isButtonHidden(button)"
+                  [disabled]="isButtonDisabled(button)">
             {{ button.text! | transloco }}
           </button>
         </ng-template>
 
         <ng-template [ngSwitchCase]="'submit'">
           <s3gw-submit-button class="ms-2"
-                              [disabled]="button.disabled"
+                              [hidden]="isButtonHidden(button)"
+                              [disabled]="isButtonDisabled(button)"
                               [form]="formGroup"
                               [formId]="config.id"
                               (buttonClick)="onButtonClick($event, button)">

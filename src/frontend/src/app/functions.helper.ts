@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import * as nunjucks from 'nunjucks';
 
 /**
  * Convert a binary value into bytes.
@@ -55,9 +56,8 @@ export const bytesToSize = (value: undefined | null | number | string): string =
  * @param options The options object.
  */
 export const format = (str: string, options: Record<any, any>): string => {
-  _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
-  const compiled = _.template(str);
-  return compiled(options);
+  const template = nunjucks.compile(str, nunjucksEnv);
+  return template.render(options);
 };
 
 /**
@@ -142,3 +142,25 @@ export function Unsubscribe() {
     };
   };
 }
+
+/**
+ * Get a string value which represents the base name the specified path.
+ *
+ * @param path A path-like object, e.g. `/foo/bar/baz.txt`.
+ * @param delimiter The character used as delimiter. Defaults to `/`.
+ * @return Returns the base name the specified path.
+ */
+export const basename = (path: string, delimiter: string = '/'): string | unknown => {
+  if (!_.isString(path) || _.isEmpty(path)) {
+    return path;
+  }
+  const parts: string[] = _.split(_.trimStart(path, delimiter), delimiter);
+  return _.last(parts);
+};
+
+/**
+ * Append various Nunjucks filter.
+ */
+const nunjucksEnv = new nunjucks.Environment();
+nunjucksEnv.addFilter('basename', basename);
+nunjucksEnv.addFilter('decodeUriComponent', decodeURIComponent);

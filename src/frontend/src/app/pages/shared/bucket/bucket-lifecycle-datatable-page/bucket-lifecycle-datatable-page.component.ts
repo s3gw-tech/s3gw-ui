@@ -34,8 +34,8 @@ import { NotificationService } from '~/app/shared/services/notification.service'
 export class BucketLifecycleDatatablePageComponent implements OnInit {
   public bid: AWS.S3.Types.BucketName = '';
   public rules: AWS.S3.Types.LifecycleRules = [];
-  public datatableActions: DatatableAction[];
-  public datatableColumns: DatatableColumn[];
+  public datatableActions: DatatableAction[] = [];
+  public datatableColumns: DatatableColumn[] = [];
   public icons = Icon;
   public pageActions: PageAction[] = [];
   public pageStatus: PageStatus = PageStatus.none;
