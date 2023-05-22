@@ -209,7 +209,7 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
         }
         /* eslint-disable @typescript-eslint/naming-convention */
         ruleToModify.Prefix = '';
-        ruleToModify.Status = values['status'];
+        ruleToModify.Status = values['enabled'] ? 'Enabled' : 'Disabled';
         ruleToModify.Expiration = { Days: values['days'] };
         ruleToModify.Filter = { Prefix: values['prefix'] };
         /* eslint-enable @typescript-eslint/naming-convention */
@@ -284,19 +284,10 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
             }
           },
           {
-            type: 'select',
-            name: 'status',
-            label: TEXT('Status'),
-            value: _.get(rule, 'Status', 'Enabled'),
-            options: {
-              /* eslint-disable @typescript-eslint/naming-convention */
-              Enabled: TEXT('Enabled'),
-              Disabled: TEXT('Disabled')
-              /* eslint-enable @typescript-eslint/naming-convention */
-            },
-            validators: {
-              required: true
-            }
+            type: 'checkbox',
+            name: 'enabled',
+            label: TEXT('Enabled'),
+            value: _.get(rule, 'Status', 'Disabled') === 'Enabled'
           },
           {
             type: 'text',
