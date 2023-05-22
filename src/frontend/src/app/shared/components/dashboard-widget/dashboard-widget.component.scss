@@ -2,6 +2,7 @@
   background-color: var(--bs-body-bg);
   border-radius: 0;
   break-inside: avoid;
+
   // Work-around a bug in Firefox where widgets are broken even if
   // `break-inside: avoid` is set.
   // https://stackoverflow.com/a/67873739

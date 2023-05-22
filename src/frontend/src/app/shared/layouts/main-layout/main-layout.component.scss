@@ -14,9 +14,7 @@ $notifications-width: 350px;
   transition: grid-template-columns 0.3s;
 
   header {
-    border-bottom-width: 1px;
-    border-bottom-style: solid;
-    border-bottom-color: var(--bs-border-color);
+    border-bottom: 1px solid var(--bs-border-color);
     display: flex;
     grid-area: header;
   }
@@ -26,9 +24,7 @@ $notifications-width: 350px;
     overflow-y: auto;
 
     &.navigation {
-      border-right-width: 1px;
-      border-right-style: solid;
-      border-right-color: var(--bs-border-color);
+      border-right: 1px solid var(--bs-border-color);
       grid-area: navigation;
     }
 

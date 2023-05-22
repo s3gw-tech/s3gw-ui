@@ -25,14 +25,12 @@ $danger: dc.$s3gw-color-danger !default;
 $body-bg: dc.$s3gw-color-body-background;
 $body-color: dc.$s3gw-color-dark-liver;
 $card-bg: dc.$s3gw-color-cultured;
-
 $h1-font-size: 2em !default;
 $h2-font-size: 1.75em !default;
 $h3-font-size: 1.5em !default;
 $h4-font-size: 1.3em !default;
 $h5-font-size: 1.15em !default;
 $h6-font-size: 1em !default;
-
 $body-font-family: df.$s3gw-font-family-sans-serif;
 $font-family-sans-serif: df.$s3gw-font-family-sans-serif !default;
 $font-family-monospace: df.$s3gw-font-family-monospace !default;
@@ -252,6 +250,7 @@ li {
 }
 
 @keyframes progress-loading {
+  /* stylelint-disable */
   0%,
   100% {
     transition-timing-function: cubic-bezier(1, 0, 0.65, 0.85);
@@ -264,6 +263,7 @@ li {
   100% {
     width: 100%;
   }
+  /* stylelint-enable */
 }
 
 //////////////////////////////////////////////////////////////////////////////

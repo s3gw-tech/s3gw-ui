@@ -7,8 +7,6 @@
 }
 
 .toolbar {
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-  border-bottom-color: var(--bs-border-color);
+  border-bottom: 1px solid var(--bs-border-color);
   height: dv.$s3gw-site-header-height;
 }
