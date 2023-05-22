@@ -49,18 +49,16 @@ $s3gw-color-cg-blue: #0075a8;
 $s3gw-color-blue-sapphire: #00648f;
 $s3gw-color-medium-electric-blue: #00558b;
 $s3gw-color-gunmetal: #00303d;
-$s3gw-color-navy: hsl(237, 74%, 13%);
+$s3gw-color-navy: hsl(237deg 74% 13%);
 $s3gw-color-transparent: transparent;
 $s3gw-color-chinese-black: #141419;
-$s3gw-color-transparent-black: rgba(0, 0, 0, 0.54);
+$s3gw-color-transparent-black: rgb(0 0 0 / 54%);
 $s3gw-color-black: black;
-
 $s3gw-color-success: $s3gw-color-sago-garden;
 $s3gw-color-info: $s3gw-color-magical-merlin;
 $s3gw-color-warning: $s3gw-color-seed-pod;
 $s3gw-color-danger: $s3gw-color-amour;
 $s3gw-color-error: $s3gw-color-amour;
-
 $s3gw-color-theme-primary: $s3gw-color-magical-merlin;
 $s3gw-color-theme-secondary: $s3gw-color-dolphin;
 $s3gw-color-body-background: $s3gw-color-white;

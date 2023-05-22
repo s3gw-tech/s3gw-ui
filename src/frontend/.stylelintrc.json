@@ -1,6 +1,5 @@
 {
-  "extends": "stylelint-config-standard",
-  "plugins": ["stylelint-scss"],
+  "extends": "stylelint-config-standard-scss",
   "rules": {
     "at-rule-no-unknown": null,
     "scss/at-rule-no-unknown": true,
@@ -8,10 +7,11 @@
     "block-no-empty": null,
     "no-empty-source": null,
     "no-invalid-position-at-import-rule": null,
-    "selector-pseudo-element-no-unknown": [
+    "scss/at-extend-no-missing-placeholder": null,
+    "declaration-block-no-redundant-longhand-properties": [
       true,
       {
-        "ignorePseudoElements": ["ng-deep"]
+        "ignoreShorthands": ["grid-template"]
       }
     ]
   }

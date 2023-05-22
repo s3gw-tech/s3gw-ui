@@ -26,15 +26,15 @@
     column-count: 1;
     column-gap: 0.5rem;
 
-    @media only screen and (min-width: 600px) {
+    @media only screen and (width >= 600px) {
       column-count: 2;
     }
 
-    @media only screen and (min-width: 1280px) {
+    @media only screen and (width >= 1280px) {
       column-count: 3;
     }
 
-    @media only screen and (min-width: 1920px) {
+    @media only screen and (width >= 1920px) {
       column-count: 4;
     }
 
@@ -43,15 +43,15 @@
     }
   }
 
-  @media only screen and (min-width: 600px) {
+  @media only screen and (width >= 600px) {
     --s3gw-form-column-count: 2;
   }
 
-  @media only screen and (min-width: 1280px) {
+  @media only screen and (width >= 1280px) {
     --s3gw-form-column-count: 3;
   }
 
-  @media only screen and (min-width: 1920px) {
+  @media only screen and (width >= 1920px) {
     --s3gw-form-column-count: 4;
   }
 }
