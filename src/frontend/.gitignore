@@ -35,3 +35,4 @@ proxy.conf.json
 
 # e2e
 /cypress/downloads
+/cypress/screenshots
