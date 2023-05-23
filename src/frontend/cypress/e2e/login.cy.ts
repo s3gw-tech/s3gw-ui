@@ -1,3 +1,4 @@
+
 describe('Login s3gw-ui', () => {
   beforeEach(() => {
     // Login to s3gw page
@@ -45,6 +46,17 @@ describe('Login s3gw-ui', () => {
     // Click the button to create a new bucket with only Versioning enabled
     cy.contains('Enabled').click();
     cy.get('#Name').type('test-bucket');
+
+    // Add tags with key and value
+    cy.get('i.ms-2.mdi-18px.s3gw-cursor-pointer').click()
+    cy.get('#Key').type('test-key')
+    cy.get('#Value').type('test-value')
+    cy.get('button:contains("Cancel")').filter(':visible')
+    cy.get('button:contains("OK")').filter(':visible').click()
+
+    // select object lock and retention
+    cy.contains('Retention').click()
     cy.get('button:contains("Create")').filter(':visible').click();
+
   });
 });
