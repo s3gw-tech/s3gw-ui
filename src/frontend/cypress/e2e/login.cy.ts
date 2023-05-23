@@ -55,6 +55,6 @@ describe('Login s3gw-ui', () => {
 
     // select object lock and retention
     cy.contains('Retention').click();
-    cy.get('button:contains("Create")').filter(':visible').click();
+    cy.get('button:contains("Create")').click();
   });
 });
