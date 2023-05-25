@@ -376,7 +376,14 @@ export class ObjectDatatablePageComponent implements OnInit {
             });
             // @ts-ignore
             if (this.showDeletedObjects) {
-              newObjects.push(..._.filter(objects, ['IsDeleted', true]));
+              newObjects.push(
+                ..._.filter(objects, {
+                  /* eslint-disable @typescript-eslint/naming-convention */
+                  IsLatest: true,
+                  IsDeleted: true
+                  /* eslint-enable @typescript-eslint/naming-convention */
+                })
+              );
             }
             this.objects = [...this.objects, ...newObjects];
           },
