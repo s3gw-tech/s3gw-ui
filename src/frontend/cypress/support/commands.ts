@@ -46,9 +46,32 @@
 declare namespace Cypress {
   interface Chainable<Subject = any> {
     navigate(url: string): Chainable<Subject>;
+    login(): void;
+    logout(): void;
+    enableAdministration(): void;
   }
 }
 
 Cypress.Commands.add('navigate', (url: string) => {
   return cy.wait(1000).visit(`/#${url}`);
+});
+
+Cypress.Commands.add('login', () => {
+  cy.visit('/');
+  const accessKey = Cypress.env('accessKey');
+  const secretKey = Cypress.env('secretKey');
+  cy.get('#accessKey').type(accessKey);
+  cy.get('#secretKey').type(secretKey);
+  cy.contains('Log in').click();
+});
+
+Cypress.Commands.add('logout', () => {
+  cy.visit('/');
+  cy.get('button.btn.btn-simple.mx-2[ngbDropdownToggle]').click();
+  cy.contains('Log out').should('be.visible').click();
+  cy.contains('Yes').should('be.visible').click();
+});
+
+Cypress.Commands.add('enableAdministration', () => {
+  cy.get('.form-check-input').click();
 });
