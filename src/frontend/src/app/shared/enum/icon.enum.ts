@@ -24,6 +24,7 @@ export enum Icon {
   show = 'mdi mdi-eye',
   hide = 'mdi mdi-eye-off',
   file = 'mdi mdi-file',
+  fileTree = 'mdi mdi-file-tree',
   folder = 'mdi mdi-folder-open',
   folderOpen = 'mdi mdi-folder-open',
   folderPlus = 'mdi mdi-folder-plus',
@@ -43,5 +44,7 @@ export enum Icon {
   bell = 'mdi mdi-bell',
   sum = 'mdi mdi-sigma',
   home = 'mdi mdi-home',
-  copy = 'mdi mdi-content-copy'
+  copy = 'mdi mdi-content-copy',
+  restore = 'mdi mdi-restore',
+  archive = 'mdi mdi-archive'
 }

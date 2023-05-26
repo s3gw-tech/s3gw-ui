@@ -1,4 +1,5 @@
 import {
+  basename,
   bytesToSize,
   extractErrorCode,
   extractErrorDescription,
@@ -166,5 +167,21 @@ describe('functions.helper', () => {
         statusText: 'bbb'
       })
     ).toBe('message=bbb');
+  });
+
+  it('should get basename [1]', () => {
+    expect(basename('foo.txt')).toBe('foo.txt');
+  });
+
+  it('should get basename [2]', () => {
+    expect(basename('x/y/foo.txt')).toBe('foo.txt');
+  });
+
+  it('should get basename [3]', () => {
+    expect(basename('/a/foo.txt')).toBe('foo.txt');
+  });
+
+  it('should get basename [4]', () => {
+    expect(basename('/a/foo.txt/')).toBe('');
   });
 });

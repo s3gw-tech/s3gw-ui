@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { Injectable } from '@angular/core';
 import * as AWS from 'aws-sdk';
-import { DeleteMarkerEntry } from 'aws-sdk/clients/s3';
 import { saveAs } from 'file-saver';
 import * as _ from 'lodash';
 import { defer, forkJoin, from, merge, Observable, of, Subscriber, throwError } from 'rxjs';
@@ -198,6 +197,14 @@ export type S3PutObjectLegalHoldOutput = AWS.S3.Types.PutObjectLegalHoldOutput &
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 
+type S3ListAllObjectVersions = {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  Versions: AWS.S3.Types.ObjectVersionList;
+  DeleteMarkers: AWS.S3.Types.DeleteMarkers;
+  CommonPrefixes: AWS.S3.Types.CommonPrefixList;
+  /* eslint-enable @typescript-eslint/naming-convention */
+};
+
 /**
  * Service to handle buckets via the S3 API.
  */
@@ -233,6 +240,9 @@ export class S3BucketService {
   /**
    * Helper method to build a valid object key using the configured
    * delimiter.
+   *
+   * Example:
+   * key='foo/xyz', prefix='/bar/baz' => 'bar/baz/foo/xyz'
    *
    * @param key The object key.
    * @param prefix The optional prefix.
@@ -823,7 +833,8 @@ export class S3BucketService {
   }
 
   /**
-   * Get the objects of the specified bucket including version information.
+   * Returns enhanced metadata about all versions of the objects in a
+   * bucket.
    *
    * @param bucket The name of the bucket.
    * @param prefix Limits the response to objects with keys that begin
@@ -839,70 +850,49 @@ export class S3BucketService {
     prefix?: AWS.S3.Types.Prefix,
     credentials?: Credentials
   ): Observable<S3ObjectVersionList> {
-    return new Observable<S3ObjectVersionList>((observer: Subscriber<S3ObjectVersionList>) => {
-      const s3Client = this.s3ClientService.get(credentials);
-      const params: AWS.S3.Types.ListObjectVersionsRequest = {
-        /* eslint-disable @typescript-eslint/naming-convention */
-        Bucket: bucket,
-        Delimiter: this.delimiter,
-        Prefix: prefix
-        /* eslint-enable @typescript-eslint/naming-convention */
-      };
-      let aborted = false;
-      (async () => {
-        try {
-          do {
-            const resp: AWS.S3.Types.ListObjectVersionsOutput = await s3Client
-              .listObjectVersions(params)
-              .promise();
-            params.KeyMarker = resp.NextKeyMarker;
-            const value = _.map(
-              resp.Versions ?? [],
-              (objectVersion: AWS.S3.Types.ObjectVersion) => {
-                return _.merge(objectVersion, {
-                  /* eslint-disable @typescript-eslint/naming-convention */
-                  Name: this.splitKey(objectVersion.Key!).pop(),
-                  Type: 'OBJECT',
-                  IsDeleted: false
-                  /* eslint-enable @typescript-eslint/naming-convention */
-                });
-              }
-            );
-            if (resp.CommonPrefixes?.length) {
-              _.forEach(resp.CommonPrefixes, (cp: AWS.S3.Types.CommonPrefix) => {
-                value.push({
-                  /* eslint-disable @typescript-eslint/naming-convention */
-                  Key: this.buildKey(cp.Prefix!),
-                  Name: this.splitKey(cp.Prefix!).pop(),
-                  Type: 'FOLDER',
-                  IsDeleted: false,
-                  IsLatest: true
-                  /* eslint-enable @typescript-eslint/naming-convention */
-                });
-              });
-            }
-            // Append deleted objects.
-            _.forEach(resp.DeleteMarkers ?? [], (deleteMarker: DeleteMarkerEntry) => {
-              value.push(
-                _.merge(deleteMarker, {
-                  /* eslint-disable @typescript-eslint/naming-convention */
-                  Name: this.splitKey(deleteMarker.Key!).pop(),
-                  Type: 'OBJECT',
-                  Size: 0,
-                  IsDeleted: true
-                  /* eslint-enable @typescript-eslint/naming-convention */
-                })
-              );
-            });
-            observer.next(value as S3ObjectVersionList);
-          } while (params.KeyMarker && !aborted);
-        } catch (error) {
-          observer.error(error);
-        }
-        observer.complete();
-      })();
-      return () => (aborted = true);
-    });
+    return this.listAllObjectVersions(bucket, prefix, credentials).pipe(
+      map((resp: S3ListAllObjectVersions): S3ObjectVersionList => {
+        const value: S3ObjectVersionList = _.map(
+          resp.Versions,
+          (objectVersion: AWS.S3.Types.ObjectVersion) => {
+            return _.merge(objectVersion, {
+              /* eslint-disable @typescript-eslint/naming-convention */
+              Name: this.splitKey(objectVersion.Key!).pop(),
+              Type: 'OBJECT',
+              IsDeleted: false
+              /* eslint-enable @typescript-eslint/naming-convention */
+            }) as S3ObjectVersion;
+          }
+        );
+        // Process and append folder like objects. Folders do not really
+        // exist in S3.
+        _.forEach(resp.CommonPrefixes, (cp: AWS.S3.Types.CommonPrefix) => {
+          value.push({
+            /* eslint-disable @typescript-eslint/naming-convention */
+            Key: this.buildKey(cp.Prefix!),
+            Name: this.splitKey(cp.Prefix!).pop(),
+            Type: 'FOLDER',
+            IsDeleted: false,
+            IsLatest: true
+            /* eslint-enable @typescript-eslint/naming-convention */
+          } as S3ObjectVersion);
+        });
+        // Append deleted objects.
+        _.forEach(resp.DeleteMarkers, (deleteMarker: AWS.S3.Types.DeleteMarkerEntry) => {
+          value.push(
+            _.merge(deleteMarker, {
+              /* eslint-disable @typescript-eslint/naming-convention */
+              Name: this.splitKey(deleteMarker.Key!).pop(),
+              Type: 'OBJECT',
+              Size: 0,
+              IsDeleted: true
+              /* eslint-enable @typescript-eslint/naming-convention */
+            }) as S3ObjectVersion
+          );
+        });
+        return value;
+      })
+    );
   }
 
   /**
@@ -921,7 +911,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public deleteObject(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     versionId?: AWS.S3.Types.ObjectVersionId,
     credentials?: Credentials
   ): Observable<S3DeleteObjectOutput> {
@@ -1052,7 +1042,7 @@ export class S3BucketService {
    */
   public existsObject(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     credentials?: Credentials
   ): Observable<boolean> {
     return this.headObject(bucket, key, undefined, credentials).pipe(
@@ -1080,7 +1070,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public getObject(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     optionalParams?: Partial<AWS.S3.Types.GetObjectRequest>,
     credentials?: Credentials
   ): Observable<S3GetObjectOutput> {
@@ -1114,7 +1104,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public putObject(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     optionalParams?: Partial<AWS.S3.Types.PutObjectRequest>,
     credentials?: Credentials
   ): Observable<S3PutObjectOutput> {
@@ -1147,7 +1137,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public headObject(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     optionalParams?: Partial<AWS.S3.Types.HeadObjectRequest>,
     credentials?: Credentials
   ): Observable<S3HeadObjectOutput> {
@@ -1178,7 +1168,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public getObjectAttributes(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     versionId?: AWS.S3.Types.ObjectVersionId,
     credentials?: Credentials
   ): Observable<S3GetObjectAttributesOutput> {
@@ -1206,15 +1196,27 @@ export class S3BucketService {
    *
    * @param bucket The name of the bucket.
    * @param key The object key.
-   * @param credentials The AWS credentials to sign requests with. Defaults
-   *   to the credentials of the currently logged-in user.
+   * @param versionId The version ID used to reference a specific version
+   *   of the object.
+   * @param credentials The AWS credentials to sign requests with.
+   *   Defaults to the credentials of the currently logged-in user.
    */
   public downloadObject(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
+    versionId?: AWS.S3.Types.ObjectVersionId,
     credentials?: Credentials
   ): Observable<S3GetObjectOutput> {
-    return this.getObject(bucket, key, undefined, credentials).pipe(
+    return this.getObject(
+      bucket,
+      key,
+      {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        VersionId: versionId
+        /* eslint-enable @typescript-eslint/naming-convention */
+      },
+      credentials
+    ).pipe(
       tap((resp: S3GetObjectOutput) => {
         // @ts-ignore
         const blob: Blob = new Blob([resp.Body!]);
@@ -1240,7 +1242,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public getObjectTagging(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     versionId?: AWS.S3.Types.ObjectVersionId,
     credentials?: Credentials
   ): Observable<S3GetObjectTaggingOutput> {
@@ -1285,7 +1287,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public setObjectTagging(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     tags: AWS.S3.Types.TagSet,
     credentials?: Credentials
   ): Observable<S3PutObjectTaggingOutput> {
@@ -1317,7 +1319,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public getObjectRetention(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     credentials?: Credentials
   ): Observable<S3GetObjectRetentionOutput> {
     const params: AWS.S3.Types.GetObjectRetentionRequest = {
@@ -1359,7 +1361,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public getObjectLegalHold(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     versionId?: AWS.S3.Types.ObjectVersionId,
     credentials?: Credentials
   ): Observable<S3GetObjectLegalHoldOutput> {
@@ -1401,7 +1403,7 @@ export class S3BucketService {
   @CatchAuthErrors()
   public setObjectLegalHold(
     bucket: AWS.S3.Types.BucketName,
-    key: AWS.S3.ObjectKey,
+    key: AWS.S3.Types.ObjectKey,
     status: AWS.S3.Types.ObjectLockLegalHoldStatus,
     credentials?: Credentials
   ): Observable<S3PutObjectLegalHoldOutput> {
@@ -1416,5 +1418,99 @@ export class S3BucketService {
       // Note, we need to convert the hot promise to a cold observable.
       this.s3ClientService.get(credentials).putObjectLegalHold(params).promise()
     ).pipe(map((resp: AWS.S3.Types.PutObjectLegalHoldOutput) => _.merge(resp, params)));
+  }
+
+  /**
+   * Restores an object by creating a copy of the specified object.
+   *
+   * @param bucket The name of the bucket.
+   * @param key The object key.
+   * @param versionId The version ID used to reference a specific version
+   *   of the object.
+   * @param credentials The AWS credentials to sign requests with. Defaults
+   *   to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#copyObject-property
+   * @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/RestoringPreviousVersions.html
+   */
+  @CatchErrors(['NoSuchKey', 'InvalidRequest'])
+  @CatchAuthErrors()
+  public restoreObject(
+    bucket: AWS.S3.Types.BucketName,
+    key: AWS.S3.Types.ObjectKey,
+    versionId?: AWS.S3.Types.ObjectVersionId,
+    credentials?: Credentials
+  ): Observable<AWS.S3.Types.CopyObjectOutput> {
+    let copySource: AWS.S3.Types.CopySource = encodeURIComponent(`${this.buildKey(key, bucket)}`);
+    if (_.isString(versionId)) {
+      copySource = `${copySource}?versionId=${versionId}`;
+    }
+    const params: AWS.S3.Types.CopyObjectRequest = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: bucket,
+      CopySource: copySource,
+      Key: key,
+      MetadataDirective: 'COPY',
+      TaggingDirective: 'COPY'
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).copyObject(params).promise()
+    );
+  }
+
+  /**
+   * Returns metadata about all versions of the objects in a bucket.
+   *
+   * @param bucket The name of the bucket.
+   * @param prefix Limits the response to objects with keys that begin
+   *   with the specified prefix.
+   * @param credentials The AWS credentials to sign requests with.
+   *   Defaults to the credentials of the currently logged-in user.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectVersions-property
+   */
+  private listAllObjectVersions(
+    bucket: AWS.S3.Types.BucketName,
+    prefix?: AWS.S3.Types.Prefix,
+    credentials?: Credentials
+  ): Observable<S3ListAllObjectVersions> {
+    return new Observable<S3ListAllObjectVersions>(
+      (observer: Subscriber<S3ListAllObjectVersions>) => {
+        const s3Client: AWS.S3 = this.s3ClientService.get(credentials);
+        const params: AWS.S3.Types.ListObjectVersionsRequest = {
+          /* eslint-disable @typescript-eslint/naming-convention */
+          Bucket: bucket,
+          Delimiter: this.delimiter,
+          Prefix: prefix
+          /* eslint-enable @typescript-eslint/naming-convention */
+        };
+        let aborted = false;
+        (async () => {
+          try {
+            do {
+              const resp: AWS.S3.Types.ListObjectVersionsOutput = await s3Client
+                .listObjectVersions(params)
+                .promise();
+              params.KeyMarker = resp.NextKeyMarker;
+              // Sanitize the response, so we do not need to take care
+              // about that anymore.
+              observer.next({
+                /* eslint-disable @typescript-eslint/naming-convention */
+                Versions: resp.Versions ?? [],
+                DeleteMarkers: resp.DeleteMarkers ?? [],
+                CommonPrefixes: resp.CommonPrefixes ?? []
+                /* eslint-enable @typescript-eslint/naming-convention */
+              });
+            } while (params.KeyMarker && !aborted);
+          } catch (error) {
+            observer.error(error);
+          }
+          observer.complete();
+        })();
+        return () => (aborted = true);
+      }
+    );
   }
 }

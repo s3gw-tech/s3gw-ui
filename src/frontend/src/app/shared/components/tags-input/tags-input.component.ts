@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { Component, forwardRef } from '@angular/core';
+import { Component, forwardRef, HostBinding } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
@@ -23,6 +23,11 @@ import { DialogService } from '~/app/shared/services/dialog.service';
   ]
 })
 export class TagsInputComponent implements ControlValueAccessor {
+  @HostBinding('attr.readonly')
+  get isAttrReadonly() {
+    return this.disabled ? '' : null;
+  }
+
   public icons = Icon;
   public disabled = false;
 
