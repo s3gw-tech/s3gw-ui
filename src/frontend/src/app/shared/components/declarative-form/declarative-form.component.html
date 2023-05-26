@@ -218,7 +218,7 @@
               <input class="form-check-input"
                      type="checkbox"
                      [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                     [id]="field.id"
+                     [id]="field.name"
                      [formControlName]="field.name"
                      [checked]="field.value"
                      [required]="field.validators?.required!">
@@ -251,7 +251,7 @@
               <input class="form-check-input"
                      type="radio"
                      [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                     [id]="field.id"
+                     [id]="field.name"
                      [formControlName]="field.name"
                      [value]="field.value"
                      [checked]="field.checked">
