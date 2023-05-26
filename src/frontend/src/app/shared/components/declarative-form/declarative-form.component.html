@@ -224,7 +224,7 @@
                      [required]="field.validators?.required!">
               <label class="form-check-label"
                      [ngClass]="{'required': !field.readonly && field.validators?.required!}"
-                     [for]="field.id">
+                     [for]="field.name">
                 {{ field.label! | transloco }}
               </label>
             </div>
@@ -256,7 +256,7 @@
                      [value]="field.value"
                      [checked]="field.checked">
               <label class="form-check-label"
-                     [for]="field.id">
+                     [for]="field.name">
                 {{ field.label! | transloco }}
               </label>
             </div>
