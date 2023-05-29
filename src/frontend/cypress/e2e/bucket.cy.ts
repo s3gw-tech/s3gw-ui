@@ -1,7 +1,27 @@
-describe('Bucket main page', () => {
+import { BucketPageHelper } from './bucket.po';
+
+describe('Bucket Management', () => {
+  const bucketName = 'e2ebucket';
+  const addTag = true;
+  const enableVersioning = true;
+  const enableObjectLock = true;
+  const bucket = new BucketPageHelper(bucketName);
+
   beforeEach(() => {
     cy.login();
     cy.navigate('/buckets');
+  });
+
+  afterEach(() => {
+    const currentTestTitle = Cypress.mocha.getRunner().suite.ctx.currentTest.title;
+
+    if (currentTestTitle !== 'Buckets page view') {
+      //List the bucket created
+      bucket.listBucket();
+
+      // Delete the bucket after each test iteration
+      bucket.deleteBucket();
+    }
   });
 
   it('Buckets page view', () => {
@@ -14,20 +34,27 @@ describe('Bucket main page', () => {
     cy.contains('Versioning').should('be.visible');
     cy.contains('Object Locking').should('be.visible');
     cy.contains('Cancel').should('be.visible');
+  });
 
-    // Click the button to create a new bucket with only Versioning enabled
-    cy.contains('Enabled').click();
-    cy.get('#Name').type('test-bucket');
+  it('should create a new bucket', () => {
+    bucket.createBucket();
+  });
 
-    // Add tags with key and value
-    cy.get('i.ms-2.mdi-18px.s3gw-cursor-pointer').click();
-    cy.get('#Key').type('test-key');
-    cy.get('#Value').type('test-value');
-    cy.get('button:contains("Cancel")').filter(':visible');
-    cy.get('button:contains("OK")').filter(':visible').click();
+  it('manage versioned bucket', () => {
+    bucket.createBucket(addTag, enableVersioning);
+  });
 
-    // select object lock and retention
-    cy.contains('Retention').click();
-    cy.get('button:contains("Create")').click();
+  it('manage test versioned bucket with object locking', () => {
+    bucket.createBucket(addTag, enableVersioning, enableObjectLock);
+  });
+
+  it('manage versioned bucket with object locking and Compliance retention mode', () => {
+    const retentionMode = 'Compliance';
+    bucket.createBucket(addTag, enableVersioning, enableObjectLock, retentionMode);
+  });
+
+  it('versioned bucket with object locking and Governance retention mode', () => {
+    const retentionMode = 'Governance';
+    bucket.createBucket(addTag, enableVersioning, enableObjectLock, retentionMode);
   });
 });
