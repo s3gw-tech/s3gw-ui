@@ -4,8 +4,10 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:longhorn": "ng serve --configuration development,longhorn",
     "build": "ng build",
     "build:prod": "ng build --configuration production --verbose",
+    "build:prod:longhorn": "ng build --configuration production,longhorn --verbose",
     "test": "ng test --no-cache --watch",
     "test:ci": "ng test --no-cache",
     "e2e": "start-test http://localhost:4200 'cypress open'",
@@ -19,7 +21,8 @@
     "fix": "run-p -csl --aggregate-output fix:*",
     "i18n": "npm run i18n:extract && npm run i18n:pull && npm run i18n:convert",
     "i18n:extract": "transloco-keys-manager extract --sort --replace",
-    "upgrade": "ncu -u --target minor"
+    "upgrade": "ncu -u --target minor",
+    "upgrade:patch": "ncu --upgrade --target patch"
   },
   "private": true,
   "dependencies": {
@@ -38,16 +41,16 @@
     "@mdi/font": "^7.2.96",
     "@ng-bootstrap/ng-bootstrap": "^14.2.0",
     "@ngneat/transloco": "^4.2.7",
-    "aws-sdk": "^2.1385.0",
-    "bootstrap": "5.2.3",
+    "aws-sdk": "^2.1388.0",
+    "bootstrap": "~5.2.3",
     "crypto-js": "^4.1.1",
-    "dayjs": "^1.11.7",
+    "dayjs": "^1.11.8",
     "file-saver": "^2.0.5",
     "lodash": "^4.17.21",
     "ngx-toastr": "^15.2.2",
     "nunjucks": "^3.2.4",
-    "rxjs": "~7.4.0",
-    "tslib": "^2.5.2",
+    "rxjs": "~7.8.1",
+    "tslib": "^2.5.3",
     "validator": "^13.9.0",
     "zone.js": "~0.13.0"
   },
@@ -66,11 +69,11 @@
     "@types/file-saver": "^2.0.5",
     "@types/jest": "~28.1.8",
     "@types/lodash": "^4.14.195",
-    "@types/node": "^16.18.33",
+    "@types/node": "^16.18.34",
     "@types/nunjucks": "^3.2.2",
     "@types/validator": "^13.7.17",
-    "@typescript-eslint/eslint-plugin": "^5.59.7",
-    "@typescript-eslint/parser": "^5.59.7",
+    "@typescript-eslint/eslint-plugin": "^5.59.8",
+    "@typescript-eslint/parser": "^5.59.8",
     "cypress": "^12.13.0",
     "eslint": "^8.41.0",
     "eslint-config-prettier": "^8.8.0",
@@ -88,8 +91,13 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
     "start-server-and-test": "^2.0.0",
-    "stylelint": "^15.6.2",
+    "stylelint": "^15.6.3",
     "stylelint-config-standard-scss": "~9.0.0",
-    "typescript": "4.9.5"
+    "typescript": "~4.9.5"
+  },
+  "overrides": {
+    "stylelint": {
+      "cosmiconfig": "8.1.3"
+    }
   }
 }

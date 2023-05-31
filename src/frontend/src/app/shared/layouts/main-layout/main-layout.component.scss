@@ -1,13 +1,11 @@
-@use 'src/scss/defaults/variables' as dv;
-
-$navigation-width: 230px;
-$notifications-width: 350px;
+@use 'theme/variables' as tv;
 
 .main-layout {
+  background-color: var(--s3gw-main-layout-bg, var(--bs-body-bg));
   display: grid;
   grid-template-areas: 'header header' 'navigation main' 'footer footer';
-  grid-template-columns: $navigation-width auto;
-  grid-template-rows: dv.$s3gw-site-header-height auto 0;
+  grid-template-columns: tv.$s3gw-navigation-width auto;
+  grid-template-rows: tv.$s3gw-site-header-height auto 0;
   height: 100vh;
   overflow-y: auto;
   position: relative;
@@ -34,9 +32,9 @@ $notifications-width: 350px;
       border-color: var(--bs-border-color);
       position: fixed;
       bottom: 0;
-      width: $notifications-width;
-      right: -$notifications-width;
-      top: calc(#{dv.$s3gw-site-header-height} - 1px);
+      width: tv.$s3gw-notifications-width;
+      right: tv.$s3gw-notifications-width * -1;
+      top: calc(#{tv.$s3gw-site-header-height} - 1px);
       transition: right 0.3s;
       z-index: 1021; // Must be > than Bootstraps $zindex-sticky
 
@@ -54,6 +52,8 @@ $notifications-width: 350px;
     display: block;
     grid-area: main;
     overflow-y: auto;
+    background-color: var(--s3gw-main-layout-main-bg, var(--bs-body-bg));
+    margin: var(--s3gw-main-layout-main-margin, unset);
   }
 
   footer {

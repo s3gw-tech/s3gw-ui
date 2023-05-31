@@ -11,35 +11,34 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-@use './defaults/colors' as dc;
-@use './defaults/fonts' as df;
-@use './defaults/variables' as dv;
+@use 'theme/colors' as tc;
+@use 'theme/fonts' as tf;
+@use 'theme/variables' as tv;
 
 // Customize Bootstrap variables to customize the theme to our needs.
-$primary: dc.$s3gw-color-theme-primary !default;
-$secondary: dc.$s3gw-color-theme-secondary !default;
-$success: dc.$s3gw-color-success !default;
-$info: dc.$s3gw-color-info !default;
-$warning: dc.$s3gw-color-warning !default;
-$danger: dc.$s3gw-color-danger !default;
-$body-bg: dc.$s3gw-color-body-background;
-$body-color: dc.$s3gw-color-dark-liver;
-$card-bg: dc.$s3gw-color-cultured;
+$primary: tc.$s3gw-color-theme-primary !default;
+$secondary: tc.$s3gw-color-theme-secondary !default;
+$success: tc.$s3gw-color-success !default;
+$info: tc.$s3gw-color-info !default;
+$warning: tc.$s3gw-color-warning !default;
+$danger: tc.$s3gw-color-danger !default;
+$body-bg: tc.$s3gw-color-body-bg;
+$body-color: tc.$s3gw-color-body-color;
+$card-bg: tc.$s3gw-color-cultured;
 $h1-font-size: 2em !default;
 $h2-font-size: 1.75em !default;
 $h3-font-size: 1.5em !default;
 $h4-font-size: 1.3em !default;
 $h5-font-size: 1.15em !default;
 $h6-font-size: 1em !default;
-$body-font-family: df.$s3gw-font-family-sans-serif;
-$font-family-sans-serif: df.$s3gw-font-family-sans-serif !default;
-$font-family-monospace: df.$s3gw-font-family-monospace !default;
-$headings-font-family: df.$s3gw-font-family-headings !default;
-$component-active-color: dc.$s3gw-color-white;
-$component-active-bg: dc.$s3gw-color-theme-primary;
+$body-font-family: tf.$s3gw-font-family-sans-serif;
+$font-family-sans-serif: tf.$s3gw-font-family-sans-serif !default;
+$font-family-monospace: tf.$s3gw-font-family-monospace !default;
+$headings-font-family: tf.$s3gw-font-family-headings !default;
+$component-active-color: tc.$s3gw-color-white;
+$component-active-bg: tc.$s3gw-color-theme-primary;
 $badge-border-radius: 1.25rem;
-$border-color: dc.$s3gw-color-border;
-$table-hover-bg: dc.$s3gw-color-table-hover-background;
+$border-color: tc.$s3gw-color-border;
 $table-th-font-weight: normal;
 $pagination-font-size: 0.875rem;
 $pagination-padding-y: 0.187rem;
@@ -62,9 +61,7 @@ $zindex-dropdown: 1021; // Must be > than Bootstraps $zindex-sticky
 
 //////////////////////////////////////////////////////////////////////////////
 // Table
-.table-light {
-  --bs-table-bg: #{$table-hover-bg};
-}
+@include table-variant('light', tc.$s3gw-color-table-bg);
 
 tbody > tr {
   &.no-hover:hover > * {
@@ -89,6 +86,18 @@ tbody > tr {
 
   & ~ .form-check-label {
     cursor: pointer;
+  }
+}
+
+.form-switch {
+  &.switch-warning > .form-check-input:checked {
+    background-color: var(--bs-warning);
+    border-color: var(--bs-warning);
+  }
+
+  &.switch-danger > .form-check-input:checked {
+    background-color: var(--bs-danger);
+    border-color: var(--bs-danger);
   }
 }
 
@@ -140,27 +149,27 @@ button:disabled,
 .btn-simple {
   @include button-variant(
     // background
-    dc.$s3gw-color-transparent,
+    tc.$s3gw-btn-simple-bg,
     // border
-    dc.$s3gw-color-transparent,
+    tc.$s3gw-btn-simple-border-color,
     // color
-    dc.$s3gw-color-black,
+    tc.$s3gw-btn-simple-color,
     // hover-background
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-btn-simple-hover-bg,
     // hover-border
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-btn-simple-hover-border-color,
     // hover-color
-    dc.$s3gw-color-white,
+    tc.$s3gw-btn-simple-hover-color,
     // active-background
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-btn-simple-active-bg,
     // active-border
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-btn-simple-active-border-color,
     // active-color
-    dc.$s3gw-color-white,
+    tc.$s3gw-btn-simple-active-color,
     // disabled-background
-    dc.$s3gw-color-gray-x11,
+    tc.$s3gw-btn-simple-disabled-bg,
     // disabled-border
-    dc.$s3gw-color-gray-x11
+    tc.$s3gw-btn-simple-disabled-border-color
   );
 
   --bs-btn-focus-box-shadow: none;
@@ -169,45 +178,45 @@ button:disabled,
 .btn-primary {
   @include button-variant(
     // background
-    $primary,
+    tc.$s3gw-primary-btn-bg,
     // border
-    $primary,
+    tc.$s3gw-primary-btn-border-color,
     // color
-    dc.$s3gw-color-white,
+    tc.$s3gw-primary-btn-color,
     // hover-background
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-primary-btn-hover-bg,
     // hover-border
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-primary-btn-hover-border-color,
     // hover-color
-    dc.$s3gw-color-white,
+    tc.$s3gw-primary-btn-hover-color,
     // active-background
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-primary-btn-active-bg,
     // active-border
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-primary-btn-active-border-color,
     // active-color
-    dc.$s3gw-color-white,
+    tc.$s3gw-primary-btn-active-color,
     // disabled-background
-    dc.$s3gw-color-gray-x11,
+    tc.$s3gw-primary-btn-disabled-bg,
     // disabled-border
-    dc.$s3gw-color-gray-x11
+    tc.$s3gw-primary-btn-disabled-border-color
   );
 }
 
 .btn-outline-primary {
   @include button-outline-variant(
     // color
-    $primary,
+    tc.$s3gw-primary-btn-outline-color,
     // color-hover
-    dc.$s3gw-color-black,
+    tc.$s3gw-primary-btn-outline-hover-color,
     // active-background
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-primary-btn-outline-active-bg,
     // active-border
-    dc.$s3gw-color-cyan-blue-azure,
+    tc.$s3gw-primary-btn-outline-active-border-color,
     // active-color
-    dc.$s3gw-color-white
+    tc.$s3gw-primary-btn-outline-active-color
   );
 
-  --bs-btn-hover-bg: #{dc.$s3gw-color-white};
+  --bs-btn-hover-bg: #{tc.$s3gw-primary-btn-outline-hover-bg};
 }
 
 .btn-submit {
@@ -220,7 +229,7 @@ button:disabled,
 
 .btn-warning,
 .btn-danger {
-  color: dc.$s3gw-color-white !important;
+  color: tc.$s3gw-color-white !important;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -315,7 +324,7 @@ li {
 
 .navbar .navbar-toggle .mdi::before {
   position: relative;
-  color: dc.$s3gw-color-white;
+  color: tc.$s3gw-color-white;
 }
 
 .breadcrumb .mdi::before {

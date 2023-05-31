@@ -1,0 +1,43 @@
+@import 'colors';
+@import 'fonts';
+@import 'variables';
+
+:root {
+  // Main layout
+  --s3gw-main-layout-bg: #{$s3gw-color-azure};
+  --s3gw-main-layout-main-margin: 1rem;
+
+  // Topbar
+  --s3gw-topbar-color: var(--bs-body-color);
+  --s3gw-topbar-bg: #{$s3gw-color-cg-blue};
+  --s3gw-topbar-btn-color: var(--bs-white);
+  --s3gw-topbar-toggle-btn-color: var(--bs-body-color);
+  --s3gw-topbar-toggle-btn-bg: var(--bs-body-bg);
+  --s3gw-topbar-toggle-btn-hover-bg: #{$s3gw-color-anti-flash-white};
+  --s3gw-topbar-navigation-bg: var(--bs-body-bg);
+
+  // Navbar
+  // Alternative 1:
+  // --s3gw-navbar-bg: #{$s3gw-color-cg-blue};
+  // --s3gw-navbar-color: var(--bs-white);
+  // --s3gw-navbar-item-hover-bg: rgba(0, 0, 0, 0.15);
+  // --s3gw-navbar-item-selected-bg: #{$s3gw-color-medium-electric-blue};
+  // --s3gw-navbar-item-border-color: #{$s3gw-color-blue-green};
+  // Alternative 2:
+  // --s3gw-navbar-item-bg: #{$s3gw-color-cg-blue};
+  // --s3gw-navbar-item-color: #{$s3gw-color-white};
+  // --s3gw-navbar-item-hover-bg: #{$s3gw-color-blue-sapphire};
+  // --s3gw-navbar-item-hover-color: #{$s3gw-color-white};
+  // --s3gw-navbar-item-selected-bg: #{$s3gw-color-medium-electric-blue};
+  // --s3gw-navbar-item-selected-color: #{$s3gw-color-white};
+  // --s3gw-navbar-item-border-color: #{$s3gw-color-blue-green};
+  // Alternative 3:
+  --s3gw-navbar-item-hover-bg: rgb(0 0 0 / 15%);
+  --s3gw-navbar-item-selected-bg: rgb(0 0 0 / 7.5%);
+  --s3gw-navbar-item-border-color: #{$s3gw-color-blue-green};
+
+  // Table
+  .table-light {
+    --bs-table-color: #{$s3gw-color-white};
+  }
+}
