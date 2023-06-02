@@ -9,6 +9,7 @@ describe('User Management', () => {
   const users = new UserPageHelper(userId);
 
   beforeEach(() => {
+    localStorage.setItem('language', 'en_US');
     cy.login();
     cy.enableAdministration();
     cy.navigate('/admin/users');

@@ -1,4 +1,8 @@
 describe('Login page s3gw-ui', () => {
+  beforeEach(() => {
+    localStorage.setItem('language', 'en_US');
+  });
+
   it('Login page view', () => {
     // Visit to s3gw page
     cy.visit('/');

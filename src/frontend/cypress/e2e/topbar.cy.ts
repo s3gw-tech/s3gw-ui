@@ -1,5 +1,6 @@
 describe('Topbar', () => {
   beforeEach(() => {
+    localStorage.setItem('language', 'en_US');
     cy.login();
   });
 
@@ -35,7 +36,7 @@ describe('Topbar', () => {
   });
 
   it('Profile button', () => {
-    cy.get('button.btn.btn-simple.mx-2[ngbDropdownToggle]').click();
+    cy.get('button[title="Profile"]').click();
     cy.contains('Log out').should('be.visible');
     cy.logout();
   });
