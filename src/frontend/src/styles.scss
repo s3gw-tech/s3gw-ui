@@ -51,3 +51,8 @@ body {
 .s3gw-cursor-pointer {
   cursor: pointer;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Browser specific
+input::-webkit-search-cancel-button,
+input::-webkit-search-results-button { appearance: none; }
