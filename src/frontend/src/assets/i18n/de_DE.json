@@ -1,1 +1,16 @@
-{}
+{
+  "Welcome to s3gw": "Willkommen bei s3gw",
+  "Log in": "Anmelden",
+  "Log out": "Abmelden",
+  "Access key": "Zugangsschlüssel",
+  "Secret key": "Geheimer Schlüssel",
+  "Back": "Zurück",
+  "Logged in as": "Angemeldet als",
+  "Create": "Erstellen",
+  "Delete": "Löschen",
+  "Edit": "Bearbeiten",
+  "Upload": "Hochladen",
+  "Cancel": "Abbrechen",
+  "Update": "Aktualisieren",
+  "Explore": "Erkunden"
+}

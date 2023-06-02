@@ -69,7 +69,9 @@
         <i class="mr-1"
            [class]="icons.user">
         </i>
-        <span transloco="Logged in as {{ userId }}"></span>
+        <span>
+          {{ 'Logged in as' | transloco }} {{ userId }}
+        </span>
       </div>
       <div class="dropdown-divider"></div>
       <button ngbDropdownItem
