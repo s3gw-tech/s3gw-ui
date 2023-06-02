@@ -1,5 +1,6 @@
 describe('Bucket main page', () => {
   beforeEach(() => {
+    localStorage.setItem('language', 'en_US');
     cy.login();
     cy.navigate('/buckets');
   });
