@@ -87,7 +87,7 @@
       </tr>
     </thead>
     <tbody>
-      <ng-container *ngFor="let row of filteredData">
+      <ng-container *ngFor="let row of displayedData">
         <tr class="align-middle"
             [ngClass]="{'selected': selected.includes(row), 's3gw-cursor-pointer': selectionType !== 'none'}">
           <td *ngFor="let column of columns"
@@ -159,9 +159,9 @@
       </div>
     </div>
     <div class="mx-4 mb-3 mt-0 text-nowrap">
-      {{ (page - 1) * pageSize + 1 }} - {{ page * pageSize > data.length ? data.length : page * pageSize }} {{ 'of' | transloco }} {{ data.length }}
+      {{ (page - 1) * pageSize + 1 }} - {{ page * pageSize > filteredData.length ? filteredData.length : page * pageSize }} {{ 'of' | transloco }} {{ filteredData.length }}
     </div>
-    <ngb-pagination [collectionSize]="data.length"
+    <ngb-pagination [collectionSize]="filteredData.length"
                     [page]="page"
                     [pageSize]="pageSize"
                     (pageChange)="onPageChange($event)">

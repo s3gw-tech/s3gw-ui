@@ -171,6 +171,9 @@ export class DatatableComponent implements Datatable, OnInit {
   public cellTemplates: Record<string, TemplateRef<any>> = {};
   public isAllRowsSelected = false;
   public searchFilter = '';
+  // The data to be displayed with pagination settings applied.
+  public displayedData: DatatableData[] = [];
+  // The filtered data w/o pagination settings applied.
   public filteredData: DatatableData[] = [];
   public expandedRows: DatatableData[] = [];
 
@@ -410,6 +413,7 @@ export class DatatableComponent implements Datatable, OnInit {
   }
 
   clearSearchFilter(): void {
+    this.page = 1;
     this.searchFilter = '';
     this.applyFilters();
     this.updateSelection();
@@ -419,7 +423,7 @@ export class DatatableComponent implements Datatable, OnInit {
     if (this.isAllRowsSelected) {
       this.selected.splice(0, this.selected.length);
     } else {
-      this.selected.splice(0, this.selected.length, ...this.filteredData);
+      this.selected.splice(0, this.selected.length, ...this.displayedData);
     }
     this.selectionChange.emit(this.selected);
     this.updateIsAllRowsSelected();
@@ -465,7 +469,7 @@ export class DatatableComponent implements Datatable, OnInit {
   updateSelection(): void {
     const newSelection: DatatableData[] = [];
     this.selected.forEach((selectedItem) => {
-      const item = _.find(this.filteredData, [this.identifier, selectedItem[this.identifier]]);
+      const item = _.find(this.displayedData, [this.identifier, selectedItem[this.identifier]]);
       if (item) {
         newSelection.push(item);
       }
@@ -479,7 +483,8 @@ export class DatatableComponent implements Datatable, OnInit {
     // 1. Order the data according the given criteria (column sorting).
     // 2. Apply the given search filter.
     // 3. Get the data that is displayed on the given page (pagination).
-    const filteredData = _.orderBy(this.data, [this.sortHeader], [this.sortDirection])
+    const displayedData = _.chain(this.data)
+      .orderBy([this.sortHeader], [this.sortDirection])
       .filter((o: DatatableData) =>
         _.some(this.columns, (column: DatatableColumn) => {
           let value = _.get(o, column.prop);
@@ -499,12 +504,14 @@ export class DatatableComponent implements Datatable, OnInit {
           return _.includes(_.lowerCase(value), _.lowerCase(this.searchFilter));
         })
       )
-      .slice((this.page - 1) * this.pageSize, (this.page - 1) * this.pageSize + this.pageSize);
+      .tap((filteredData) => (this.filteredData = filteredData))
+      .slice((this.page - 1) * this.pageSize, (this.page - 1) * this.pageSize + this.pageSize)
+      .value();
     if (
-      filteredData.length !== this.filteredData.length ||
-      !_.isEqual(filteredData, this.filteredData)
+      displayedData.length !== this.displayedData.length ||
+      !_.isEqual(displayedData, this.displayedData)
     ) {
-      this.filteredData = filteredData;
+      this.displayedData = displayedData;
       // Reset the list of expanded rows.
       this.expandedRows = [];
     }
@@ -512,7 +519,7 @@ export class DatatableComponent implements Datatable, OnInit {
 
   private updateIsAllRowsSelected(): void {
     this.isAllRowsSelected =
-      this.selected.length > 0 && this.selected.length === this.filteredData.length;
+      this.selected.length > 0 && this.selected.length === this.displayedData.length;
   }
 
   private getSortProp(column: DatatableColumn): string {

@@ -72,7 +72,7 @@ describe('DatatableComponent', () => {
     fixture.detectChanges();
     expect(component.sortHeader).toBe('foo');
     expect(component.sortDirection).toBe(SortDirection.ascending);
-    expect(component.filteredData).toEqual([data.a, data.b, data.c]);
+    expect(component.displayedData).toEqual([data.a, data.b, data.c]);
   });
 
   it('should sort after specific column', () => {
@@ -81,24 +81,24 @@ describe('DatatableComponent', () => {
     fixture.detectChanges();
     expect(component.sortHeader).toBe('bar');
     expect(component.sortDirection).toBe(SortDirection.descending);
-    expect(component.filteredData).toEqual([data.b, data.a, data.c]);
+    expect(component.displayedData).toEqual([data.b, data.a, data.c]);
   });
 
   it('should reverse listing order if the current sorting header is clicked', () => {
     fixture.detectChanges();
     component.onSortChange(columns[0]);
     expect(component.sortDirection).toBe(SortDirection.descending);
-    expect(component.filteredData).toEqual([data.c, data.b, data.a]);
+    expect(component.displayedData).toEqual([data.c, data.b, data.a]);
     component.onSortChange(columns[0]);
     expect(component.sortDirection).toBe(SortDirection.ascending);
-    expect(component.filteredData).toEqual([data.a, data.b, data.c]);
+    expect(component.displayedData).toEqual([data.a, data.b, data.c]);
   });
 
   it('should sort new sorting header always ascending first', () => {
     component.sortDirection = SortDirection.descending;
     fixture.detectChanges();
     component.onSortChange(columns[1]);
-    expect(component.filteredData).toEqual([data.c, data.a, data.b]);
+    expect(component.displayedData).toEqual([data.c, data.a, data.b]);
   });
 
   it('should highlight which column is sorted and in which direction', () => {
@@ -127,7 +127,7 @@ describe('DatatableComponent', () => {
   it('should use a different compare property', () => {
     component.columns[0].compareProp = 'hidden';
     fixture.detectChanges();
-    expect(component.filteredData).toEqual([data.b, data.c, data.a]);
+    expect(component.displayedData).toEqual([data.b, data.c, data.a]);
   });
 
   it('should find nested property names', () => {
@@ -136,14 +136,14 @@ describe('DatatableComponent', () => {
     fh.clickElement('thead > tr > th:nth-child(2)');
     fh.expectTextToBe('.sort-header.asc', 'Bar');
     expect(component.sortHeader).toBe('inside.color');
-    expect(component.filteredData).toEqual([data.a, data.c, data.b]);
+    expect(component.displayedData).toEqual([data.a, data.c, data.b]);
   });
 
   // This resolve the issue that the action menu closes on data refresh without a seen change.
   it('should cache the current view', () => {
     fixture.detectChanges();
-    const oldTableData = component.filteredData;
+    const oldTableData = component.displayedData;
     component.data = [data.c, data.b, data.a];
-    expect(oldTableData).toBe(component.filteredData);
+    expect(oldTableData).toBe(component.displayedData);
   });
 });
