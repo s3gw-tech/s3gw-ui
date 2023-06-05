@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Do not display objects that have also a delete marker (gh#aquarist-labs/s3gw#548).
+- Search button only performs a search on a page level (gh#aquarist-labs/s3gw#556).
 
 ## [0.16.0]
 
