@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { concat, forkJoin, Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
-import { format } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { BlockUiService } from '~/app/shared/services/block-ui.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
@@ -53,7 +52,7 @@ export class RxjsUiHelperService {
     return new Observable<T>((observer: any) => {
       let current = 0;
       const total = sources.length;
-      this.blockUiService.start(format(translate(messages.start), { total }));
+      this.blockUiService.start(translate(messages.start, { total }));
       concat(...sources)
         .pipe(
           finalize(() => {
@@ -64,14 +63,14 @@ export class RxjsUiHelperService {
           next: (value: T) => {
             current += 1;
             this.blockUiService.update(
-              format(translate(messages.next), {
+              translate(messages.next, {
                 current,
                 total,
                 percent: Math.round((Number(current) / Number(total)) * 100)
               })
             );
             this.notificationService.showSuccess(
-              format(translate(notifications.next), notifications.nextFmtArgs(value))
+              translate(notifications.next, notifications.nextFmtArgs(value))
             );
             observer.next(value);
           },

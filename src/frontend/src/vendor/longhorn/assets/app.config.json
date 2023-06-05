@@ -1,0 +1,11 @@
+{
+  "name": "s3gw",
+  "title": "Longhorn - Object Management",
+  "helpMenuItems": [
+    {
+      "title": "Website",
+      "url": "https://longhorn.io/",
+      "icon": "mdi mdi-web"
+    }
+  ]
+}

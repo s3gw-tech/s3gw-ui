@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="33"
+   height="33"
+   viewBox="0 0 33 33"
+   fill="none"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="favicon.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   inkscape:export-filename="./favicon_180x180.png"
+   inkscape:export-xdpi="523.64001"
+   inkscape:export-ydpi="523.64001"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs10" />
+  <sodipodi:namedview
+     id="namedview8"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="true"
+     showgrid="false"
+     inkscape:zoom="14.744702"
+     inkscape:cx="14.242404"
+     inkscape:cy="17.226527"
+     inkscape:window-width="1618"
+     inkscape:window-height="888"
+     inkscape:window-x="244"
+     inkscape:window-y="537"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg6" />
+  <path
+     d="M0.521973 2.73804C0.521973 1.63347 1.4174 0.738037 2.52197 0.738037H30.522C31.6265 0.738037 32.522 1.63347 32.522 2.73804V30.738C32.522 31.8426 31.6265 32.738 30.522 32.738H2.52197C1.4174 32.738 0.521973 31.8426 0.521973 30.738V2.73804Z"
+     fill="#06527A"
+     id="path2"
+     style="fill:#0075a8;fill-opacity:1" />
+  <path
+     id="path955"
+     style="fill:#ffffff;fill-opacity:1;stroke-width:0.164731"
+     d="m 4.8081158,8.3536302 c -1.336657,0.07514 -1.651149,1.543495 -1.365234,2.6406238 0.276834,1.253229 0.01904,2.973505 1.607422,3.419922 l 6.8203122,1.361328 0.916015,5.636719 c 1.7e-5,3.659137 5.74513,4.385493 7.138672,1.306641 0.572799,-2.289351 0.89574,-4.632279 1.34961,-6.947266 2.145108,-0.473086 4.365189,-0.877285 6.539062,-1.324219 1.536556,-0.184068 1.503688,-1.763112 1.6875,-2.898437 0.33506,-1.328758 0.261425,-3.4254578 -1.712891,-3.1738278 -1.524566,0.30398 -1.375274,1.8888328 -1.595703,3.0351558 l -9.679687,1.933594 c -3.22299,-0.653756 -6.480267,-1.274935 -9.6816402,-1.949219 -0.201761,-1.182419 -0.135505,-2.8876738 -1.742188,-3.0371088 -0.09832,-0.0079 -0.192139,-0.0089 -0.28125,-0.0039 z M 17.802256,16.445426 17.065928,20.47277 c 0.0022,0.699038 -0.233323,1.046134 -0.974609,0.865234 -0.215931,-1.629374 -0.520742,-3.247916 -0.771485,-4.873047 0.819578,0.241939 1.663749,0.208003 2.482422,-0.01953 z"
+     inkscape:export-filename="./favicon_180x180.png"
+     inkscape:export-xdpi="53.360001"
+     inkscape:export-ydpi="53.360001" />
+</svg>

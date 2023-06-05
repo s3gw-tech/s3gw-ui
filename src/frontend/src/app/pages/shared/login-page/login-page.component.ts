@@ -8,6 +8,7 @@ import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { AuthResponse, AuthService } from '~/app/shared/services/api/auth.service';
+import { AppConfigService } from '~/app/shared/services/app-config.service';
 import { BlockUiService } from '~/app/shared/services/block-ui.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
@@ -52,14 +53,18 @@ export class LoginPageComponent implements OnInit {
     ]
   };
   public errorMessage?: string;
+  public welcomeMessage: string;
 
   constructor(
+    private appConfigService: AppConfigService,
     private authService: AuthService,
     private blockUiService: BlockUiService,
     private dialogService: DialogService,
     private notificationService: NotificationService,
     private router: Router
-  ) {}
+  ) {
+    this.welcomeMessage = translate(TEXT('Welcome to {{ name }}'), this.appConfigService.config);
+  }
 
   ngOnInit(): void {
     this.blockUiService.resetGlobal();
