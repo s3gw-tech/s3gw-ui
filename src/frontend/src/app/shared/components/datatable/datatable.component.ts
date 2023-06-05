@@ -477,10 +477,9 @@ export class DatatableComponent implements Datatable, OnInit {
   private applyFilters(): void {
     // Filter the data according the following rules:
     // 1. Order the data according the given criteria (column sorting).
-    // 2. Get the data that is displayed on the given page (pagination).
-    // 3. Apply the given search filter.
+    // 2. Apply the given search filter.
+    // 3. Get the data that is displayed on the given page (pagination).
     const filteredData = _.orderBy(this.data, [this.sortHeader], [this.sortDirection])
-      .slice((this.page - 1) * this.pageSize, (this.page - 1) * this.pageSize + this.pageSize)
       .filter((o: DatatableData) =>
         _.some(this.columns, (column: DatatableColumn) => {
           let value = _.get(o, column.prop);
@@ -499,7 +498,8 @@ export class DatatableComponent implements Datatable, OnInit {
           }
           return _.includes(_.lowerCase(value), _.lowerCase(this.searchFilter));
         })
-      );
+      )
+      .slice((this.page - 1) * this.pageSize, (this.page - 1) * this.pageSize + this.pageSize);
     if (
       filteredData.length !== this.filteredData.length ||
       !_.isEqual(filteredData, this.filteredData)
