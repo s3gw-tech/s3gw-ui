@@ -1,28 +1,46 @@
-@use 'src/scss/defaults/colors' as dc;
-@use 'src/scss/defaults/fonts' as df;
-@use 'src/scss/defaults/variables' as dv;
+@use 'theme/colors' as tc;
+@use 'theme/variables' as tv;
 
 .wrapper {
-  height: dv.$s3gw-site-header-height;
+  height: tv.$s3gw-site-header-height;
+  color: var(--s3gw-topbar-color);
+  background-color: var(--s3gw-topbar-bg);
 
-  .btn.toggle {
-    border-width: 0;
-    color: var(--bs-body-color);
-    height: 100%;
+  .navigation-actions {
+    color: var(--s3gw-topbar-btn-color);
+    background-color: var(--s3gw-topbar-navigation-bg);
+    width: tv.$s3gw-navigation-width;
 
-    &:focus,
-    &:hover {
-      background-color: dc.$s3gw-color-menu-item-selected-background;
+    .btn {
+      &.toggle {
+        border-width: 0;
+        color: var(--s3gw-topbar-toggle-btn-color);
+        background-color: var(--s3gw-topbar-toggle-btn-bg);
+        height: 100%;
+
+        &:focus,
+        &:hover {
+          background-color: var(--s3gw-topbar-toggle-btn-hover-bg);
+        }
+      }
+    }
+
+    .logo {
+      img {
+        height: 2rem;
+      }
     }
   }
 
-  .logo {
-    height: 2rem;
+  .actions,
+  .actions .btn {
+    color: var(--s3gw-topbar-btn-color);
   }
 
-  .title {
-    font-family: df.$s3gw-font-family-headings;
-    font-size: 1.5rem;
-    font-weight: lighter;
+  .actions .btn {
+    &:focus,
+    &:hover {
+      color: var(--s3gw-topbar-btn-hover-color);
+    }
   }
 }

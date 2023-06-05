@@ -1,4 +1,4 @@
-@use './defaults/colors' as dc;
+@use 'theme/colors' as tc;
 
 .toast-container {
   .ngx-toastr {
@@ -15,17 +15,17 @@
 }
 
 .toast-error {
-  background-color: dc.$s3gw-color-error;
+  background-color: tc.$s3gw-color-error;
 }
 
 .toast-success {
-  background-color: dc.$s3gw-color-success;
+  background-color: tc.$s3gw-color-success;
 }
 
 .toast-info {
-  background-color: dc.$s3gw-color-info;
+  background-color: tc.$s3gw-color-info;
 }
 
 .toast-warning {
-  background-color: dc.$s3gw-color-warning;
+  background-color: tc.$s3gw-color-warning;
 }

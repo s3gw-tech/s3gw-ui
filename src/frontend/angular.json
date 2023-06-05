@@ -51,7 +51,7 @@
               "src/styles.scss"
             ],
             "stylePreprocessorOptions": {
-              "includePaths": ["src"]
+              "includePaths": ["src/scss/themes/default"]
             },
             "scripts": []
           },
@@ -84,6 +84,11 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "longhorn": {
+              "stylePreprocessorOptions": {
+                "includePaths": ["src/scss/themes/longhorn"]
+              }
             }
           },
           "defaultConfiguration": "production"
@@ -100,6 +105,9 @@
             },
             "development": {
               "browserTarget": "s3gw-ui:build:development"
+            },
+            "longhorn": {
+              "browserTarget": "s3gw-ui:build:development,longhorn"
             }
           },
           "defaultConfiguration": "development"

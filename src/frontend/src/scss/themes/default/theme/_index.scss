@@ -1,0 +1,20 @@
+@import 'colors';
+@import 'fonts';
+@import 'variables';
+
+:root {
+  // Topbar
+  --s3gw-topbar-color: var(--bs-body-color);
+  --s3gw-topbar-bg: var(--bs-body-bg);
+  --s3gw-topbar-btn-color: var(--bs-black);
+  --s3gw-topbar-btn-hover-color: var(--bs-body-bg);
+  --s3gw-topbar-toggle-btn-color: var(--bs-body-color);
+  --s3gw-topbar-toggle-btn-bg: var(--bs-body-bg);
+  --s3gw-topbar-toggle-btn-hover-bg: #{$s3gw-color-anti-flash-white};
+  --s3gw-topbar-navigation-bg: var(--bs-body-bg);
+
+  // Navbar
+  --s3gw-navbar-item-hover-bg: #{$s3gw-color-gainsboro};
+  --s3gw-navbar-item-selected-bg: #{$s3gw-color-table-selected-bg};
+  --s3gw-navbar-item-border-color: var(--bs-primary);
+}

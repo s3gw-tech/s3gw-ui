@@ -1,4 +1,4 @@
-@use 'src/scss/defaults/variables' as dv;
+@use 'theme/variables' as tv;
 
 :host {
   background-color: var(--bs-body-bg);
@@ -8,5 +8,5 @@
 
 .toolbar {
   border-bottom: 1px solid var(--bs-border-color);
-  height: dv.$s3gw-site-header-height;
+  height: tv.$s3gw-site-header-height;
 }

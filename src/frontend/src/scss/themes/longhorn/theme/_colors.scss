@@ -1,0 +1,31 @@
+@import '../../default/theme/colors';
+
+$s3gw-color-azure: #ecf0f1;
+$s3gw-color-lotion: #fafafa;
+$s3gw-color-blue-green: #108eb9;
+$s3gw-color-jazz-blue: #186c99;
+$s3gw-color-prussian-blue: #003c66;
+$s3gw-color-success: $s3gw-color-go-green;
+$s3gw-color-info: $s3gw-color-magical-merlin;
+$s3gw-color-warning: $s3gw-color-jonquil;
+$s3gw-color-danger: $s3gw-color-red-salsa;
+$s3gw-color-error: $s3gw-color-red-salsa;
+$s3gw-color-theme-primary: $s3gw-color-blue-green;
+
+//////////////////////////////////////////////////////////////////////////
+// Primary button
+$s3gw-primary-btn-bg: $s3gw-color-medium-electric-blue;
+$s3gw-primary-btn-border-color: $s3gw-color-medium-electric-blue;
+$s3gw-primary-btn-hover-bg: $s3gw-color-jazz-blue;
+$s3gw-primary-btn-hover-border-color: $s3gw-color-jazz-blue;
+$s3gw-primary-btn-active-bg: $s3gw-color-prussian-blue;
+$s3gw-primary-btn-active-border-color: $s3gw-color-prussian-blue;
+
+// Primary outline button
+$s3gw-primary-btn-outline-color: $s3gw-color-medium-electric-blue;
+$s3gw-primary-btn-outline-active-bg: $s3gw-color-prussian-blue;
+$s3gw-primary-btn-outline-active-border-color: $s3gw-color-prussian-blue;
+
+// Table
+$s3gw-color-table-bg: $s3gw-color-blue-green;
+$s3gw-color-table-selected-bg: $s3gw-color-lotion;

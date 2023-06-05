@@ -1,23 +1,25 @@
-@use 'src/scss/defaults/colors' as dc;
+@use 'theme/colors' as tc;
 
 li {
+  background-color: var(--s3gw-navbar-item-bg);
+  color: var(--s3gw-navbar-item-color);
   cursor: pointer;
 
-  a,
-  a:hover {
-    color: dc.$s3gw-color-menu-item-text;
+  a {
+    color: unset;
   }
 
   &:hover {
-    background-color: dc.$s3gw-color-menu-item-hover-background;
+    background-color: var(--s3gw-navbar-item-hover-bg);
+    color: var(--s3gw-navbar-item-hover-color);
   }
 
   &.selected {
-    background-color: dc.$s3gw-color-menu-item-selected-background;
+    background-color: var(--s3gw-navbar-item-selected-bg);
+    color: var(--s3gw-navbar-item-selected-color);
+  }
 
-    a,
-    a:hover {
-      color: dc.$s3gw-color-menu-item-selected-text;
-    }
+  &:hover, &.selected {
+    border-right: 4px solid var(--s3gw-navbar-item-border-color);
   }
 }

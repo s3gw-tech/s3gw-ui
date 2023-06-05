@@ -1,85 +1,89 @@
-<div class="wrapper h-100 d-flex flex-row justify-content-start align-items-center">
-  <button class="btn btn-simple rounded-0 toggle"
-          title="{{ 'Toggle navigation' | transloco }}"
-          (click)="onToggleNavigation($event)">
-    <i class="mdi mdi-menu"></i>
-  </button>
-  <div>
-    <img class="mx-2 logo"
-         src="./assets/images/logo.svg"
-         alt="logo">
+<div class="wrapper d-flex h-100">
+  <div class="navigation-actions d-flex justify-content-start align-items-center">
+    <button class="btn btn-simple rounded-0 toggle"
+            title="{{ 'Toggle navigation' | transloco }}"
+            (click)="onToggleNavigation($event)">
+      <i class="mdi mdi-menu"></i>
+    </button>
+    <div class="logo h-100">
+      <img class="m-2"
+           src="./assets/images/logo.svg"
+           alt="logo">
+    </div>
   </div>
   <div class="flex-fill"></div>
-  <ng-container *ngIf="isAdmin">
-    <div class="form-check form-switch me-2">
-      <input class="form-check-input"
-             type="checkbox"
-             role="switch"
-             id="viewMode"
-             ngbTooltip="{{ viewMode === viewModes.admin ? 'Turn off administration view' : 'Turn on administration view' | transloco }}"
-             [checked]="viewMode === viewModes.admin"
-             (change)="onToggleViewMode($event)">
-      <label class="form-check-label"
-             for="viewMode">
-        {{ 'Administration' | transloco }}
-      </label>
-    </div>
-    <div class="ms-3 vr"></div>
-  </ng-container>
-  <button class="btn btn-simple mx-2"
-          title="{{ 'Notifications' | transloco }}"
-          (click)="onToggleNotifications($event)">
-    <i [class]="icons.bell"></i>
-  </button>
-  <div ngbDropdown>
-    <button class="btn btn-simple ms-2"
-            title="{{ 'Help' | transloco }}"
-            ngbDropdownToggle>
-      <i [class]="icons.help"></i>
-    </button>
-    <div ngbDropdownMenu>
-      <a ngbDropdownItem
-         href="https://s3gw.io/"
-         target="_blank">
-        <div>
-          <i class="mdi mdi-web mr-1"></i>
-          <span>{{ "Website" | transloco }}</span>
-        </div>
-      </a>
-      <a ngbDropdownItem
-         href="https://github.com/aquarist-labs/s3gw"
-         target="_blank">
-        <div>
-          <i class="mdi mdi-github mr-1"></i>
-          <span>{{ "GitHub" | transloco }}</span>
-        </div>
-      </a>
-    </div>
-  </div>
-  <div ngbDropdown
-       display="dynamic"
-       placement="bottom-right">
-    <button class="btn btn-simple mx-2"
-            title="{{ 'Profile' | transloco }}"
-            ngbDropdownToggle>
-      <i [class]="icons.user"></i>
-    </button>
-    <div ngbDropdownMenu>
-      <div ngbDropdownItem
-           disabled>
-        <i class="mr-1"
-           [class]="icons.user">
-        </i>
-        <span>
-          {{ 'Logged in as' | transloco }} {{ userId }}
-        </span>
+  <div class="actions d-flex align-items-center ps-3">
+    <ng-container *ngIf="isAdmin">
+      <div class="form-check form-switch switch-danger me-2">
+        <input class="form-check-input"
+               type="checkbox"
+               role="switch"
+               id="viewMode"
+               ngbTooltip="{{ viewMode === viewModes.admin ? 'Turn off administration view' : 'Turn on administration view' | transloco }}"
+               [checked]="viewMode === viewModes.admin"
+               (change)="onToggleViewMode($event)">
+        <label class="form-check-label"
+               for="viewMode">
+          {{ 'Administration' | transloco }}
+        </label>
       </div>
-      <div class="dropdown-divider"></div>
-      <button ngbDropdownItem
-              (click)="onLogout()">
-        <i class="mdi mdi-logout mr-1"></i>
-        <span>{{ "Log out" | transloco }}</span>
+      <div class="ms-3 vr"></div>
+    </ng-container>
+    <button class="btn btn-simple mx-2"
+            title="{{ 'Notifications' | transloco }}"
+            (click)="onToggleNotifications($event)">
+      <i [class]="icons.bell"></i>
+    </button>
+    <div ngbDropdown>
+      <button class="btn btn-simple ms-2"
+              title="{{ 'Help' | transloco }}"
+              ngbDropdownToggle>
+        <i [class]="icons.help"></i>
       </button>
+      <div ngbDropdownMenu>
+        <a ngbDropdownItem
+           href="https://s3gw.io/"
+           target="_blank">
+          <div>
+            <i class="mdi mdi-web mr-1"></i>
+            <span>{{ "Website" | transloco }}</span>
+          </div>
+        </a>
+        <a ngbDropdownItem
+           href="https://github.com/aquarist-labs/s3gw"
+           target="_blank">
+          <div>
+            <i class="mdi mdi-github mr-1"></i>
+            <span>{{ "GitHub" | transloco }}</span>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div ngbDropdown
+         display="dynamic"
+         placement="bottom-right">
+      <button class="btn btn-simple mx-2"
+              title="{{ 'Profile' | transloco }}"
+              ngbDropdownToggle>
+        <i [class]="icons.user"></i>
+      </button>
+      <div ngbDropdownMenu>
+        <div ngbDropdownItem
+             disabled>
+          <i class="mr-1"
+             [class]="icons.user">
+          </i>
+          <span>
+            {{ 'Logged in as' | transloco }} {{ userId }}
+          </span>
+        </div>
+        <div class="dropdown-divider"></div>
+        <button ngbDropdownItem
+                (click)="onLogout()">
+          <i class="mdi mdi-logout mr-1"></i>
+          <span>{{ "Log out" | transloco }}</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

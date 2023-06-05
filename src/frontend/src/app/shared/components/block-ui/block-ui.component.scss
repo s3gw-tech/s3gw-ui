@@ -1,10 +1,10 @@
-@use 'src/scss/defaults/colors' as dc;
+@use 'theme/colors' as tc;
 
 .wrapper {
   position: fixed;
   top: 0;
   left: 0;
-  background: dc.$s3gw-color-transparent-black;
+  background: tc.$s3gw-color-transparent-black;
   z-index: 30000; // Must be > than Bootstraps $zindex-sticky
   cursor: wait;
 
@@ -18,9 +18,9 @@
     .spinner {
       animation: spinner-animation 1s infinite linear;
       box-sizing: border-box;
-      border: 5px solid dc.$s3gw-color-cerulean-900;
+      border: 5px solid tc.$s3gw-color-cerulean-900;
       border-radius: 50%;
-      border-top-color: dc.$s3gw-color-cerulean-500;
+      border-top-color: tc.$s3gw-color-cerulean-500;
       height: 80px;
       width: 80px;
       margin: 0 auto;

@@ -1,4 +1,4 @@
-@use 'src/scss/defaults/colors' as dc;
+@use 'theme/colors' as tc;
 
 th.sortable {
   cursor: pointer;
@@ -18,17 +18,17 @@ td {
 
     &.btn:hover,
     &.btn:focus {
-      background-color: rgba(dc.$s3gw-color-magical-merlin, 0.15);
+      background-color: rgba(tc.$s3gw-color-magical-merlin, 0.15);
     }
   }
 }
 
 tbody > tr {
   &.selected {
-    background-color: dc.$s3gw-color-table-selected-background;
+    background-color: tc.$s3gw-color-table-selected-bg;
 
     &:hover > * {
-      --bs-table-accent-bg: dc.$s3gw-color-table-selected-background;
+      --bs-table-accent-bg: tc.$s3gw-color-table-selected-bg;
     }
   }
 }
