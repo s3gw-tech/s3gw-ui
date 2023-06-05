@@ -74,7 +74,8 @@ export class BucketDatatablePageComponent {
       {
         name: TEXT('Last Modified'),
         prop: 'mtime',
-        cellTemplateName: DatatableCellTemplateName.localeDateTime
+        cellTemplateName: DatatableCellTemplateName.localeDateTime,
+        hidden: true
       },
       {
         name: '',
