@@ -16,9 +16,8 @@ describe('Bucket Management', () => {
     const currentTestTitle = Cypress.mocha.getRunner().suite.ctx.currentTest.title;
 
     if (currentTestTitle !== 'Buckets page view') {
-      //List the bucket created
+      // List the bucket created
       bucket.listBucket();
-
       // Delete the bucket after each test iteration
       bucket.deleteBucket();
     }
@@ -38,6 +37,7 @@ describe('Bucket Management', () => {
 
   it('should create a new bucket', () => {
     bucket.createBucket();
+    bucket.editBucket(addTag, enableVersioning);
   });
 
   it('manage versioned bucket', () => {

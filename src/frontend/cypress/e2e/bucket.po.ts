@@ -15,26 +15,18 @@ export class BucketPageHelper {
 
     //Add tag with key and value
     if (addTag) {
-      cy.get('i.ms-2.mdi-18px.s3gw-cursor-pointer').click();
-      cy.get('#Key').type(this.key);
-      cy.get('#Value').type(this.value);
-      cy.get('button:contains("Cancel")').filter(':visible');
-      cy.get('button:contains("OK")').filter(':visible').click();
+      this.addTag();
     }
-
     //Enabling bucket versioning
     if (versioning) {
-      cy.get('[id="VersioningEnabled"]').click();
-
+      this.versioning();
       //Enabling object locking
       if (objectLocking) {
-        cy.get('[id="ObjectLockEnabled"]').click();
+        this.objectLock();
       }
-
       //Enabling rentention mode
       if (retentionMode === 'Compliance' || retentionMode === 'Governance') {
-        cy.get('[id="RetentionEnabled"]').click();
-        cy.get('select[id="RetentionMode"]').select(retentionMode);
+        this.retentionMode(retentionMode);
       }
     }
     cy.get('button:contains("Create")').click();
@@ -48,5 +40,45 @@ export class BucketPageHelper {
     cy.contains(this.bucketName).click();
     cy.contains('Delete').click();
     cy.contains('Yes').click();
+  }
+
+  editBucket(addTag?: boolean, versioning?: boolean): void {
+    cy.get('button.btn.actions')
+      .should('be.visible')
+      .should('have.attr', 'title', 'Actions')
+      .click();
+
+    cy.get('button:contains("Edit")').click();
+
+    //Add tag with key and value
+    if (addTag) {
+      this.addTag();
+    }
+    //Enabling bucket versioning
+    if (versioning) {
+      this.versioning();
+    }
+    cy.get('button:contains("Cancel")').filter(':visible');
+    cy.get('button:contains("Update")').click();
+  }
+  objectLock(): void {
+    cy.get('[id="ObjectLockEnabled"]').click();
+  }
+
+  retentionMode(retentionMode: string): void {
+    cy.get('[id="RetentionEnabled"]').click();
+    cy.get('select[id="RetentionMode"]').select(retentionMode);
+  }
+
+  versioning(): void {
+    cy.get('[id="VersioningEnabled"]').click();
+  }
+
+  addTag(): void {
+    cy.get('i.ms-2.mdi-18px.s3gw-cursor-pointer').click();
+    cy.get('#Key').type(this.key);
+    cy.get('#Value').type(this.value);
+    cy.get('button:contains("Cancel")').filter(':visible');
+    cy.get('button:contains("OK")').filter(':visible').click();
   }
 }
