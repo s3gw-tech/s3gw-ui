@@ -1,8 +1,12 @@
-export class BucketPageHelper {
+import { PageHelper } from './page-helper.po'
+
+export class BucketPageHelper extends PageHelper  {
   private key = 'test-key';
   private value = 'test-value';
 
-  constructor(private bucketName: string) {}
+  constructor(private bucketName: string) {
+    super();
+  }
 
   createBucket(
     addTag?: boolean,
@@ -61,6 +65,7 @@ export class BucketPageHelper {
     cy.get('button:contains("Cancel")').filter(':visible');
     cy.get('button:contains("Update")').click();
   }
+
   objectLock(): void {
     cy.get('[id="ObjectLockEnabled"]').click();
   }
@@ -81,4 +86,16 @@ export class BucketPageHelper {
     cy.get('button:contains("Cancel")').filter(':visible');
     cy.get('button:contains("OK")').filter(':visible').click();
   }
+
+  showDeletedObject(): void {
+    cy.get('button.btn.btn-primary[ng-reflect-ngb-tooltip="Show deleted objects"]')
+    .click();
+  }
+
+  folderCreate(folderName: string): void {
+    cy.clickButton('Folder');
+    cy.get('input#path').type(folderName);
+    cy.clickButton('Create');
+  }
+
 }

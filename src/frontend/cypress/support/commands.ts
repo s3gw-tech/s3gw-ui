@@ -46,6 +46,7 @@
 declare namespace Cypress {
   interface Chainable<Subject = any> {
     navigate(url: string): Chainable<Subject>;
+    clickButton(label: string): Chainable<Subject>;
     login(): void;
     logout(): void;
     enableAdministration(): void;
@@ -74,4 +75,9 @@ Cypress.Commands.add('logout', () => {
 
 Cypress.Commands.add('enableAdministration', () => {
   cy.get('.form-check-input').click();
+});
+
+// Press the first found button with the given text.
+Cypress.Commands.add('clickButton', (text: string) => {
+  return cy.get(`button:contains("${text}")`).should('be.visible').click();
 });
