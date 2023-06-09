@@ -1,8 +1,11 @@
-import { PageHelper } from './page-helper.po'
+import 'cypress-file-upload';
 
-export class BucketPageHelper extends PageHelper  {
+import { PageHelper } from './page-helper.po';
+
+export class BucketPageHelper extends PageHelper {
   private key = 'test-key';
   private value = 'test-value';
+  private filePath = 'src/assets/images/logo.svg';
 
   constructor(private bucketName: string) {
     super();
@@ -88,8 +91,7 @@ export class BucketPageHelper extends PageHelper  {
   }
 
   showDeletedObject(): void {
-    cy.get('button.btn.btn-primary[ng-reflect-ngb-tooltip="Show deleted objects"]')
-    .click();
+    cy.get('button.btn.btn-primary[ng-reflect-ngb-tooltip="Show deleted objects"]').click();
   }
 
   folderCreate(folderName: string): void {
@@ -98,4 +100,19 @@ export class BucketPageHelper extends PageHelper  {
     cy.clickButton('Create');
   }
 
+  downloadObject(objectName: string): void {
+    cy.contains(objectName).click();
+    cy.get('button.btn-primary i.mdi-download').click();
+  }
+
+  uploadObject(objectName: string): void {
+    cy.contains('Upload');
+    cy.fixture('example.json').then((fileData) => {
+      cy.get('input#file').attachFile({
+        fileContent: fileData,
+        fileName: 'example.json',
+        mimeType: 'application/json'
+      });
+    });
+  }
 }
