@@ -8,7 +8,7 @@ import * as _ from 'lodash';
 import { forkJoin, merge, Observable, of, Subscription, timer } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 
-import { bytesToSize, format, Unsubscribe } from '~/app/functions.helper';
+import { bytesToSize, format, isObjectVersionID, Unsubscribe } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
@@ -409,7 +409,7 @@ export class ObjectDatatablePageComponent implements OnInit {
               if (!_.has(this.objectNumVersions, object.Key!)) {
                 this.objectNumVersions[object.Key!] = 0;
               }
-              if (object.VersionId && object.VersionId !== 'null') {
+              if (isObjectVersionID(object.VersionId, true)) {
                 const count: number = this.objectNumVersions[object.Key!];
                 this.objectNumVersions[object.Key!] = count + 1;
               }

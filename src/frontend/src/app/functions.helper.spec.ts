@@ -6,6 +6,7 @@ import {
   extractErrorMessage,
   format,
   isEqualOrUndefined,
+  isObjectVersionID,
   toBytes
 } from '~/app/functions.helper';
 
@@ -183,5 +184,25 @@ describe('functions.helper', () => {
 
   it('should get basename [4]', () => {
     expect(basename('/a/foo.txt/')).toBe('');
+  });
+
+  it('should check object version ID [1]', () => {
+    expect(isObjectVersionID('dCtsKWse.gXlGdbY3XnQq97qw21Lkcf')).toBeTruthy();
+  });
+
+  it('should check object version ID [2]', () => {
+    expect(isObjectVersionID('null')).toBeTruthy();
+  });
+
+  it('should check object version ID [3]', () => {
+    expect(isObjectVersionID('null', true)).toBeFalsy();
+  });
+
+  it('should check object version ID [4]', () => {
+    expect(isObjectVersionID('')).toBeFalsy();
+  });
+
+  it('should check object version ID [5]', () => {
+    expect(isObjectVersionID(1234)).toBeFalsy();
   });
 });

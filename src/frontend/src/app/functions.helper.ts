@@ -159,6 +159,23 @@ export const basename = (path: string, delimiter: string = '/'): string | unknow
 };
 
 /**
+ * Check if the specified value is an object version ID.
+ *
+ * @param value The value to check.
+ * @param excludeNull Handle the string `null` as invalid object version
+ *   ID. Defaults to `false`.
+ * @return Returns `true` if the specified value is an object version ID,
+ *   otherwise `false`.
+ */
+export const isObjectVersionID = (value: any, excludeNull = false): boolean => {
+  const invalidValues = [''];
+  if (excludeNull) {
+    invalidValues.push('null');
+  }
+  return _.isString(value) && !invalidValues.includes(value);
+};
+
+/**
  * Append various Nunjucks filter.
  */
 const nunjucksEnv = new nunjucks.Environment();
