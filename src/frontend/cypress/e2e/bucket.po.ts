@@ -5,7 +5,6 @@ import { PageHelper } from './page-helper.po';
 export class BucketPageHelper extends PageHelper {
   private key = 'test-key';
   private value = 'test-value';
-  private filePath = 'src/assets/images/logo.svg';
 
   constructor(private bucketName: string) {
     super();
@@ -17,7 +16,7 @@ export class BucketPageHelper extends PageHelper {
     objectLocking?: boolean,
     retentionMode?: string
   ): void {
-    cy.contains('Create').click();
+    cy.clickButton('Create');
     cy.get('#Name').type(this.bucketName);
 
     //Add tag with key and value
@@ -36,26 +35,14 @@ export class BucketPageHelper extends PageHelper {
         this.retentionMode(retentionMode);
       }
     }
-    cy.get('button:contains("Create")').click();
-  }
-
-  listBucket(): void {
-    cy.contains(this.bucketName);
-  }
-
-  deleteBucket(): void {
-    cy.contains(this.bucketName).click();
-    cy.contains('Delete').click();
-    cy.contains('Yes').click();
+    cy.clickButton('Create');
   }
 
   editBucket(addTag?: boolean, versioning?: boolean): void {
-    cy.get('button.btn.actions')
-      .should('be.visible')
-      .should('have.attr', 'title', 'Actions')
-      .click();
-
-    cy.get('button:contains("Edit")').click();
+    cy.contains('table tbody tr', this.bucketName).within(() => {
+      super.selectActionsButton();
+      cy.clickButton('Edit');
+    });
 
     //Add tag with key and value
     if (addTag) {
@@ -66,7 +53,7 @@ export class BucketPageHelper extends PageHelper {
       this.versioning();
     }
     cy.get('button:contains("Cancel")').filter(':visible');
-    cy.get('button:contains("Update")').click();
+    cy.clickButton('Update');
   }
 
   objectLock(): void {
@@ -87,11 +74,17 @@ export class BucketPageHelper extends PageHelper {
     cy.get('#Key').type(this.key);
     cy.get('#Value').type(this.value);
     cy.get('button:contains("Cancel")').filter(':visible');
-    cy.get('button:contains("OK")').filter(':visible').click();
+    cy.clickButton('OK');
   }
 
   showDeletedObject(): void {
     cy.get('button.btn.btn-primary[ng-reflect-ngb-tooltip="Show deleted objects"]').click();
+  }
+
+  exploreBucket(): void {
+    cy.contains('table tbody tr', this.bucketName).within(() => {
+      cy.contains('Explore').click();
+    });
   }
 
   folderCreate(folderName: string): void {
@@ -101,7 +94,7 @@ export class BucketPageHelper extends PageHelper {
   }
 
   downloadObject(objectName: string): void {
-    cy.contains(objectName).click();
+    super.selectTableElement(objectName);
     cy.get('button.btn-primary i.mdi-download').click();
   }
 

@@ -34,13 +34,4 @@ export class UserPageHelper extends PageHelper {
     }
     cy.clickButton('Create');
   }
-
-  listUser(): void {
-    cy.contains(this.userId);
-  }
-
-  deleteUser(): void {
-    cy.contains(this.userId).click();
-    super.delete();
-  }
 }
