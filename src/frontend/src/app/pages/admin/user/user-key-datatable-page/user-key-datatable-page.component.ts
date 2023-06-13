@@ -155,7 +155,6 @@ export class UserKeyDatatablePageComponent implements OnInit {
   private doDelete(selected: DatatableData[]): void {
     this.modalDialogService.confirmDeletion<Key>(
       selected as Key[],
-      'danger',
       {
         singular: TEXT('Do you really want to delete the key <strong>{{ name }}</strong>?'),
         singularFmtArgs: (key: Key) => ({ name: key.access_key }),

@@ -200,7 +200,6 @@ export class UserDatatablePageComponent {
   private doDelete(selected: DatatableData[]): void {
     this.modalDialogService.confirmDeletion<User>(
       selected as User[],
-      'danger',
       {
         singular: TEXT('Do you really want to delete the user <strong>{{ name }}</strong>?'),
         singularFmtArgs: (value: User) => ({ name: value.user_id }),

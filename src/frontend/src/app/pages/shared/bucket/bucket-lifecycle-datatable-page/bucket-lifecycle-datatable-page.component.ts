@@ -228,7 +228,6 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
     const removeIDs: AWS.S3.Types.ID[] = _.map(rules, _.property('ID'));
     this.modalDialogService.confirmDeletion<AWS.S3.Types.ID>(
       removeIDs,
-      'danger',
       {
         singular: TEXT(
           'Do you really want to delete the lifecycle rule <strong>{{ name }}</strong>?'

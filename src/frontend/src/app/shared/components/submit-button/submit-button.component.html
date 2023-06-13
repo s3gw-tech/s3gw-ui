@@ -1,5 +1,6 @@
 <button type="submit"
-        class="btn btn-submit"
+        class="btn"
+        [class]="buttonClass"
         [attr.form]="formId"
         (click)="onSubmit($event)"
         [disabled]="disabled">

@@ -72,6 +72,7 @@ export class ObjectDatatablePageComponent implements OnInit {
   private firstLoadComplete = false;
   private objectNumVersions: Record<AWS.S3.Types.ObjectKey, number> = {};
   private showDeletedObjects = false;
+  private isBucketVersioned = false;
 
   constructor(
     private blockUiService: BlockUiService,
@@ -386,6 +387,12 @@ export class ObjectDatatablePageComponent implements OnInit {
         return;
       }
       this.bid = decodeURIComponent(value['bid']);
+      // Check if the bucket is versioned.
+      this.subscriptions.add(
+        this.s3BucketService
+          .getVersioning(this.bid)
+          .subscribe((res: boolean) => (this.isBucketVersioned = res))
+      );
     });
   }
 
@@ -645,25 +652,29 @@ export class ObjectDatatablePageComponent implements OnInit {
 
   private doDelete(selected: DatatableData[]): void {
     const objects = selected as S3ObjectVersionList;
-    this.modalDialogService.confirmDeletion<S3ObjectVersion>(
+    this.modalDialogService.confirmObjectDeletion<S3ObjectVersion>(
+      this.isBucketVersioned,
       objects,
-      'danger',
       {
         singular: TEXT('Do you really want to delete the object <strong>{{ name }}</strong>?'),
         singularFmtArgs: (value: S3ObjectVersion) => ({ name: value.Key }),
         plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> objects?')
       },
-      () => {
+      (deep: boolean) => {
         const sources: Observable<S3DeleteObjectOutput>[] = [];
         _.forEach(objects, (object: S3ObjectVersion) => {
           switch (object.Type) {
             case 'FOLDER':
-              sources.push(this.s3BucketService.deleteObjects(this.bid, object.Key!, false));
+              sources.push(
+                this.s3BucketService.deleteObjectByPrefix(
+                  this.bid,
+                  `${object.Key!}${this.delimiter}`,
+                  deep
+                )
+              );
               break;
             case 'OBJECT':
-              sources.push(
-                this.s3BucketService.deleteObject(this.bid, object.Key!, object.VersionId)
-              );
+              sources.push(this.s3BucketService.deleteObjectByPrefix(this.bid, object.Key!, deep));
               break;
           }
         });

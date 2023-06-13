@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Deleting a versioned object is not properly implemented (gh#aquarist-labs/s3gw#550).
+- Do not delete object by version (gh#aquarist-labs/s3gw#576).
 - Prevent the restoring of the deleted object version (gh#aquarist-labs/s3gw#583).
 
 ## [0.17.0]

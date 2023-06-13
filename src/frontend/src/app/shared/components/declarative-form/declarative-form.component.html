@@ -470,6 +470,7 @@
 
         <ng-template [ngSwitchCase]="'submit'">
           <s3gw-submit-button class="ms-2"
+                              [buttonClass]="button.class"
                               [hidden]="isButtonHidden(button)"
                               [disabled]="isButtonDisabled(button)"
                               [form]="formGroup"
