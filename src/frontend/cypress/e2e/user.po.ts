@@ -1,5 +1,9 @@
-export class UserPageHelper {
-  constructor(private userId: string) {}
+import { PageHelper } from './page-helper.po';
+
+export class UserPageHelper extends PageHelper {
+  constructor(private userId: string) {
+    super();
+  }
 
   createUser(
     fullName: string,
@@ -8,7 +12,7 @@ export class UserPageHelper {
     maxBuckets?: string,
     suspendUser?: boolean
   ): void {
-    cy.contains('Create').click();
+    cy.clickButton('Create');
     cy.get('#user_id').type(this.userId);
     cy.get('#display_name').type(fullName);
 
@@ -28,7 +32,7 @@ export class UserPageHelper {
     if (suspendUser) {
       cy.get('#suspended').check();
     }
-    cy.get('button:contains("Create")').click();
+    cy.clickButton('Create');
   }
 
   listUser(): void {
@@ -37,7 +41,6 @@ export class UserPageHelper {
 
   deleteUser(): void {
     cy.contains(this.userId).click();
-    cy.contains('Delete').click();
-    cy.contains('Yes').click();
+    super.delete();
   }
 }
