@@ -76,6 +76,7 @@
             (click)="onSortChange(column)">
           <span *ngIf="column.name">{{ column.name | transloco }}</span>
           <input *ngIf="selectionType === 'multi' && column.cellTemplateName === 'rowSelect'"
+                 class="form-check-input"
                  type="checkbox"
                  [checked]="isAllRowsSelected"
                  (click)="onHeaderSelectRows($event)">
@@ -195,7 +196,7 @@
              let-row="row"
              let-disabled="disabled">
   <input type="checkbox"
-         class="s3gw-cursor-pointer"
+         class="form-check-input s3gw-cursor-pointer"
          [checked]="value"
          [disabled]="disabled">
 </ng-template>

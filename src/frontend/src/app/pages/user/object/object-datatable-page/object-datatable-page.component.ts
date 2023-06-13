@@ -8,7 +8,7 @@ import * as _ from 'lodash';
 import { forkJoin, merge, Observable, of, Subscription, timer } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 
-import { bytesToSize, format, isObjectVersionID, Unsubscribe } from '~/app/functions.helper';
+import { bytesToSize, isObjectVersionID, Unsubscribe } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
@@ -314,10 +314,10 @@ export class ObjectDatatablePageComponent implements OnInit {
                 this.rxjsUiHelperService
                   .forkJoin(
                     sources,
-                    format(translate(TEXT('Please wait, updating the object {{ key }}.')), {
+                    translate(TEXT('Please wait, updating the object {{ key }}.'), {
                       key: values['Key']
                     }),
-                    format(translate(TEXT('The object {{ key }} has been updated.')), {
+                    translate(TEXT('The object {{ key }} has been updated.'), {
                       key: values['Key']
                     })
                   )
@@ -601,7 +601,7 @@ export class ObjectDatatablePageComponent implements OnInit {
       return;
     }
     this.blockUiService.start(
-      format(translate(TEXT('Please wait, uploading {{ total }} object(s) ...')), {
+      translate(TEXT('Please wait, uploading {{ total }} object(s) ...'), {
         total: fileList.length
       })
     );
@@ -612,11 +612,9 @@ export class ObjectDatatablePageComponent implements OnInit {
         .subscribe({
           next: (progress: S3UploadProgress) => {
             this.blockUiService.update(
-              format(
-                translate(
-                  TEXT(
-                    'Please wait, uploading {{ loaded }} of {{ total }} object(s) ({{ percent }}%) ...'
-                  )
+              translate(
+                TEXT(
+                  'Please wait, uploading {{ loaded }} of {{ total }} object(s) ({{ percent }}%) ...'
                 ),
                 {
                   loaded: progress.loaded,
@@ -628,7 +626,7 @@ export class ObjectDatatablePageComponent implements OnInit {
           },
           complete: () => {
             this.notificationService.showSuccess(
-              format(translate(TEXT('{{ total }} object(s) have been successfully uploaded.')), {
+              translate(TEXT('{{ total }} object(s) have been successfully uploaded.'), {
                 total: fileList.length
               })
             );
@@ -636,7 +634,7 @@ export class ObjectDatatablePageComponent implements OnInit {
           },
           error: (err: Error) => {
             this.notificationService.showError(
-              format(translate(TEXT('Failed to upload the objects: {{ error }}')), {
+              translate(TEXT('Failed to upload the objects: {{ error }}'), {
                 error: err.message
               })
             );

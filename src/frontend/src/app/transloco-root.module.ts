@@ -1,9 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, NgModule } from '@angular/core';
 import {
+  DefaultTranspiler,
   Translation,
   TRANSLOCO_CONFIG,
   TRANSLOCO_LOADER,
+  TRANSLOCO_TRANSPILER,
   translocoConfig,
   TranslocoLoader,
   TranslocoModule
@@ -15,11 +17,22 @@ import { supportedLanguages } from '~/app/i18n.helper';
 import { environment } from '~/environments/environment';
 
 @Injectable({ providedIn: 'root' })
-export class TranslocoHttpLoader implements TranslocoLoader {
+class CustomLoader implements TranslocoLoader {
   constructor(private http: HttpClient) {}
 
   public getTranslation(lang: string): Observable<Translation> {
     return this.http.get<Translation>(`assets/i18n/${lang}.json`);
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+class CustomTranspiler extends DefaultTranspiler {
+  public override transpile(
+    value: any,
+    params: Record<string, any>,
+    translation: Translation
+  ): any {
+    return value;
   }
 }
 
@@ -36,7 +49,8 @@ export class TranslocoHttpLoader implements TranslocoLoader {
         missingHandler: { allowEmpty: true, logMissingKey: false }
       })
     },
-    { provide: TRANSLOCO_LOADER, useClass: TranslocoHttpLoader }
+    { provide: TRANSLOCO_LOADER, useClass: CustomLoader },
+    { provide: TRANSLOCO_TRANSPILER, useClass: CustomTranspiler }
   ]
 })
 export class TranslocoRootModule {}

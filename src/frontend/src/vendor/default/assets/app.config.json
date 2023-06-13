@@ -1,0 +1,16 @@
+{
+  "name": "s3gw",
+  "title": "s3gw - Object Management",
+  "helpMenuItems": [
+    {
+      "title": "Website",
+      "url": "https://s3gw.io/",
+      "icon": "mdi mdi-web"
+    },
+    {
+      "title": "GitHub",
+      "url": "https://github.com/aquarist-labs/s3gw",
+      "icon": "mdi mdi-github"
+    }
+  ]
+}

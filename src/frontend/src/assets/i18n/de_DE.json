@@ -1,5 +1,5 @@
 {
-  "Welcome to s3gw": "Willkommen bei s3gw",
+  "Welcome to {{ name }}": "Willkommen bei {{ name }}",
   "Log in": "Anmelden",
   "Log out": "Abmelden",
   "Access key": "Zugangsschlüssel",
@@ -12,5 +12,8 @@
   "Upload": "Hochladen",
   "Cancel": "Abbrechen",
   "Update": "Aktualisieren",
-  "Explore": "Erkunden"
+  "Explore": "Erkunden",
+  "Website": "Webseite",
+  "Total buckets": "Buckets insgesamt",
+  "Total users": "Benutzer insgesamt"
 }

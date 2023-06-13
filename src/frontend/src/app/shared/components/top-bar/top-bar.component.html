@@ -34,27 +34,23 @@
             (click)="onToggleNotifications($event)">
       <i [class]="icons.bell"></i>
     </button>
-    <div ngbDropdown>
+    <div *ngIf="appConfigService.config.helpMenuItems?.length"
+         ngbDropdown>
       <button class="btn btn-simple ms-2"
               title="{{ 'Help' | transloco }}"
               ngbDropdownToggle>
         <i [class]="icons.help"></i>
       </button>
       <div ngbDropdownMenu>
-        <a ngbDropdownItem
-           href="https://s3gw.io/"
+        <a *ngFor="let helpMenuItem of appConfigService.config.helpMenuItems"
+           ngbDropdownItem
+           [href]="helpMenuItem.url"
            target="_blank">
           <div>
-            <i class="mdi mdi-web mr-1"></i>
-            <span>{{ "Website" | transloco }}</span>
-          </div>
-        </a>
-        <a ngbDropdownItem
-           href="https://github.com/aquarist-labs/s3gw"
-           target="_blank">
-          <div>
-            <i class="mdi mdi-github mr-1"></i>
-            <span>{{ "GitHub" | transloco }}</span>
+            <i class="mr-1"
+               [ngClass]="helpMenuItem.icon">
+            </i>
+            <span>{{ helpMenuItem.title | transloco }}</span>
           </div>
         </a>
       </div>

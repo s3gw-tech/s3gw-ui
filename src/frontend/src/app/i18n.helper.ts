@@ -1,6 +1,8 @@
 import { TranslocoService } from '@ngneat/transloco';
 import * as _ from 'lodash';
 
+import { format } from '~/app/functions.helper';
+
 let translocoService: TranslocoService;
 
 export const setTranslationService = (service: TranslocoService) => {
@@ -9,9 +11,12 @@ export const setTranslationService = (service: TranslocoService) => {
 
 /**
  * Translate a string instantly.
+ *
+ * Note, do not use Transloco's string interpolation feature because it
+ * does not interpolate missing keys.
  */
-export const translate = (text: string): string =>
-  _.isUndefined(translocoService) ? text : translocoService.translate(text);
+export const translate = (text: string, params: Record<any, any> = {}): string =>
+  _.isUndefined(translocoService) ? text : format(translocoService.translate(text), params);
 
 /**
  * Translates strings and maps original name as object attribute name.
