@@ -161,11 +161,13 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
       {
         title: TEXT('Download'),
         icon: this.icons.download,
+        disabled: object.IsDeleted,
         callback: () => this.doDownload(object)
       },
       {
         title: TEXT('Restore'),
         icon: this.icons.restore,
+        disabled: object.IsDeleted,
         callback: () => this.doRestore(object)
       }
     ];
