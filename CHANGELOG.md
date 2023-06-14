@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Enhance branding support (gh#aquarist-labs/s3gw#552).
 
+### Fixed
+
+- Prevent the restoring of the deleted object version (gh#aquarist-labs/s3gw#583).
+
 ## [0.17.0]
 
 ### Added
