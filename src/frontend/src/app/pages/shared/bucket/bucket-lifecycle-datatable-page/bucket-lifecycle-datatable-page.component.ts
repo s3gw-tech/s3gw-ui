@@ -172,7 +172,7 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
         const newRule: AWS.S3.Types.LifecycleRule = {
           /* eslint-disable @typescript-eslint/naming-convention */
           ID: values['id'],
-          Status: values['status'],
+          Status: values['enabled'] ? 'Enabled' : 'Disabled',
           Expiration: {
             Days: values['days']
           },
