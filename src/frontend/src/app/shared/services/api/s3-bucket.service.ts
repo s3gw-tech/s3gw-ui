@@ -929,37 +929,70 @@ export class S3BucketService {
   }
 
   /**
-   * Delete the objects specified by a prefix.
+   * Delete the specified objects in a bunch.
    *
    * @param bucket The name of the bucket.
-   * @param prefix The prefix of the objects to delete.
-   * @param allversions If `true`, all versions will be deleted, otherwise
-   *   the latest one. Defaults to `false`.
+   * @param objects The list of objects, identified by key and versionID,
+   *   that are going to be deleted.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
   @CatchAuthErrors()
   public deleteObjects(
     bucket: AWS.S3.Types.BucketName,
+    objects: AWS.S3.Types.ObjectIdentifierList,
+    credentials?: Credentials
+  ): Observable<AWS.S3.Types.DeleteObjectsOutput> {
+    const params: AWS.S3.Types.DeleteObjectsRequest = {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: bucket,
+      Delete: { Objects: objects }
+      /* eslint-enable @typescript-eslint/naming-convention */
+    };
+    return defer(() =>
+      // Note, we need to convert the hot promise to a cold observable.
+      this.s3ClientService.get(credentials).deleteObjects(params).promise()
+    );
+  }
+
+  /**
+   * Delete the object(s) specified by a prefix.
+   *
+   * @param bucket The name of the bucket.
+   * @param prefix The prefix of the objects to delete. Note, a prefix
+   *   like `a/b/` will delete all objects starting with that prefix,
+   *   whereas `a/b` will only delete this specific object.
+   * @param deep If `true`, all versions will be deleted, otherwise
+   *   the latest one. Defaults to `false`.
+   * @param credentials The AWS credentials to sign requests with.
+   *   Defaults to the credentials of the currently logged-in user.
+   */
+  @CatchAuthErrors()
+  public deleteObjectByPrefix(
+    bucket: AWS.S3.Types.BucketName,
     prefix: AWS.S3.Prefix,
-    allVersions?: boolean,
+    deep?: boolean,
     credentials?: Credentials
   ): Observable<S3DeleteObjectOutput> {
-    prefix = _.trim(prefix, this.delimiter);
-    allVersions = _.defaultTo(allVersions, false);
-    return this.listObjectVersions(bucket, `${prefix}${this.delimiter}`, credentials).pipe(
+    deep = _.defaultTo(deep, false);
+    return this.listObjectVersions(bucket, prefix, credentials).pipe(
       switchMap((objects: S3ObjectVersionList) =>
         from(objects).pipe(
-          filter((object: S3ObjectVersion) => object.IsLatest! && !object.IsDeleted!),
+          filter((object: S3ObjectVersion) => deep || (object.IsLatest! && !object.IsDeleted!)),
           switchMap((object: S3ObjectVersion) => {
             return 'OBJECT' === object.Type
               ? this.deleteObject(
                   bucket,
                   object.Key!,
-                  allVersions ? undefined : object.VersionId,
+                  deep ? object.VersionId : undefined,
                   credentials
                 )
-              : this.deleteObjects(bucket, object.Key!, allVersions, credentials);
+              : this.deleteObjectByPrefix(
+                  bucket,
+                  `${object.Key!}${this.delimiter}`,
+                  deep,
+                  credentials
+                );
           })
         )
       ),

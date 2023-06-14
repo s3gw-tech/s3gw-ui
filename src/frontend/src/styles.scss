@@ -12,34 +12,34 @@ body {
 ////////////////////////////////////////////////////////////////////////////////
 
 .s3gw-color-danger {
-  color: $s3gw-color-danger;
+  color: var(--bs-danger);
 }
 
 .s3gw-color-warning {
-  color: $s3gw-color-warning;
+  color: var(--bs-warning);
 }
 
 .s3gw-color-info {
-  color: $s3gw-color-info;
+  color: var(--bs-info);
 }
 
 .s3gw-color-success {
-  color: $s3gw-color-success;
+  color: var(--bs-success);
 }
 
 .s3gw-color-background-pair-warning {
-  color: $s3gw-color-white;
-  background-color: $s3gw-color-warning;
+  color: var(--bs-white);
+  background-color: var(--bs-warning);
 }
 
 .s3gw-color-background-pair-danger {
-  color: $s3gw-color-white;
-  background-color: $s3gw-color-danger;
+  color: var(--bs-white);
+  background-color: var(--bs-danger);
 }
 
 .s3gw-color-background-pair-success {
-  color: $s3gw-color-white;
-  background-color: $s3gw-color-success;
+  color: var(--bs-white);
+  background-color: var(--bs-success);
 }
 
 .s3gw-text-no-overflow {
@@ -55,4 +55,6 @@ body {
 ////////////////////////////////////////////////////////////////////////////////
 // Browser specific
 input::-webkit-search-cancel-button,
-input::-webkit-search-results-button { appearance: none; }
+input::-webkit-search-results-button {
+  appearance: none;
+}

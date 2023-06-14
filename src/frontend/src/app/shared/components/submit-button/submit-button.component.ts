@@ -11,14 +11,15 @@ import * as _ from 'lodash';
   styleUrls: ['./submit-button.component.scss']
 })
 export class SubmitButtonComponent implements OnInit {
+  // The button class. Defaults to `btn-submit`.
+  @Input()
+  buttonClass?: string;
+
   @Input()
   formId?: string;
 
   @Input()
   form?: FormGroup | undefined;
-
-  @Output()
-  buttonClick = new EventEmitter<Event>();
 
   @Input()
   get disabled(): boolean {
@@ -28,11 +29,16 @@ export class SubmitButtonComponent implements OnInit {
     this._disabled = coerceBooleanProperty(value);
   }
 
+  @Output()
+  buttonClick = new EventEmitter<Event>();
+
   private _disabled = false;
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.buttonClass = _.defaultTo(this.buttonClass, 'btn-submit');
+  }
 
   onSubmit(event: Event) {
     if (this.form && this.form.invalid) {

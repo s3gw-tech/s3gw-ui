@@ -147,7 +147,6 @@ export class BucketDatatablePageComponent {
   private doDelete(selected: DatatableData[]): void {
     this.modalDialogService.confirmDeletion<S3Bucket>(
       selected as S3Bucket[],
-      'danger',
       {
         singular: TEXT('Do you really want to delete the bucket <strong>{{ name }}</strong>?'),
         singularFmtArgs: (value: S3Bucket) => ({ name: value.Name }),
