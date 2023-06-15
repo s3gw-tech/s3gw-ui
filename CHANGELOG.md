@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Enhance branding support (gh#aquarist-labs/s3gw#552).
+- Enhance branding support (gh#aquarist-labs/s3gw#552) (gh#aquarist-labs/s3gw#572).
 
 ### Fixed
 

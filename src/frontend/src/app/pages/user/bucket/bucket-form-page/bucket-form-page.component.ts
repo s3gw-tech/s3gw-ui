@@ -10,7 +10,6 @@ import { map, switchMap } from 'rxjs/operators';
 import { extractErrorDescription, format } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
-import { Icon } from '~/app/shared/enum/icon.enum';
 import { S3gwValidators } from '~/app/shared/forms/validators';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { IsDirty } from '~/app/shared/models/is-dirty.interface';
@@ -53,7 +52,6 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
         {
           type: 'button',
           text: TEXT('Explore'),
-          icon: Icon.folderOpen,
           callback: () => this.router.navigate([`/objects/${bid}`])
         }
       ];

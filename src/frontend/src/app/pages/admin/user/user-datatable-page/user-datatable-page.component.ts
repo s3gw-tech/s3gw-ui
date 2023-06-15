@@ -120,7 +120,6 @@ export class UserDatatablePageComponent {
       {
         type: 'button',
         text: TEXT('Create'),
-        icon: this.icons.create,
         callback: () => this.router.navigate(['/admin/users/create'])
       }
     ];

@@ -98,7 +98,6 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
       {
         type: 'button',
         text: TEXT('Create'),
-        icon: this.icons.create,
         callback: this.doAdd.bind(this)
       }
     ];

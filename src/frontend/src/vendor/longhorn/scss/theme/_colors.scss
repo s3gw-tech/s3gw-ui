@@ -4,6 +4,7 @@ $s3gw-color-azure: #ecf0f1;
 $s3gw-color-lotion: #fafafa;
 $s3gw-color-blue-green: #108eb9;
 $s3gw-color-jazz-blue: #186c99;
+$s3gw-color-wave-shadow: #00558b;
 $s3gw-color-prussian-blue: #003c66;
 $s3gw-color-success: $s3gw-color-go-green;
 $s3gw-color-info: $s3gw-color-magical-merlin;
@@ -29,3 +30,9 @@ $s3gw-primary-btn-outline-active-border-color: $s3gw-color-prussian-blue;
 // Table
 $s3gw-color-table-bg: $s3gw-color-blue-green;
 $s3gw-color-table-selected-bg: $s3gw-color-lotion;
+
+// Component
+$s3gw-component-active-bg: $s3gw-color-wave-shadow;
+
+// Inputs
+$s3gw-input-focus-border-color: $s3gw-color-wave-shadow;

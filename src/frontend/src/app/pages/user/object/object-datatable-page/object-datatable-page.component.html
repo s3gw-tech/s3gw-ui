@@ -48,6 +48,7 @@
         <button type="button"
                 class="btn btn-light rounded-0"
                 title="{{ 'Copy to clipboard' | transloco }}"
+                [disabled]="!this.prefixParts.length"
                 (click)="onCopyPrefixToClipboard()">
           <i [class]="icons.copy"></i>
         </button>

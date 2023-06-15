@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { Component, forwardRef, HostBinding } from '@angular/core';
+import { Component, forwardRef, HostBinding, HostListener } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 import * as AWS from 'aws-sdk';
@@ -62,7 +62,11 @@ export class TagsInputComponent implements ControlValueAccessor {
     this.disabled = isDisabled;
   }
 
+  @HostListener('click')
   addTag(): void {
+    if (this.disabled) {
+      return;
+    }
     // @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html
     this.dialogService.open(
       DeclarativeFormModalComponent,

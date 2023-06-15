@@ -35,7 +35,6 @@ export enum Icon {
   chevronDown = 'mdi mdi-chevron-down',
   cog = 'mdi mdi-cog',
   upload = 'mdi mdi-upload',
-  create = 'mdi mdi-plus',
   clear = 'mdi mdi-close',
   close = 'mdi mdi-window-close',
   search = 'mdi mdi-magnify',

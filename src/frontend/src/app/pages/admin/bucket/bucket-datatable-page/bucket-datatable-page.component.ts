@@ -88,7 +88,6 @@ export class BucketDatatablePageComponent {
       {
         type: 'button',
         text: TEXT('Create'),
-        icon: this.icons.create,
         callback: () => this.router.navigate(['/admin/buckets/create'])
       }
     ];

@@ -8,8 +8,8 @@
   --s3gw-topbar-bg: var(--bs-body-bg);
   --s3gw-topbar-action-btn-color: var(--bs-black);
   --s3gw-topbar-action-btn-hover-color: var(--bs-body-bg);
-  --s3gw-topbar-action-btn-icon-font-size: #{$s3gw-mdi-default-font-size};
-  --s3gw-topbar-action-btn-icon-top: #{$s3gw-mdi-default-top};
+  --s3gw-topbar-action-btn-icon-font-size: 18.6667px;
+  --s3gw-topbar-action-btn-icon-top: 1px;
   --s3gw-topbar-toggle-btn-color: var(--bs-body-color);
   --s3gw-topbar-toggle-btn-bg: var(--bs-body-bg);
   --s3gw-topbar-toggle-btn-hover-bg: #{$s3gw-color-anti-flash-white};
@@ -18,6 +18,5 @@
   // Navbar
   --s3gw-navbar-item-hover-bg: #{$s3gw-color-gainsboro};
   --s3gw-navbar-item-selected-bg: #{$s3gw-color-table-selected-bg};
-  --s3gw-navbar-item-border-color: var(--bs-primary);
-  --s3gw-navbar-item-icon-margin: 0 1rem 0 0;
+  --s3gw-navbar-item-icon-margin: 0 .25rem 0 0;
 }

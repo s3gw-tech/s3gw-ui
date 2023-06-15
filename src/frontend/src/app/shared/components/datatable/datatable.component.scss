@@ -4,6 +4,17 @@ th.sortable {
   cursor: pointer;
 }
 
+th .sort-icon {
+  i {
+    height: 8px;
+  }
+
+  .mdi::before {
+    font-size: 14px;
+    top: -7px;
+  }
+}
+
 td {
   .dropdown-toggle {
     text-decoration: none;
