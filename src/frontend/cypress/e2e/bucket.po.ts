@@ -108,4 +108,28 @@ export class BucketPageHelper extends PageHelper {
       });
     });
   }
+
+  lifecycleRuleCreate(ruleId: string): void {
+    cy.contains('table tbody tr', this.bucketName).within(() => {
+      super.selectActionsButton();
+      cy.clickButton('Lifecycle');
+    });
+    cy.clickButton('Create');
+    cy.get('input[id="id"]').type(ruleId);
+    cy.get('input[id="enabled"]').check();
+    cy.get('input[id="prefix"]').type('test');
+    cy.get('input[id="days"]').clear().type('10');
+    cy.clickButton('OK');
+  }
+
+  lifecycleRuleModify(ruleId: string): void {
+    cy.contains('table tbody tr', ruleId).within(() => {
+      super.selectActionsButton();
+      cy.clickButton('Edit');
+    });
+    cy.get('input[id="enabled"]').click();
+    cy.get('input[id="prefix"]').clear().type('test01');
+    cy.get('input[id="days"]').clear().type('365');
+    cy.clickButton('OK');
+  }
 }
