@@ -19,8 +19,8 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 from backend.admin_ops.buckets import list
-from backend.admin_ops.errors import AdminOpsError
 from backend.admin_ops.types import Bucket
+from backend.s3gw.errors import S3GWError
 
 bucket_list_response: List[Dict[str, Any]] = [
     {
@@ -116,7 +116,7 @@ async def test_bucket_list_failure(httpx_mock: HTTPXMock) -> None:
             secret_key="qwe",
             uid=None,
         )
-    except AdminOpsError:
+    except S3GWError:
         raised = True
 
     assert raised

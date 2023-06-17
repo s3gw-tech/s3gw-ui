@@ -14,12 +14,12 @@
 
 import httpx
 
-from backend.admin_ops.errors import (
+from backend.admin_ops.errors import error_from_response
+from backend.s3gw.errors import (
     AccessKeyDoesNotExistError,
-    AdminOpsError,
+    S3GWError,
     UserAlreadyExistsError,
     UserDoesNotExistError,
-    error_from_response,
 )
 
 
@@ -37,7 +37,7 @@ def test_errors_from_response() -> None:
             raise error_from_response(res)
         except exc as e:
             raised = True
-            assert type(e) != AdminOpsError
+            assert type(e) != S3GWError
         except Exception:
             print(f"Failed handling error '{err}'")
             assert False
@@ -47,9 +47,9 @@ def test_errors_from_response() -> None:
     res = httpx.Response(status_code=500)
     try:
         raise error_from_response(res)
-    except AdminOpsError as e:
+    except S3GWError as e:
         raised = True
-        assert type(e) == AdminOpsError
+        assert type(e) == S3GWError
     except Exception:
         assert False
     assert raised
@@ -58,9 +58,9 @@ def test_errors_from_response() -> None:
     res = httpx.Response(status_code=500, json={"Code": "Whatever"})
     try:
         raise error_from_response(res)
-    except AdminOpsError as e:
+    except S3GWError as e:
         raised = True
-        assert type(e) == AdminOpsError
+        assert type(e) == S3GWError
     except Exception:
         assert False
     assert raised

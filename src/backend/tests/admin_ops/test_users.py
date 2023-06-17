@@ -21,7 +21,6 @@ import pytest
 from pytest_httpx import HTTPXMock
 from pytest_mock import MockerFixture
 
-from backend.admin_ops.errors import AdminOpsError
 from backend.admin_ops.types import (
     UserInfo,
     UserKeyOpParams,
@@ -41,6 +40,7 @@ from backend.admin_ops.users import (
     quota_update,
     update,
 )
+from backend.s3gw.errors import S3GWError
 
 res_user_info_json = {
     "tenant": "",
@@ -103,7 +103,7 @@ async def test_get_user_info_failure(httpx_mock: HTTPXMock) -> None:
         await get_user_info(
             url="http://foo.bar:123", access_key="asd", secret_key="qwe"
         )
-    except AdminOpsError:
+    except S3GWError:
         raised = True
 
     assert raised
