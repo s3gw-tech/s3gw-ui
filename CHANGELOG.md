@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not delete object by version (gh#aquarist-labs/s3gw#576).
 - Prevent the restoring of the deleted object version (gh#aquarist-labs/s3gw#583).
 - Creating an enabled lifecycle rule is not working (gh#aquarist-labs/s3gw#587).
+- Disable download button for deleted objects (gh#aquarist-labs/s3gw#595).
 
 ## [0.17.0]
 
