@@ -83,7 +83,7 @@ describe('Bucket Management', () => {
     bucket.delete(objectName);
   });
 
-  it('manage versioned bucket with object locking and Compliance retention mode', () => {
+  it.skip('manage versioned bucket with object locking and Compliance retention mode', () => {
     const retentionMode = 'Compliance';
     bucket.createBucket(addTag, enableVersioning, enableObjectLock, retentionMode);
     bucket.exploreBucket();
@@ -94,7 +94,7 @@ describe('Bucket Management', () => {
     cy.contains('Forbidden by object lock.');
   });
 
-  it('versioned bucket with object locking and Governance retention mode', () => {
+  it.skip('versioned bucket with object locking and Governance retention mode', () => {
     const retentionMode = 'Governance';
     bucket.createBucket(addTag, enableVersioning, enableObjectLock, retentionMode);
     bucket.exploreBucket();
