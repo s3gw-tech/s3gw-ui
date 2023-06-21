@@ -1,8 +1,14 @@
-export class BucketPageHelper {
+import 'cypress-file-upload';
+
+import { PageHelper } from './page-helper.po';
+
+export class BucketPageHelper extends PageHelper {
   private key = 'test-key';
   private value = 'test-value';
 
-  constructor(private bucketName: string) {}
+  constructor(private bucketName: string) {
+    super();
+  }
 
   createBucket(
     addTag?: boolean,
@@ -10,7 +16,7 @@ export class BucketPageHelper {
     objectLocking?: boolean,
     retentionMode?: string
   ): void {
-    cy.contains('Create').click();
+    cy.clickButton('Create');
     cy.get('#Name').type(this.bucketName);
 
     //Add tag with key and value
@@ -29,26 +35,14 @@ export class BucketPageHelper {
         this.retentionMode(retentionMode);
       }
     }
-    cy.get('button:contains("Create")').click();
-  }
-
-  listBucket(): void {
-    cy.contains(this.bucketName);
-  }
-
-  deleteBucket(): void {
-    cy.contains(this.bucketName).click();
-    cy.contains('Delete').click();
-    cy.contains('Yes').click();
+    cy.clickButton('Create');
   }
 
   editBucket(addTag?: boolean, versioning?: boolean): void {
-    cy.get('button.btn.actions')
-      .should('be.visible')
-      .should('have.attr', 'title', 'Actions')
-      .click();
-
-    cy.get('button:contains("Edit")').click();
+    cy.contains('table tbody tr', this.bucketName).within(() => {
+      super.selectActionsButton();
+      cy.clickButton('Edit');
+    });
 
     //Add tag with key and value
     if (addTag) {
@@ -59,8 +53,9 @@ export class BucketPageHelper {
       this.versioning();
     }
     cy.get('button:contains("Cancel")').filter(':visible');
-    cy.get('button:contains("Update")').click();
+    cy.clickButton('Update');
   }
+
   objectLock(): void {
     cy.get('[id="ObjectLockEnabled"]').click();
   }
@@ -79,6 +74,38 @@ export class BucketPageHelper {
     cy.get('#Key').type(this.key);
     cy.get('#Value').type(this.value);
     cy.get('button:contains("Cancel")').filter(':visible');
-    cy.get('button:contains("OK")').filter(':visible').click();
+    cy.clickButton('OK');
+  }
+
+  showDeletedObject(): void {
+    cy.get('button.btn.btn-primary[ng-reflect-ngb-tooltip="Show deleted objects"]').click();
+  }
+
+  exploreBucket(): void {
+    cy.contains('table tbody tr', this.bucketName).within(() => {
+      cy.contains('Explore').click();
+    });
+  }
+
+  folderCreate(folderName: string): void {
+    cy.clickButton('Folder');
+    cy.get('input#path').type(folderName);
+    cy.clickButton('Create');
+  }
+
+  downloadObject(objectName: string): void {
+    super.selectTableElement(objectName);
+    cy.get('button.btn-primary i.mdi-download').click();
+  }
+
+  uploadObject(objectName: string): void {
+    cy.contains('Upload');
+    cy.fixture('example.json').then((fileData) => {
+      cy.get('input#file').attachFile({
+        fileContent: fileData,
+        fileName: 'example.json',
+        mimeType: 'application/json'
+      });
+    });
   }
 }

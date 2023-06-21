@@ -20,9 +20,9 @@ describe('User Management', () => {
 
     if (currentTestTitle !== 'User page view') {
       //List the user created
-      users.listUser();
+      users.list(userId);
       // Delete the bucket after each test iteration
-      users.deleteUser();
+      users.delete(userId);
     }
   });
 
