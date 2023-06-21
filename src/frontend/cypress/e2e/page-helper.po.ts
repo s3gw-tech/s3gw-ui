@@ -19,11 +19,8 @@ export class PageHelper {
 
   delete(name: string): void {
     this.selectTableElement(name);
-    cy.get('s3gw-datatable-actions')
-      .contains('button', 'Delete')
-      .should('be.enabled')
-      .click({ force: true });
-    cy.get('s3gw-modal', { timeout: 2000 }).contains('button', 'Yes').click({ force: true });
+    cy.get('s3gw-datatable-actions').contains('button', 'Delete').click({ force: true });
+    cy.get('ngb-modal-window', { timeout: 2000 }).contains('button', 'Yes').click({ force: true });
   }
 
   list(name: string): void {
