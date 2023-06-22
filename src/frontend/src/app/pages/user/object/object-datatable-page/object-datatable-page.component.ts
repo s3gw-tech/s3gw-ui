@@ -104,7 +104,9 @@ export class ObjectDatatablePageComponent implements OnInit {
         text: TEXT('Download'),
         icon: this.icons.download,
         enabledConstraints: {
-          minSelected: 1
+          minSelected: 1,
+          callback: (selected: DatatableData[]) =>
+            _.every(selected as S3ObjectVersionList, (object: S3ObjectVersion) => !object.IsDeleted)
         },
         callback: (event: Event, action: DatatableAction, table: Datatable) =>
           this.doDownload(table.selected)
