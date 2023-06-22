@@ -99,7 +99,6 @@ export class UserKeyDatatablePageComponent implements OnInit {
       {
         type: 'button',
         text: TEXT('Create'),
-        icon: this.icons.create,
         callback: () => this.router.navigate([`/admin/users/${this.uid}/key/create`])
       }
     ];

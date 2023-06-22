@@ -145,7 +145,6 @@ export class ObjectDatatablePageComponent implements OnInit {
       {
         type: 'button',
         text: TEXT('Edit'),
-        icon: Icon.edit,
         callback: () => this.router.navigate([`/buckets/edit/${this.bid}`])
       }
     ];

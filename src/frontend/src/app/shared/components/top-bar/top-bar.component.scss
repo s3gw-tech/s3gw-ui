@@ -7,7 +7,7 @@
   background-color: var(--s3gw-topbar-bg);
 
   .navigation-actions {
-    color: var(--s3gw-topbar-btn-color);
+    color: var(--s3gw-topbar-action-btn-color);
     background-color: var(--s3gw-topbar-navigation-bg);
     width: tv.$s3gw-navigation-width;
 
@@ -34,13 +34,18 @@
 
   .actions,
   .actions .btn {
-    color: var(--s3gw-topbar-btn-color);
+    color: var(--s3gw-topbar-action-btn-color);
   }
 
   .actions .btn {
     &:focus,
     &:hover {
-      color: var(--s3gw-topbar-btn-hover-color);
+      color: var(--s3gw-topbar-action-btn-hover-color);
+    }
+
+    .mdi::before {
+      font-size: var(--s3gw-topbar-action-btn-icon-font-size);
+      top: var(--s3gw-topbar-action-btn-icon-top);
     }
   }
 }

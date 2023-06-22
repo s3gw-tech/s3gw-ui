@@ -99,6 +99,19 @@
               "stylePreprocessorOptions": {
                 "includePaths": ["src/vendor/longhorn/scss"]
               }
+            },
+            "rancher": {
+              "assets": [
+                "src/assets",
+                {
+                  "glob": "**/*",
+                  "input": "src/vendor/rancher",
+                  "output": ""
+                }
+              ],
+              "stylePreprocessorOptions": {
+                "includePaths": ["src/vendor/rancher/scss"]
+              }
             }
           },
           "defaultConfiguration": "production"
@@ -118,6 +131,9 @@
             },
             "longhorn": {
               "browserTarget": "s3gw-ui:build:development,longhorn"
+            },
+            "rancher": {
+              "browserTarget": "s3gw-ui:build:development,rancher"
             }
           },
           "defaultConfiguration": "development"

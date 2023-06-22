@@ -334,7 +334,7 @@ export class DatatableComponent implements Datatable, OnInit {
     return false;
   }
 
-  setHeaderClasses(column: DatatableColumn): string {
+  getHeaderClasses(column: DatatableColumn): string {
     let css = column.css || '';
     if (column.sortable !== true) {
       return css;
@@ -346,11 +346,13 @@ export class DatatableComponent implements Datatable, OnInit {
     return css + ` sort-header ${this.sortDirection}`;
   }
 
-  getHeaderIconCss(): string {
-    const css = 'mdi mdi-';
-    return this.sortDirection === SortDirection.ascending
-      ? css + 'sort-ascending'
-      : css + 'sort-descending';
+  getHeaderSortClasses(direction: 'asc' | 'desc'): string {
+    let iconCls: string = this.icons.chevronUp;
+    const opacityCls: string = direction === this.sortDirection ? 'opacity-100' : 'opacity-25';
+    if ('desc' === direction) {
+      iconCls = this.icons.chevronDown;
+    }
+    return `${iconCls} ${opacityCls}`;
   }
 
   reloadData(): void {

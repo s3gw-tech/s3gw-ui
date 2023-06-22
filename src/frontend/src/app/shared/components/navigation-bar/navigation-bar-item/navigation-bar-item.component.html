@@ -7,8 +7,7 @@
     ngbNav>
   <a class="w-100 d-flex flex-row"
      ngbNavLink>
-    <i class="me-3"
-       [class]="item.icon"></i>
+    <i [class]="item.icon"></i>
     {{ item.text | transloco }}
     <i *ngIf="item.children && item.children.length"
        class="w-100 d-flex justify-content-end"

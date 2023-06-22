@@ -68,22 +68,26 @@
            [ngClass]="{'sticky-top': hasStickyHeader}">
       <tr>
         <th *ngFor="let column of columns"
+            class="align-middle"
             scope="col"
             [width]="column.width"
-            [class]="setHeaderClasses(column)"
+            [class]="getHeaderClasses(column)"
             [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}"
             [hidden]="column.hidden"
             (click)="onSortChange(column)">
-          <span *ngIf="column.name">{{ column.name | transloco }}</span>
           <input *ngIf="selectionType === 'multi' && column.cellTemplateName === 'rowSelect'"
                  class="form-check-input"
                  type="checkbox"
                  [checked]="isAllRowsSelected"
                  (click)="onHeaderSelectRows($event)">
-          <i *ngIf="sortHeader === column.prop"
-             class="ps-1 align-middle"
-             aria-hidden="true"
-             [class]="getHeaderIconCss()"></i>
+          <div class="d-flex flex-row align-items-center">
+            <div *ngIf="column.name">{{ column.name | transloco }}</div>
+            <div *ngIf="sortHeader === column.prop"
+                 class="sort-icon d-flex flex-column ps-1">
+              <i [class]="getHeaderSortClasses('asc')"></i>
+              <i [class]="getHeaderSortClasses('desc')"></i>
+            </div>
+          </div>
         </th>
       </tr>
     </thead>

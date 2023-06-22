@@ -25,21 +25,25 @@ $danger: tc.$s3gw-color-danger !default;
 $body-bg: tc.$s3gw-color-body-bg;
 $body-color: tc.$s3gw-color-body-color;
 $card-bg: tc.$s3gw-color-cultured;
-$h1-font-size: 2em !default;
-$h2-font-size: 1.75em !default;
-$h3-font-size: 1.5em !default;
-$h4-font-size: 1.3em !default;
-$h5-font-size: 1.15em !default;
-$h6-font-size: 1em !default;
-$body-font-family: tf.$s3gw-font-family-sans-serif;
+$font-size-base: tf.$s3gw-font-size-base !default;
 $font-family-sans-serif: tf.$s3gw-font-family-sans-serif !default;
 $font-family-monospace: tf.$s3gw-font-family-monospace !default;
 $headings-font-family: tf.$s3gw-font-family-headings !default;
-$component-active-color: tc.$s3gw-color-white;
-$component-active-bg: tc.$s3gw-color-theme-primary;
-$input-btn-focus-width: 0.063rem; // 1px
+$headings-font-weight: 400 !default;
+$h1-font-size: tf.$s3gw-h1-font-size !default;
+$h2-font-size: tf.$s3gw-h2-font-size !default;
+$h3-font-size: tf.$s3gw-h3-font-size !default;
+$h4-font-size: tf.$s3gw-h4-font-size !default;
+$h5-font-size: tf.$s3gw-h5-font-size !default;
+$h6-font-size: tf.$s3gw-h6-font-size !default;
+$component-active-color: tc.$s3gw-color-white !default;
+$component-active-bg: tc.$s3gw-component-active-bg !default;
+$input-focus-border-color: tc.$s3gw-input-focus-border-color !default;
+$input-focus-box-shadow: unset !default;
+$input-btn-focus-width: 0.063rem !default; // 1px
 $badge-border-radius: 1.25rem;
 $border-color: tc.$s3gw-color-border;
+$border-radius: 0.25rem;
 $table-th-font-weight: normal;
 $pagination-font-size: 0.875rem;
 $pagination-padding-y: 0.187rem;
@@ -49,6 +53,12 @@ $placeholder-opacity-max: 0.2;
 $zindex-dropdown: 1021; // Must be > than Bootstraps $zindex-sticky
 
 @import 'bootstrap/scss/bootstrap';
+
+//////////////////////////////////////////////////////////////////////////////
+// Typography
+h6 {
+  text-transform: uppercase;
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // Text
@@ -290,14 +300,20 @@ li {
 // Material Design Icons - https://materialdesignicons.com/bootstrap
 /* stylelint-disable no-descending-specificity */
 .mdi::before {
-  font-size: 24px;
+  font-size: tv.$s3gw-mdi-default-font-size;
   line-height: 14px;
   position: relative;
-  top: 3px;
+  top: tv.$s3gw-mdi-default-top;
 }
 
 .mdi.mdi-18px::before {
+  font-size: 18px;
   top: 1px;
+}
+
+.mdi.mdi-24px::before {
+  font-size: 24px;
+  top: 3px;
 }
 
 .btn .mdi::before {

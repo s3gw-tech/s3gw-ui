@@ -7,6 +7,10 @@ li {
 
   a {
     color: unset;
+
+    i {
+      margin: var(--s3gw-navbar-item-icon-margin);
+    }
   }
 
   &:hover {
@@ -19,7 +23,8 @@ li {
     color: var(--s3gw-navbar-item-selected-color);
   }
 
-  &:hover, &.selected {
+  &:hover,
+  &.selected {
     border-right: 4px solid var(--s3gw-navbar-item-border-color);
   }
 }

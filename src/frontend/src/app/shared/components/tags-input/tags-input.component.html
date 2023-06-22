@@ -1,18 +1,20 @@
 <div class="d-flex align-items-center">
   <div class="tags flex-grow-1">
     <div *ngFor="let tag of value"
-         class="badge bg-primary d-inline-flex align-items-center">
-      <span>{{ tag.Key }}:{{ tag.Value }}</span>
+         class="user-select-none badge bg-primary d-inline-flex align-items-center"
+         (click)="$event.stopPropagation()">
+      <span>
+        {{ tag.Key }}:{{ tag.Value }}
+      </span>
       <i *ngIf="!disabled"
          class="ms-1 mdi-18px s3gw-cursor-pointer"
          [class]="icons.close"
-         (click)="removeTag(tag)">
+         (click)="$event.stopPropagation(); removeTag(tag)">
       </i>
     </div>
   </div>
   <i *ngIf="!disabled"
      class="ms-2 mdi-18px s3gw-cursor-pointer"
-     [class]="icons.plus"
-     (click)="addTag()">
+     [class]="icons.plus">
   </i>
 </div>
