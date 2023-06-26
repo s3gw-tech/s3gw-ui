@@ -7,6 +7,7 @@ describe('Bucket Management', () => {
   const enableObjectLock = true;
   const objectName = 'example.json';
   const folderName = 'test-folder';
+  const ruleId = 'rule01';
   const bucket = new BucketPageHelper(bucketName);
 
   beforeEach(() => {
@@ -66,6 +67,8 @@ describe('Bucket Management', () => {
 
   it('manage versioned bucket', () => {
     bucket.createBucket(addTag, enableVersioning);
+    bucket.lifecycleRuleCreate(ruleId);
+    cy.navigate('/buckets');
     bucket.exploreBucket();
 
     //upload a object to folder created in a bucket
@@ -76,6 +79,11 @@ describe('Bucket Management', () => {
 
   it('manage test versioned bucket with object locking', () => {
     bucket.createBucket(addTag, enableVersioning, enableObjectLock);
+    bucket.lifecycleRuleCreate(ruleId);
+    bucket.lifecycleRuleModify(ruleId);
+    bucket.delete(ruleId);
+
+    cy.navigate('/buckets');
     bucket.exploreBucket();
     bucket.uploadObject(objectName);
     bucket.downloadObject(objectName);
