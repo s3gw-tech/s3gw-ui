@@ -32,3 +32,9 @@ make build-ui-fronted
 ```shell
 make run-ui-backend
 ```
+
+### Build the UI Docker Image
+
+```shell
+make image-build-ui
+```

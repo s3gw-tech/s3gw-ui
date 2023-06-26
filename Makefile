@@ -32,6 +32,9 @@ build-ui-fronted:
 image-build-ui-fronted:
 	docker build -t s3gw-frontend:latest -f src/frontend/Dockerfile src/frontend
 
+image-build-ui:
+	docker build -t s3gw-ui:latest -f src/Dockerfile src
+
 ########################################################################
 # Run UI components
 
