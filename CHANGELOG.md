@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.18.0]
 
+### Added
+
+- Add a hint to the prefix field in the lifecycle rule dialog (gh#aquarist-labs/s3gw#600).
+
 ### Changed
 
 - Enhance branding support (gh#aquarist-labs/s3gw#552) (gh#aquarist-labs/s3gw#572).

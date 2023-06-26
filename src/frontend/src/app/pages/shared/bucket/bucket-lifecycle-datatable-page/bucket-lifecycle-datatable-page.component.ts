@@ -291,7 +291,10 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
             type: 'text',
             name: 'prefix',
             label: TEXT('Prefix'),
-            value: _.get(rule, 'Filter.Prefix', _.get(rule, 'Prefix', ''))
+            value: _.get(rule, 'Filter.Prefix', _.get(rule, 'Prefix', '')),
+            hint: TEXT(
+              'If you do not specify a prefix, then the rule is applied to all objects in the bucket. If you specify a prefix as data/, then the rule is applied to all objects under the prefix data/.'
+            )
           },
           {
             type: 'number',
