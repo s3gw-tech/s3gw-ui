@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent the restoring of the deleted object version (gh#aquarist-labs/s3gw#583).
 - Creating an enabled lifecycle rule is not working (gh#aquarist-labs/s3gw#587).
 - Disable download button for deleted objects (gh#aquarist-labs/s3gw#595).
+- Do not close datatable column menu on inside clicks (gh#aquarist-labs/s3gw#599).
 
 ## [0.17.0]
 
