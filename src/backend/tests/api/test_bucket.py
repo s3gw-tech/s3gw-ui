@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import List
+
 import pytest
 from fastapi import HTTPException, status
 
@@ -19,27 +21,27 @@ from backend.api import S3GWClient, bucket
 
 
 @pytest.mark.anyio
-async def test_api_bucket_list(s3_client: S3GWClient) -> None:
+async def test_api_list_bucket(s3_client: S3GWClient) -> None:
     # create a couple of buckets
     async with s3_client.conn() as client:
         await client.create_bucket(Bucket="foo")
         await client.create_bucket(Bucket="bar")
 
-    res: bucket.BucketListResponse = await bucket.get_bucket_list(s3_client)
-    assert "foo" in res.buckets
-    assert "bar" in res.buckets
-    assert len(res.buckets) == 2
+    res: List[bucket.BucketResponse] = await bucket.get_bucket_list(s3_client)
+    assert "foo" == res[0].Name
+    assert "bar" == res[1].Name
+    assert len(res) == 2
 
 
 @pytest.mark.anyio
-async def test_api_bucket_create(
+async def test_api_create_bucket(
     s3_client: S3GWClient, is_mock_server: bool
 ) -> None:
-    await bucket.bucket_create(s3_client, "asdasd", enable_object_locking=False)
+    await bucket.create_bucket(s3_client, "asdasd", enable_object_locking=False)
 
     raised = False
     try:
-        await bucket.bucket_create(
+        await bucket.create_bucket(
             s3_client, "asdasd", enable_object_locking=False
         )
     except HTTPException as e:
@@ -54,3 +56,62 @@ async def test_api_bucket_create(
         assert not raised
     else:
         assert raised
+
+
+@pytest.mark.anyio
+async def test_api_tagging(s3_client: S3GWClient) -> None:
+    async with s3_client.conn() as client:
+        await client.create_bucket(Bucket="foo")
+
+    await bucket.set_bucket_tagging(
+        s3_client, "foo", [{"Key": "kkk", "Value": "vvv"}]
+    )
+    res: List[bucket.Tag] = await bucket.get_bucket_tagging(s3_client, "foo")
+    assert len(res) == 1
+    assert res[0].Key == "kkk"
+    assert res[0].Value == "vvv"
+
+    await bucket.set_bucket_tagging(s3_client, "foo", [])
+    res: List[bucket.Tag] = await bucket.get_bucket_tagging(s3_client, "foo")
+    assert len(res) == 0
+
+
+@pytest.mark.anyio
+async def test_api_versioning(s3_client: S3GWClient) -> None:
+    async with s3_client.conn() as client:
+        await client.create_bucket(Bucket="xyz")
+
+    enabled: bool = await bucket.get_bucket_versioning(s3_client, "xyz")
+    assert not enabled
+
+    await bucket.set_bucket_versioning(s3_client, "xyz", True)
+    enabled = await bucket.get_bucket_versioning(s3_client, "xyz")
+    assert enabled
+
+    await bucket.set_bucket_versioning(s3_client, "xyz", False)
+    enabled = await bucket.get_bucket_versioning(s3_client, "xyz")
+    assert not enabled
+
+
+@pytest.mark.anyio
+async def test_api_delete_bucket(s3_client: S3GWClient) -> None:
+    total: int = await bucket.get_bucket_count(s3_client)
+
+    await bucket.create_bucket(s3_client, "abc")
+    current: int = await bucket.get_bucket_count(s3_client)
+    assert current == total + 1
+
+    await bucket.delete_bucket(s3_client, "abc")
+    current = await bucket.get_bucket_count(s3_client)
+    assert current == total
+
+
+@pytest.mark.skip(reason="Admin Ops API is not mocked right now")
+@pytest.mark.anyio
+async def test_api_get_bucket_attributes(s3_client: S3GWClient) -> None:
+    await bucket.create_bucket(s3_client, "zyx", enable_object_locking=True)
+    await bucket.set_bucket_versioning(s3_client, "zyx", True)
+    res = await bucket.get_bucket_attributes(s3_client, "zyx")
+    assert len(res.TagSet) == 0
+    assert res.ObjectLockEnabled
+    assert res.VersioningEnabled

@@ -38,6 +38,8 @@ async def list(
     Obtains a list of `Bucket`, containing a multitude of information about each
     bucket available in the system. If `uid` is specified, returns only those
     buckets owned by the specified user id.
+
+    See https://docs.ceph.com/en/latest/radosgw/adminops/#get-bucket-info
     """
     params: Dict[str, Any] = {"stats": True}
     if uid is not None and len(uid) > 0:
@@ -52,3 +54,24 @@ async def list(
         params=params,
     )
     return parse_obj_as(List[Bucket], res.json())
+
+
+async def get(
+    url: str,
+    access_key: str,
+    secret_key: str,
+    bucket_name: str,
+) -> Bucket:
+    """
+    See https://docs.ceph.com/en/latest/radosgw/s3/bucketops/#get-bucket
+    """
+    params: Dict[str, Any] = {"bucket": bucket_name, "max-keys": 0}
+    res = await do_request(
+        url=url,
+        access_key=access_key,
+        secret_key=secret_key,
+        endpoint=f"/admin/bucket",
+        method="GET",
+        params=params,
+    )
+    return parse_obj_as(Bucket, res.json())
