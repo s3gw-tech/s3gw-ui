@@ -50,6 +50,18 @@ class S3GWClient:
         self._access_key = access_key
         self._secret_key = secret_key
 
+    @property
+    def endpoint(self) -> str:
+        return self._endpoint
+
+    @property
+    def access_key(self) -> str:
+        return self._access_key
+
+    @property
+    def secret_key(self) -> str:
+        return self._secret_key
+
     @contextlib.asynccontextmanager
     async def conn(self, attempts: int = 1) -> AsyncGenerator[S3Client, None]:
         """
@@ -63,9 +75,9 @@ class S3GWClient:
         session = AioSession()
         async with session.create_client(
             "s3",
-            endpoint_url=self._endpoint,
-            aws_access_key_id=self._access_key,
-            aws_secret_access_key=self._secret_key,
+            endpoint_url=self.endpoint,
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
             config=S3Config(
                 retries={
                     "max_attempts": attempts,
@@ -75,6 +87,11 @@ class S3GWClient:
         ) as client:
             try:
                 yield cast(S3Client, client)
+            except client.exceptions.NoSuchBucket:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Bucket not found",
+                )
             except ClientError as e:
                 (code, msg) = decode_client_error(e)
                 raise HTTPException(status_code=code, detail=msg)

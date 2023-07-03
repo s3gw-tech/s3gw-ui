@@ -2,6 +2,7 @@ fastapi==0.95.0
 pydantic==1.10.7
 uvicorn==0.21.1
 aioboto3==11.0.1
+pydash==7.0.4
 
 types-aioboto3
 types-aiobotocore==2.5.0.post2
