@@ -12,3 +12,29 @@ It is a combination of two distinct components:
 
 Both the frontend and the backend have their specific `README.md` files, which
 should be consulted for further information.
+
+## Quick build and run reference
+
+### Setup the environment for the UI-Backend
+
+```shell
+make setup-ui-backend
+```
+
+### Build the UI-Frontend
+
+```shell
+make build-ui-fronted
+```
+
+### Run the UI-Backend
+
+```shell
+make run-ui-backend
+```
+
+### Build the UI Docker Image
+
+```shell
+make image-build-ui
+```
