@@ -28,9 +28,14 @@ async def test_api_list_bucket(s3_client: S3GWClient) -> None:
         await client.create_bucket(Bucket="bar")
 
     res: List[bucket.BucketResponse] = await bucket.get_bucket_list(s3_client)
-    assert "foo" == res[0].Name
-    assert "bar" == res[1].Name
+    buckets = ["foo", "bar"]
+    assert any(res[0].Name in s for s in buckets)
+    assert any(res[1].Name in s for s in buckets)
     assert len(res) == 2
+
+    async with s3_client.conn() as client:
+        await client.delete_bucket(Bucket="foo")
+        await client.delete_bucket(Bucket="bar")
 
 
 @pytest.mark.anyio
@@ -57,6 +62,9 @@ async def test_api_create_bucket(
     else:
         assert raised
 
+    async with s3_client.conn() as client:
+        await client.delete_bucket(Bucket="asdasd")
+
 
 @pytest.mark.anyio
 async def test_api_tagging(s3_client: S3GWClient) -> None:
@@ -75,6 +83,9 @@ async def test_api_tagging(s3_client: S3GWClient) -> None:
     res: List[bucket.Tag] = await bucket.get_bucket_tagging(s3_client, "foo")
     assert len(res) == 0
 
+    async with s3_client.conn() as client:
+        await client.delete_bucket(Bucket="foo")
+
 
 @pytest.mark.anyio
 async def test_api_versioning(s3_client: S3GWClient) -> None:
@@ -91,6 +102,9 @@ async def test_api_versioning(s3_client: S3GWClient) -> None:
     await bucket.set_bucket_versioning(s3_client, "xyz", False)
     enabled = await bucket.get_bucket_versioning(s3_client, "xyz")
     assert not enabled
+
+    async with s3_client.conn() as client:
+        await client.delete_bucket(Bucket="xyz")
 
 
 @pytest.mark.anyio
@@ -115,3 +129,6 @@ async def test_api_get_bucket_attributes(s3_client: S3GWClient) -> None:
     assert len(res.TagSet) == 0
     assert res.ObjectLockEnabled
     assert res.VersioningEnabled
+
+    async with s3_client.conn() as client:
+        await client.delete_bucket(Bucket="xyz")

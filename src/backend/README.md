@@ -184,6 +184,92 @@ server, and then setting the following as the workspace configuration:
 }
 ```
 
+## Makefile tasks
+
+### Requirements
+
+- Python 3, pip, black, tox
+- npm
+- Docker, Docker compose
+- Helm
+- k3d
+
+We have defined a set of common tasks frequently used during the
+development and the testing process.
+
+### Setup the running environment for the UI-Backend
+
+It downloads the required dependencies for the ui-backend.
+
+```shell
+make setup-ui-backend
+```
+
+### Build the UI-Frontend
+
+It build the ui-frontend.
+
+```shell
+make build-ui-fronted
+```
+
+### Run the UI-Backend
+
+It spawns the ui-backend process on the host.
+You must have built the ui-frontend before.
+
+```shell
+make run-ui-backend
+```
+
+### Build the UI Docker Image
+
+This task builds the Docker image containing both the frontend and the backend.
+This image can be consumed as the ui-image in the s3gw's Helm charts.
+
+```shell
+make image-build-ui
+```
+
+### Start a k3d cluster with the radosgw backend service
+
+This task spawns a k3d cluster and deploys the last version of
+s3gw's Helm charts on it. The task also builds the UI Docker Image
+from the content of the local environment and uses that with the
+subsequent s3gw's charts deployment.
+
+```shell
+make cluster-start
+```
+
+### Delete the k3d cluster
+
+It deletes the cluster created with `make cluster-start`.
+
+```shell
+make cluster-delete
+```
+
+### Test the UI Backend with the moto S3 service
+
+It performs the tests using the moto S3 service for the
+tests requiring an S3 service.
+
+```shell
+make test-ui-backend
+```
+
+### Test the UI Backend with the s3gw S3 service
+
+It performs the tests using the s3gw S3 service for the
+tests requiring an S3 service.
+This task requires you have previously spawned the `k3d` cluster
+with `make cluster-start`.
+
+```shell
+make test-ui-backend-with-s3gw
+```
+
 ## Contributing
 
 All submitted patches need to be GPG signed, carry a Developer's Certificate of
