@@ -10,6 +10,19 @@
 # limitations under the License.
 
 ########################################################################
+# Testing cluster
+
+cluster-start:
+	@./test-env/cluster-create.sh
+	k3d kubeconfig merge -ad
+	kubectl config use-context k3d-s3gw-ui-testing
+	@./test-env/cluster-prepare.sh
+
+cluster-delete:
+	k3d cluster delete s3gw-ui-testing
+	@if test -f /usr/local/bin/rke2-uninstall.sh; then sudo sh /usr/local/bin/rke2-uninstall.sh; fi
+
+########################################################################
 # Setup UI components
 
 setup-ui-backend:
@@ -67,3 +80,6 @@ test-ui-fronted:
 
 test-ui-backend:
 	cd src && tox -e py310
+
+test-ui-backend-with-s3gw:
+	@./test-env/run-tests.sh

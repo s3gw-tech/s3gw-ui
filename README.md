@@ -15,7 +15,15 @@ should be consulted for further information.
 
 ## Quick build and run reference
 
-### Setup the environment for the UI-Backend
+### Requirements
+
+- Python 3, pip, black, tox
+- npm
+- Docker, Docker compose
+- Helm
+- k3d
+
+### Setup the running environment for the UI-Backend
 
 ```shell
 make setup-ui-backend
@@ -38,3 +46,6 @@ make run-ui-backend
 ```shell
 make image-build-ui
 ```
+
+For more information on the other tasks in the Makefile
+consult the the frontend and the backend `README.md` files.
