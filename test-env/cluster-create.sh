@@ -17,7 +17,7 @@ NETWORK_NAME=s3gw-ui-testing
 MIRROR_NAME=s3gw-ui-testing-registry-mirror
 CLUSTER_NAME=s3gw-ui-testing
 K3S_IMAGE=${K3S_IMAGE:-rancher/k3s:v1.25.10-k3s1}
-export KUBECONFIG=$SCRIPT_DIR/../tmp/acceptance-kubeconfig
+export KUBECONFIG=$SCRIPT_DIR/../tmp/kubeconfig
 
 check_deps() {
   if ! command -v k3d &> /dev/null
@@ -40,7 +40,7 @@ echo "Ensuring a network"
 docker network create $NETWORK_NAME || echo "Network already exists"
 
 echo "Creating a new one named $CLUSTER_NAME"
-if [ -z ${EXPOSE_ACCEPTANCE_CLUSTER_PORTS+x} ]; then
+if [ -z ${EXPOSE_CLUSTER_PORTS+x} ]; then
   # Without exposing ports on the host:
   k3d cluster create $CLUSTER_NAME --network $NETWORK_NAME --image "$K3S_IMAGE" $S3GW_K3D_INSTALL_ARGS
 else

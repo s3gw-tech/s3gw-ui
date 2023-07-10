@@ -12,6 +12,8 @@
 
 set -e
 
+UI_IMAGE_TAG=${UI_IMAGE_TAG:-"$(git describe --tags --always)"}
+BE_IMAGE_TAG=${BE_IMAGE_TAG:-"latest"}
 imageS3GWUI="quay.io/s3gw/s3gw-ui"
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
@@ -31,7 +33,9 @@ function deploy_s3gw_latest_released {
   helm upgrade --wait --install -n s3gw-ui-testing --create-namespace s3gw-ui-testing s3gw/s3gw \
     --set publicDomain="${S3GW_SYSTEM_DOMAIN}" \
     --set ui.publicDomain="${S3GW_SYSTEM_DOMAIN}" \
-    --set ui.imageTag=v"${IMAGE_TAG}"
+    --set ui.imageTag="${UI_IMAGE_TAG}" \
+    --set imageTag="${BE_IMAGE_TAG}" \
+    --set logLevel="20"
 }
 
 echo "Preparing k3d environment"
@@ -51,9 +55,9 @@ helm install cert-manager --namespace cert-manager jetstack/cert-manager \
     --wait
 fi
 
-docker build -t "${imageS3GWUI}:v${IMAGE_TAG}" -t "${imageS3GWUI}:latest" -f src/Dockerfile src
+docker build -t "${imageS3GWUI}:${UI_IMAGE_TAG}" -t "${imageS3GWUI}:latest" -f src/Dockerfile src
 echo "Building s3gw-ui image Completed ✔️"
-k3d image import -c s3gw-ui-testing "${imageS3GWUI}:v${IMAGE_TAG}"
+k3d image import -c s3gw-ui-testing "${imageS3GWUI}:${UI_IMAGE_TAG}"
 
 echo "Deploying s3gw"
 

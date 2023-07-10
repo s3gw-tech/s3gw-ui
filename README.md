@@ -48,4 +48,4 @@ make image-build-ui
 ```
 
 For more information on the other tasks in the Makefile
-consult the the frontend and the backend `README.md` files.
+consult both the frontend and the backend `README.md` files.
