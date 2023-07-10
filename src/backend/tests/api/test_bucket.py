@@ -20,6 +20,43 @@ from fastapi import HTTPException, status
 from backend.api import S3GWClient, bucket
 
 
+@pytest.fixture(autouse=True)
+async def run_before_and_after_tests(s3_client: S3GWClient):
+    """Fixture to execute asserts before and after a test is run"""
+    # Setup: fill with any logic you want
+    print("---> Setup")
+
+    yield  # this is where the testing happens
+
+    # Teardown : fill with any logic you want
+    print("<--- Teardown")
+    async with s3_client.conn() as client:
+        try:
+            await client.delete_bucket(Bucket="foo")
+        except:
+            pass
+        try:
+            await client.delete_bucket(Bucket="bar")
+        except:
+            pass
+        try:
+            await client.delete_bucket(Bucket="asdasd")
+        except:
+            pass
+        try:
+            await client.delete_bucket(Bucket="xyz")
+        except:
+            pass
+        try:
+            await client.delete_bucket(Bucket="zyx")
+        except:
+            pass
+        try:
+            await client.delete_bucket(Bucket="abc")
+        except:
+            pass
+
+
 @pytest.mark.anyio
 async def test_api_list_bucket(s3_client: S3GWClient) -> None:
     # create a couple of buckets
@@ -32,10 +69,6 @@ async def test_api_list_bucket(s3_client: S3GWClient) -> None:
     assert any(res[0].Name in s for s in buckets)
     assert any(res[1].Name in s for s in buckets)
     assert len(res) == 2
-
-    async with s3_client.conn() as client:
-        await client.delete_bucket(Bucket="foo")
-        await client.delete_bucket(Bucket="bar")
 
 
 @pytest.mark.anyio
@@ -62,9 +95,6 @@ async def test_api_create_bucket(
     else:
         assert raised
 
-    async with s3_client.conn() as client:
-        await client.delete_bucket(Bucket="asdasd")
-
 
 @pytest.mark.anyio
 async def test_api_tagging(s3_client: S3GWClient) -> None:
@@ -83,9 +113,6 @@ async def test_api_tagging(s3_client: S3GWClient) -> None:
     res: List[bucket.Tag] = await bucket.get_bucket_tagging(s3_client, "foo")
     assert len(res) == 0
 
-    async with s3_client.conn() as client:
-        await client.delete_bucket(Bucket="foo")
-
 
 @pytest.mark.anyio
 async def test_api_versioning(s3_client: S3GWClient) -> None:
@@ -103,9 +130,6 @@ async def test_api_versioning(s3_client: S3GWClient) -> None:
     enabled = await bucket.get_bucket_versioning(s3_client, "xyz")
     assert not enabled
 
-    async with s3_client.conn() as client:
-        await client.delete_bucket(Bucket="xyz")
-
 
 @pytest.mark.anyio
 async def test_api_delete_bucket(s3_client: S3GWClient) -> None:
@@ -120,7 +144,6 @@ async def test_api_delete_bucket(s3_client: S3GWClient) -> None:
     assert current == total
 
 
-@pytest.mark.skip(reason="Admin Ops API is not mocked right now")
 @pytest.mark.anyio
 async def test_api_get_bucket_attributes(s3_client: S3GWClient) -> None:
     await bucket.create_bucket(s3_client, "zyx", enable_object_locking=True)
@@ -129,6 +152,3 @@ async def test_api_get_bucket_attributes(s3_client: S3GWClient) -> None:
     assert len(res.TagSet) == 0
     assert res.ObjectLockEnabled
     assert res.VersioningEnabled
-
-    async with s3_client.conn() as client:
-        await client.delete_bucket(Bucket="xyz")
