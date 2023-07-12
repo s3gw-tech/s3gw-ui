@@ -30,7 +30,7 @@ function prepare_system_domain {
 }
 
 function deploy_s3gw_latest_released {
-  helm upgrade --wait --install -n s3gw-ui-testing --create-namespace s3gw-ui-testing s3gw/s3gw \
+  helm upgrade --debug --wait --install -n s3gw-ui-testing --create-namespace s3gw-ui-testing s3gw/s3gw \
     --set publicDomain="${S3GW_SYSTEM_DOMAIN}" \
     --set ui.publicDomain="${S3GW_SYSTEM_DOMAIN}" \
     --set ui.imageTag="${UI_IMAGE_TAG}" \
@@ -62,6 +62,10 @@ k3d image import -c s3gw-ui-testing "${imageS3GWUI}:${UI_IMAGE_TAG}"
 echo "Deploying s3gw"
 
 prepare_system_domain
+
+echo -e "Using UI_IMAGE_TAG: \e[32m${UI_IMAGE_TAG}\e[0m"
+echo -e "Using BE_IMAGE_TAG: \e[32m${BE_IMAGE_TAG}\e[0m"
+
 deploy_s3gw_latest_released
 
 echo
