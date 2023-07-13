@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import Depends
 from fastapi.routing import APIRouter
@@ -89,3 +89,114 @@ async def delete_user(conn: S3GWClientDep, uid: str) -> None:
         conn.endpoint, conn.access_key, conn.secret_key, uid=uid
     )
     return res
+
+
+@router.get(
+    "/userIsAuthAdmin",
+    response_model=admin_ops_types.AuthUser,
+    responses=s3gw_client_responses(),
+)
+async def get_auth_user(conn: S3GWClientDep) -> admin_ops_types.AuthUser:
+    res = await admin_ops_users.get_auth_user(
+        conn.endpoint, conn.access_key, conn.secret_key
+    )
+    return res
+
+
+@router.get(
+    "/userListUserIDs",
+    response_model=List[str],
+    responses=s3gw_client_responses(),
+)
+async def list_uids(conn: S3GWClientDep) -> List[str]:
+    res = await admin_ops_users.list_uids(
+        conn.endpoint, conn.access_key, conn.secret_key
+    )
+    return res
+
+
+@router.put(
+    "/userCreateKey",
+    response_model=List[admin_ops_types.UserKeys],
+    responses=s3gw_client_responses(),
+)
+async def create_key(
+    conn: S3GWClientDep,
+    uid: str,
+    key_type: str,
+    access_key: str,
+    secret_key: str,
+    generate_key: bool,
+) -> List[admin_ops_types.UserKeys]:
+    res = await admin_ops_users.create_key(
+        conn.endpoint,
+        conn.access_key,
+        conn.secret_key,
+        key_params=admin_ops_types.UserKeyOpParams(
+            uid=uid,
+            key_type=key_type,
+            access_key=access_key,
+            secret_key=secret_key,
+            generate_key=generate_key,
+        ),
+    )
+    return res
+
+
+@router.get(
+    "/userGetAllKeys",
+    response_model=List[admin_ops_types.UserKeys],
+    responses=s3gw_client_responses(),
+)
+async def get_keys(
+    conn: S3GWClientDep, uid: str
+) -> List[admin_ops_types.UserKeys]:
+    res = await admin_ops_users.get_keys(
+        conn.endpoint, conn.access_key, conn.secret_key, uid=uid
+    )
+    return res
+
+
+@router.delete(
+    "/userDeleteKey",
+    responses=s3gw_client_responses(),
+)
+async def delete_key(
+    conn: S3GWClientDep, uid: str, user_access_key: str
+) -> None:
+    await admin_ops_users.delete_key(
+        conn.endpoint,
+        conn.access_key,
+        conn.secret_key,
+        uid=uid,
+        user_access_key=user_access_key,
+    )
+
+
+@router.put(
+    "/userUpdateQuota",
+    responses=s3gw_client_responses(),
+)
+async def quota_update(
+    conn: S3GWClientDep,
+    uid: str,
+    max_objects: int,
+    max_size: int,
+    quota_type: str,
+    enabled: bool,
+) -> None:
+    if quota_type != "user":
+        return
+
+    await admin_ops_users.quota_update(
+        conn.endpoint,
+        conn.access_key,
+        conn.secret_key,
+        uid=uid,
+        quota=admin_ops_types.UserQuotaOpParams(
+            max_objects=max_objects,
+            max_size=max_size,
+            quota_type="user",
+            enabled=enabled,
+        ),
+    )
