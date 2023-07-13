@@ -67,6 +67,12 @@ lint-ui-backend:
 	cd src && tox -e lint
 
 ########################################################################
+# Format Code
+
+format-ui-backend:
+	cd src && isort backend && black backend
+
+########################################################################
 # Check UI components
 
 check-ui-backend:
