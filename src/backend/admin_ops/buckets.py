@@ -70,7 +70,7 @@ async def get(
         url=url,
         access_key=access_key,
         secret_key=secret_key,
-        endpoint=f"/admin/bucket",
+        endpoint="/admin/bucket",
         method="GET",
         params=params,
     )
