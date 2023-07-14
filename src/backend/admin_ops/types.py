@@ -82,7 +82,7 @@ class UserOpParams(ParamsModel):
     uid: str
     display_name: Optional[str] = Field(default=None)
     email: Optional[str] = Field(default=None)
-    key_type: Optional[Literal["s3"]] = Field(default=None)
+    key_type: Optional[str] = Field(default="s3")
     access_key: Optional[str] = Field(default=None)
     secret_key: Optional[str] = Field(default=None)
     user_caps: Optional[str] = Field(default=None)
