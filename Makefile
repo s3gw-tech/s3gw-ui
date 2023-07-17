@@ -58,6 +58,12 @@ run-ui-backend:
 	&& S3GW_DEBUG=1 python3 ./s3gw_ui_backend.py
 
 ########################################################################
+# Patch UI deployment on cluster
+
+patch-ui-deployment:
+	@./test-env/patch-ui-deployment.sh
+
+########################################################################
 # Lint UI components
 
 lint-ui-fronted:
@@ -65,6 +71,12 @@ lint-ui-fronted:
 
 lint-ui-backend:
 	cd src && tox -e lint
+
+########################################################################
+# Format Code
+
+format-ui-backend:
+	cd src && isort backend && black backend
 
 ########################################################################
 # Check UI components
