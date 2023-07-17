@@ -94,7 +94,7 @@ class UserOpParams(ParamsModel):
 
 class UserKeyOpParams(ParamsModel):
     uid: str
-    key_type: Optional[Literal["s3"]] = Field(default=None)
+    key_type: Optional[str] = Field(default="s3")
     access_key: Optional[str] = Field(default=None)
     secret_key: Optional[str] = Field(default=None)
     generate_key: Optional[bool] = Field(default=None)

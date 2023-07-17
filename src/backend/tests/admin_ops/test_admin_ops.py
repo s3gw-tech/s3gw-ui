@@ -103,6 +103,10 @@ async def run_before_and_after_tests(s3_client: S3GWClient):
         await admin.delete_user(s3_client, uid="usr3")
     except:
         pass
+    try:
+        await admin.delete_key(s3_client, uid="testid", user_access_key="key2")
+    except:
+        pass
 
 
 @pytest.mark.anyio
@@ -175,3 +179,103 @@ async def test_delete_user(s3_client: S3GWClient) -> None:
     )
     assert res.user_id == "usr3"
     await admin.delete_user(s3_client, uid="usr3")
+
+
+@pytest.mark.anyio
+async def test_get_auth_user(s3_client: S3GWClient) -> None:
+    res = await admin.get_auth_user(s3_client)
+    assert res.user_id == "testid"
+    assert res.display_name == "M. Tester"
+    assert res.is_admin == True
+
+
+@pytest.mark.anyio
+async def test_list_uids(s3_client: S3GWClient) -> None:
+    await admin.create_user(
+        s3_client,
+        uid="usr1",
+        display_name="usr1Name",
+        email="usr1@email",
+        key_type="s3",
+        access_key="usr1",
+        secret_key="usr1",
+        user_caps="",
+        generate_key=False,
+        max_buckets=105,
+        suspended=False,
+        tenant="",
+    )
+    await admin.create_user(
+        s3_client,
+        uid="usr2",
+        display_name="usr2Name",
+        email="usr2@email",
+        key_type="s3",
+        access_key="usr2",
+        secret_key="usr2",
+        user_caps="",
+        generate_key=False,
+        max_buckets=105,
+        suspended=False,
+        tenant="",
+    )
+    res = await admin.list_uids(s3_client)
+    assert len(res) == 3
+    assert res[0] == "testid"
+    assert res[1] == "usr1"
+    assert res[2] == "usr2"
+
+
+@pytest.mark.anyio
+async def test_create_key(s3_client: S3GWClient) -> None:
+    res = await admin.create_key(
+        s3_client, "testid", "s3", "key2", "key2", False
+    )
+    assert len(res) == 2
+    assert res[0].user == "testid"
+    assert res[0].access_key == "key2"
+    assert res[0].secret_key == "key2"
+    assert res[1].user == "testid"
+    assert res[1].access_key == "test"
+    assert res[1].secret_key == "test"
+
+
+@pytest.mark.anyio
+async def test_get_keys(s3_client: S3GWClient) -> None:
+    res = await admin.get_keys(s3_client, "testid")
+    assert len(res) == 1
+    assert res[0].user == "testid"
+    assert res[0].access_key == "test"
+    assert res[0].secret_key == "test"
+
+
+@pytest.mark.anyio
+async def test_delete_key(s3_client: S3GWClient) -> None:
+    res = await admin.create_key(s3_client, "testid", "s3", "", "", True)
+    assert len(res) == 2
+    assert res[0].user == "testid"
+    res = await admin.delete_key(s3_client, "testid", res[0].access_key)
+    res = await admin.get_keys(s3_client, "testid")
+    assert len(res) == 1
+    assert res[0].user == "testid"
+    assert res[0].access_key == "test"
+    assert res[0].secret_key == "test"
+
+
+@pytest.mark.anyio
+async def test_quota_update(s3_client: S3GWClient) -> None:
+    await admin.create_user(
+        s3_client,
+        uid="usr2",
+        display_name="usr2Name",
+        email="usr2@email",
+        key_type="s3",
+        access_key="usr2",
+        secret_key="usr2",
+        user_caps="",
+        generate_key=False,
+        max_buckets=105,
+        suspended=False,
+        tenant="",
+    )
+    await admin.quota_update(s3_client, "usr2", 998, 2000, "user", True)
