@@ -1,4 +1,5 @@
 import { BucketPageHelper } from './bucket.po';
+import { ObjectPageHelper } from './object.po';
 
 describe('Bucket Management', () => {
   const bucketName = 'e2ebucket';
@@ -9,6 +10,7 @@ describe('Bucket Management', () => {
   const folderName = 'test-folder';
   const ruleId = 'rule01';
   const bucket = new BucketPageHelper(bucketName);
+  const object = new ObjectPageHelper(objectName);
 
   beforeEach(() => {
     localStorage.setItem('language', 'en_US');
@@ -48,21 +50,21 @@ describe('Bucket Management', () => {
 
     // Explore bucket operations
     bucket.exploreBucket();
-    bucket.uploadObject(objectName);
-    bucket.downloadObject(objectName);
-    bucket.reload();
+    object.uploadObject();
+    object.downloadObject();
+    object.reload();
 
     // Search object using search bar and clear the search
-    bucket.search(objectName);
-    bucket.clearSearch();
+    object.search(objectName);
+    object.clearSearch();
 
     //delete and show deleted object in the bucket
-    bucket.delete(objectName);
-    bucket.showDeletedObject();
+    object.delete(objectName);
+    object.showDeletedObject();
 
     //check if object is listed after delete
-    bucket.list(objectName);
-    bucket.displayColumns();
+    object.list(objectName);
+    object.displayColumns();
   });
 
   it('manage versioned bucket', () => {
@@ -73,8 +75,8 @@ describe('Bucket Management', () => {
 
     //upload a object to folder created in a bucket
     bucket.folderCreate(folderName);
-    bucket.uploadObject(objectName);
-    bucket.list(objectName);
+    object.uploadObject();
+    object.list(objectName);
   });
 
   it('manage test versioned bucket with object locking', () => {
@@ -85,20 +87,20 @@ describe('Bucket Management', () => {
 
     cy.navigate('/buckets');
     bucket.exploreBucket();
-    bucket.uploadObject(objectName);
-    bucket.downloadObject(objectName);
-    bucket.reload();
-    bucket.delete(objectName);
+    object.uploadObject();
+    object.downloadObject();
+    object.reload();
+    object.delete(objectName);
   });
 
   it.skip('manage versioned bucket with object locking and Compliance retention mode', () => {
     const retentionMode = 'Compliance';
     bucket.createBucket(addTag, enableVersioning, enableObjectLock, retentionMode);
     bucket.exploreBucket();
-    bucket.uploadObject(objectName);
-    bucket.downloadObject(objectName);
-    bucket.reload();
-    bucket.delete(objectName);
+    object.uploadObject();
+    object.downloadObject();
+    object.reload();
+    object.delete(objectName);
     cy.contains('Forbidden by object lock.');
   });
 
@@ -106,10 +108,10 @@ describe('Bucket Management', () => {
     const retentionMode = 'Governance';
     bucket.createBucket(addTag, enableVersioning, enableObjectLock, retentionMode);
     bucket.exploreBucket();
-    bucket.uploadObject(objectName);
-    bucket.downloadObject(objectName);
-    bucket.reload();
-    bucket.delete(objectName);
+    object.uploadObject();
+    object.downloadObject();
+    object.reload();
+    object.delete(objectName);
     cy.contains('Forbidden by object lock.');
   });
 });

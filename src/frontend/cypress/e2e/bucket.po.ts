@@ -17,7 +17,14 @@ export class BucketPageHelper extends PageHelper {
     retentionMode?: string
   ): void {
     cy.clickButton('Create');
-    cy.get('#Name').type(this.bucketName);
+    cy.get('input#viewMode').then(($checkbox) => {
+      if ($checkbox.is(':checked')) {
+        cy.get('#bucket').type(this.bucketName);
+        cy.get('[id="owner"]').select('testid');
+      } else {
+        cy.get('#Name').type(this.bucketName);
+      }
+    });
 
     //Add tag with key and value
     if (addTag) {
@@ -57,16 +64,34 @@ export class BucketPageHelper extends PageHelper {
   }
 
   objectLock(): void {
-    cy.get('[id="ObjectLockEnabled"]').click();
+    cy.get('input#viewMode').then(($checkbox) => {
+      if ($checkbox.is(':checked')) {
+        cy.get('[id="object_lock_enabled"]').click();
+      } else {
+        cy.get('[id="ObjectLockEnabled"]').click();
+      }
+    });
   }
 
   retentionMode(retentionMode: string): void {
     cy.get('[id="RetentionEnabled"]').click();
-    cy.get('select[id="RetentionMode"]').select(retentionMode);
+    cy.get('input#viewMode').then(($checkbox) => {
+      if ($checkbox.is(':checked')) {
+        cy.get('select[id="retention_enabled"]').select(retentionMode);
+      } else {
+        cy.get('select[id="RetentionMode"]').select(retentionMode);
+      }
+    });
   }
 
   versioning(): void {
-    cy.get('[id="VersioningEnabled"]').click();
+    cy.get('input#viewMode').then(($checkbox) => {
+      if ($checkbox.is(':checked')) {
+        cy.get('[id="versioning_enabled"]').click();
+      } else {
+        cy.get('[id="VersioningEnabled"]').click();
+      }
+    });
   }
 
   addTag(): void {
@@ -75,10 +100,6 @@ export class BucketPageHelper extends PageHelper {
     cy.get('#Value').type(this.value);
     cy.get('button:contains("Cancel")').filter(':visible');
     cy.clickButton('OK');
-  }
-
-  showDeletedObject(): void {
-    cy.get('button.btn.btn-primary[ng-reflect-ngb-tooltip="Show deleted objects"]').click();
   }
 
   exploreBucket(): void {
@@ -91,22 +112,6 @@ export class BucketPageHelper extends PageHelper {
     cy.clickButton('Folder');
     cy.get('input#path').type(folderName);
     cy.clickButton('Create');
-  }
-
-  downloadObject(objectName: string): void {
-    super.selectTableElement(objectName);
-    cy.get('button.btn-primary i.mdi-download').click();
-  }
-
-  uploadObject(objectName: string): void {
-    cy.contains('Upload');
-    cy.fixture('example.json').then((fileData) => {
-      cy.get('input#file').attachFile({
-        fileContent: fileData,
-        fileName: 'example.json',
-        mimeType: 'application/json'
-      });
-    });
   }
 
   lifecycleRuleCreate(ruleId: string): void {
