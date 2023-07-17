@@ -38,7 +38,7 @@ describe('User Management', () => {
 
   it('should create a user with custom max bucket mode', () => {
     const maxBucketsMode = 'Custom';
-    users.createUser(fullName, email, maxBucketsMode, maxBuckets);
+    users.createUser('(#J-hn, *_^ D%e. =@+!&)', email, maxBucketsMode, maxBuckets);
   });
 
   it('should create a user with disabled max bucket mode', () => {
