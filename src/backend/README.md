@@ -270,6 +270,16 @@ with `make cluster-start`.
 make test-ui-backend-with-s3gw
 ```
 
+### Patch the UI deployment with the local UI build
+
+It live updates the s3gw-ui deployment in the running k8s cluster.
+This allows the developer to test a new UI's patch without deleting
+and then recreating the whole cluster.
+
+```shell
+make patch-ui-deployment
+```
+
 ## Contributing
 
 All submitted patches need to be GPG signed, carry a Developer's Certificate of
