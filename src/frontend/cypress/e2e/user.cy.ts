@@ -6,6 +6,8 @@ describe('User Management', () => {
   const email = 'john@example.com';
   const maxBuckets = '10';
   const suspendUser = true;
+  const accessKey = 'test_access_key1';
+  const secretKey = 'test_secret_key1';
   const users = new UserPageHelper(userId);
 
   beforeEach(() => {
@@ -17,6 +19,7 @@ describe('User Management', () => {
 
   afterEach(() => {
     const currentTestTitle = Cypress.mocha.getRunner().suite.ctx.currentTest.title;
+    cy.navigate('/admin/users');
 
     if (currentTestTitle !== 'User page view') {
       //List the user created
@@ -32,8 +35,8 @@ describe('User Management', () => {
   });
 
   it('should create a user with default values', () => {
-    const maxBucketsMode = 'Custom';
     users.createUser(fullName);
+    users.manageKeys(accessKey, secretKey);
   });
 
   it('should create a user with custom max bucket mode', () => {
@@ -44,6 +47,7 @@ describe('User Management', () => {
   it('should create a user with disabled max bucket mode', () => {
     const maxBucketsMode = 'Disabled';
     users.createUser(fullName, email, maxBucketsMode);
+    users.editUser('new_user', 'new_user@example.com', 'Custom', '1000');
   });
 
   it('should create a user with unlimited max bucket mode', () => {
