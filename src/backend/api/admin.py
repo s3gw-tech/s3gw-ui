@@ -27,7 +27,7 @@ S3GWClientDep = Annotated[S3GWClient, Depends(s3gw_client)]
 
 
 @router.get(
-    "/userInfo",
+    "/user/info",
     response_model=admin_ops_types.UserInfo,
     responses=s3gw_client_responses(),
 )
@@ -41,7 +41,7 @@ async def get_user_info(
 
 
 @router.put(
-    "/userCreate",
+    "/user/create",
     response_model=admin_ops_types.UserInfo,
     responses=s3gw_client_responses(),
 )
@@ -81,7 +81,7 @@ async def create_user(
 
 
 @router.delete(
-    "/userDelete",
+    "/user/delete",
     responses=s3gw_client_responses(),
 )
 async def delete_user(conn: S3GWClientDep, uid: str) -> None:
@@ -92,7 +92,7 @@ async def delete_user(conn: S3GWClientDep, uid: str) -> None:
 
 
 @router.get(
-    "/userIsAuthAdmin",
+    "/user/is-auth-admin",
     response_model=admin_ops_types.AuthUser,
     responses=s3gw_client_responses(),
 )
@@ -104,7 +104,7 @@ async def get_auth_user(conn: S3GWClientDep) -> admin_ops_types.AuthUser:
 
 
 @router.get(
-    "/userListUserIDs",
+    "/user/list-user-ids",
     response_model=List[str],
     responses=s3gw_client_responses(),
 )
@@ -116,7 +116,7 @@ async def list_uids(conn: S3GWClientDep) -> List[str]:
 
 
 @router.put(
-    "/userCreateKey",
+    "/user/create-key",
     response_model=List[admin_ops_types.UserKeys],
     responses=s3gw_client_responses(),
 )
@@ -144,7 +144,7 @@ async def create_key(
 
 
 @router.get(
-    "/userGetAllKeys",
+    "/user/get-all-keys",
     response_model=List[admin_ops_types.UserKeys],
     responses=s3gw_client_responses(),
 )
@@ -158,7 +158,7 @@ async def get_keys(
 
 
 @router.delete(
-    "/userDeleteKey",
+    "/user/delete-key",
     responses=s3gw_client_responses(),
 )
 async def delete_key(
@@ -174,7 +174,7 @@ async def delete_key(
 
 
 @router.put(
-    "/userUpdateQuota",
+    "/user/update-quota",
     responses=s3gw_client_responses(),
 )
 async def quota_update(
