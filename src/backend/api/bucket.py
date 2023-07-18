@@ -142,7 +142,7 @@ async def get_bucket(conn: S3GWClientDep, bucket_name: str) -> BucketResponse:
 
 
 @router.get(
-    "/getVersioning/{bucket_name}",
+    "/versioning/{bucket_name}",
     response_model=bool,
     responses=s3gw_client_responses(),
 )
@@ -159,7 +159,7 @@ async def get_bucket_versioning(conn: S3GWClientDep, bucket_name: str) -> bool:
 
 
 @router.post(
-    "/setVersioning/{bucket_name}",
+    "/versioning/{bucket_name}",
     responses=s3gw_client_responses(),
 )
 async def set_bucket_versioning(
@@ -176,7 +176,7 @@ async def set_bucket_versioning(
 
 
 @router.get(
-    "/getObjectLock/{bucket_name}",
+    "/object-lock/{bucket_name}",
     response_model=BucketObjectLockResponse,
     responses=s3gw_client_responses(),
 )
@@ -232,7 +232,7 @@ async def get_bucket_object_lock(
 
 
 @router.get(
-    "/getTagging/{bucket_name}",
+    "/tagging/{bucket_name}",
     response_model=List[Tag],
     responses=s3gw_client_responses(),
 )
@@ -257,7 +257,7 @@ async def get_bucket_tagging(
 
 
 @router.post(
-    "/setTagging/{bucket_name}",
+    "/tagging/{bucket_name}",
     responses=s3gw_client_responses(),
 )
 async def set_bucket_tagging(
@@ -272,7 +272,7 @@ async def set_bucket_tagging(
 
 
 @router.get(
-    "/getAttributes/{bucket_name}",
+    "/attributes/{bucket_name}",
     response_model=BucketAttributesResponse,
     responses=s3gw_client_responses(),
 )
