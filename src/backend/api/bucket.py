@@ -13,14 +13,13 @@
 # limitations under the License.
 
 import asyncio
-from datetime import datetime as dt
-from typing import Annotated, List, Literal, Optional
+from typing import Annotated, List
 
 import pydash
 from fastapi import Depends, HTTPException, status
 from fastapi.logger import logger
 from fastapi.routing import APIRouter
-from pydantic import BaseModel, parse_obj_as
+from pydantic import parse_obj_as
 from types_aiobotocore_s3.type_defs import (
     GetBucketTaggingOutputTypeDef,
     GetBucketVersioningOutputTypeDef,
@@ -32,48 +31,26 @@ from types_aiobotocore_s3.type_defs import (
 
 import backend.admin_ops.buckets as admin_ops_buckets
 from backend.api import S3GWClient, s3gw_client, s3gw_client_responses
+from backend.api.types import Bucket, BucketAttributes, BucketObjectLock, Tag
 
 router = APIRouter(prefix="/bucket")
 
 S3GWClientDep = Annotated[S3GWClient, Depends(s3gw_client)]
 
 
-class BucketResponse(BaseModel):
-    Name: str
-    CreationDate: dt
-
-
-class Tag(BaseModel):
-    Key: str
-    Value: str
-
-
-class BucketObjectLockResponse(BaseModel):
-    ObjectLockEnabled: Optional[bool]
-    RetentionEnabled: Optional[bool]
-    RetentionMode: Optional[Literal["GOVERNANCE", "COMPLIANCE"]]
-    RetentionValidity: Optional[int]
-    RetentionUnit: Optional[Literal["Days", "Years"]]
-
-
-class BucketAttributesResponse(BucketResponse, BucketObjectLockResponse):
-    TagSet: List[Tag]
-    VersioningEnabled: Optional[bool]
-
-
 @router.get(
     "/list",
-    response_model=List[BucketResponse],
+    response_model=List[Bucket],
     responses=s3gw_client_responses(),
 )
-async def get_bucket_list(conn: S3GWClientDep) -> List[BucketResponse]:
+async def get_bucket_list(conn: S3GWClientDep) -> List[Bucket]:
     """
     See
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/list_buckets.html
     """
     async with conn.conn() as s3:
         lb_res: ListBucketsOutputTypeDef = await s3.list_buckets()
-        res = parse_obj_as(List[BucketResponse], lb_res["Buckets"])
+        res = parse_obj_as(List[Bucket], lb_res["Buckets"])
     return res
 
 
@@ -83,7 +60,7 @@ async def get_bucket_list(conn: S3GWClientDep) -> List[BucketResponse]:
     responses=s3gw_client_responses(),
 )
 async def get_bucket_count(conn: S3GWClientDep) -> int:
-    res: List[BucketResponse] = await get_bucket_list(conn)
+    res: List[Bucket] = await get_bucket_list(conn)
     return len(res)
 
 
@@ -131,16 +108,16 @@ async def delete_bucket(conn: S3GWClientDep, bucket_name: str) -> None:
 
 @router.get(
     "/get/{bucket_name}",
-    response_model=BucketResponse,
+    response_model=Bucket,
     responses=s3gw_client_responses(),
 )
-async def get_bucket(conn: S3GWClientDep, bucket_name: str) -> BucketResponse:
+async def get_bucket(conn: S3GWClientDep, bucket_name: str) -> Bucket:
     # Use the Admin Ops API here because it is surely cheaper than
     # calling 's3.list_buckets()' and picking the bucket from that list.
     res = await admin_ops_buckets.get(
         conn.endpoint, conn.access_key, conn.secret_key, bucket_name
     )
-    return BucketResponse(Name=res.bucket, CreationDate=res.creation_time)
+    return Bucket(Name=res.bucket, CreationDate=res.creation_time)
 
 
 @router.get(
@@ -181,18 +158,18 @@ async def set_bucket_versioning(
 
 @router.get(
     "/object-lock/{bucket_name}",
-    response_model=BucketObjectLockResponse,
+    response_model=BucketObjectLock,
     responses=s3gw_client_responses(),
 )
 async def get_bucket_object_lock(
     conn: S3GWClientDep, bucket_name: str
-) -> BucketObjectLockResponse:
+) -> BucketObjectLock:
     async with conn.conn() as s3:
         try:
             golc_res: GetObjectLockConfigurationOutputTypeDef = (
                 await s3.get_object_lock_configuration(Bucket=bucket_name)
             )
-            res = BucketObjectLockResponse(
+            res = BucketObjectLock(
                 ObjectLockEnabled=pydash.get(
                     golc_res, "ObjectLockConfiguration.ObjectLockEnabled"
                 )
@@ -227,9 +204,7 @@ async def get_bucket_object_lock(
                 err.response["Error"]["Code"]
                 == "ObjectLockConfigurationNotFoundError"
             ):
-                res = BucketObjectLockResponse.parse_obj(
-                    {"ObjectLockEnabled": False}
-                )
+                res = BucketObjectLock.parse_obj({"ObjectLockEnabled": False})
             else:
                 raise err
     return res
@@ -279,12 +254,12 @@ async def set_bucket_tagging(
 
 @router.get(
     "/attributes/{bucket_name}",
-    response_model=BucketAttributesResponse,
+    response_model=BucketAttributes,
     responses=s3gw_client_responses(),
 )
 async def get_bucket_attributes(
     conn: S3GWClientDep, bucket_name: str
-) -> BucketAttributesResponse:
+) -> BucketAttributes:
     requests = [
         get_bucket(bucket_name=bucket_name, conn=conn),
         get_bucket_versioning(bucket_name=bucket_name, conn=conn),
@@ -294,7 +269,7 @@ async def get_bucket_attributes(
     gb_res, gbv_res, gbol_res, gbt_res = await asyncio.gather(
         *requests, return_exceptions=True
     )
-    res = BucketAttributesResponse.parse_obj(
+    res = BucketAttributes.parse_obj(
         gb_res.dict() | gbol_res.dict() | {"TagSet": gbt_res}
     )
     res.VersioningEnabled = gbv_res

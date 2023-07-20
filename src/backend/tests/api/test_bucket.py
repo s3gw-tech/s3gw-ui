@@ -57,7 +57,7 @@ async def test_api_list_bucket(s3_client: S3GWClient) -> None:
         await client.create_bucket(Bucket=str(bucket_name1))
         await client.create_bucket(Bucket=str(bucket_name2))
 
-    res: List[bucket.BucketResponse] = await bucket.get_bucket_list(s3_client)
+    res: List[bucket.Bucket] = await bucket.get_bucket_list(s3_client)
     assert any(res[0].Name in s for s in created_buckets)
     assert any(res[1].Name in s for s in created_buckets)
     assert len(res) == 2
