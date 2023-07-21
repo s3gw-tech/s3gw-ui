@@ -17,6 +17,7 @@ from typing import Annotated, List
 from fastapi import Depends
 from fastapi.routing import APIRouter
 
+import backend.admin_ops.buckets as admin_ops_buckets
 import backend.admin_ops.types as admin_ops_types
 import backend.admin_ops.users as admin_ops_users
 from backend.api import S3GWClient, s3gw_client, s3gw_client_responses
@@ -200,3 +201,31 @@ async def quota_update(
             enabled=enabled,
         ),
     )
+
+
+@router.get(
+    "/user/list-buckets-with-info",
+    response_model=List[admin_ops_types.Bucket],
+    responses=s3gw_client_responses(),
+)
+async def bucket_list(
+    conn: S3GWClientDep, uid: str
+) -> List[admin_ops_types.Bucket]:
+    res = await admin_ops_buckets.list(
+        conn.endpoint, conn.access_key, conn.secret_key, uid=uid
+    )
+    return res
+
+
+@router.get(
+    "/bucket/info",
+    response_model=admin_ops_types.Bucket,
+    responses=s3gw_client_responses(),
+)
+async def bucket_info(
+    conn: S3GWClientDep, bucket_name: str
+) -> admin_ops_types.Bucket:
+    res = await admin_ops_buckets.get(
+        conn.endpoint, conn.access_key, conn.secret_key, bucket_name=bucket_name
+    )
+    return res

@@ -78,7 +78,7 @@ async def test_signed_request() -> None:
     assert str(req3.url.query).find("param1=baz") >= 0
 
 
-from backend.api import S3GWClient, admin
+from backend.api import S3GWClient, admin, bucket
 
 
 @pytest.fixture(autouse=True)
@@ -107,6 +107,19 @@ async def run_before_and_after_tests(s3_client: S3GWClient):
         await admin.delete_key(s3_client, uid="testid", user_access_key="key2")
     except:
         pass
+    async with s3_client.conn() as client:
+        try:
+            await client.delete_bucket(Bucket="bca")
+        except:
+            pass
+        try:
+            await client.delete_bucket(Bucket="bcb")
+        except:
+            pass
+        try:
+            await client.delete_bucket(Bucket="bcc")
+        except:
+            pass
 
 
 @pytest.mark.anyio
@@ -279,3 +292,27 @@ async def test_quota_update(s3_client: S3GWClient) -> None:
         tenant="",
     )
     await admin.quota_update(s3_client, "usr2", 998, 2000, "user", True)
+
+
+@pytest.mark.anyio
+async def test_bucket_list(s3_client: S3GWClient) -> None:
+    await bucket.create_bucket(s3_client, "bca")
+    await bucket.create_bucket(s3_client, "bcb")
+    await bucket.create_bucket(s3_client, "bcc")
+    res = await admin.bucket_list(s3_client, "testid")
+    assert len(res) == 3
+    buckets = ["bca", "bcb", "bcc"]
+    assert any(res[0].bucket in s for s in buckets)
+    assert any(res[1].bucket in s for s in buckets)
+    assert any(res[2].bucket in s for s in buckets)
+    assert res[0].owner == "testid"
+    assert res[1].owner == "testid"
+    assert res[2].owner == "testid"
+
+
+@pytest.mark.anyio
+async def test_bucket_info(s3_client: S3GWClient) -> None:
+    await bucket.create_bucket(s3_client, "bca")
+    res = await admin.bucket_info(s3_client, "bca")
+    assert res.bucket == "bca"
+    assert res.owner == "testid"
