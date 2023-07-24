@@ -114,4 +114,40 @@ describe('Bucket Management', () => {
     object.delete(objectName);
     cy.contains('Forbidden by object lock.');
   });
+
+  it('bucket test for show/hide button', () => {
+    bucket.createBucket();
+    bucket.displayColumns();
+    bucket.reload();
+    bucket.getDataTableHead('Name');
+    bucket.getDataTableHead('Created');
+    bucket.setPageSize(100);
+  });
+
+  it('Object test for show/hide button', () => {
+    bucket.createBucket(addTag, enableVersioning, enableObjectLock);
+    bucket.exploreBucket();
+    object.uploadObject();
+    object.displayColumns();
+    object.setDataTableHead('Key');
+    object.setDataTableHead('Status');
+    object.reload();
+
+    //Validate if the columns selected using show/hide button are visible
+    object.getDataTableHead('Name').should('exist');
+    object.getDataTableHead('Key').should('exist');
+    object.getDataTableHead('Size').should('exist');
+    object.getDataTableHead('Last Modified').should('exist');
+    object.getDataTableHead('Status').should('exist');
+  });
+
+  it('Object validate', () => {
+    bucket.createBucket(addTag, enableVersioning, enableObjectLock);
+    bucket.exploreBucket();
+    object.uploadObject();
+    bucket.reload();
+    object.expand(objectName);
+    object.collapse(objectName);
+    object.setPageSize(25);
+  });
 });

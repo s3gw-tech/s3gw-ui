@@ -10,7 +10,7 @@ export class ObjectPageHelper extends PageHelper {
   }
 
   downloadObject(): void {
-    super.selectTableElement(this.objectName);
+    super.getTableElement(this.objectName);
     cy.get('button.btn-primary i.mdi-download').click();
   }
 
