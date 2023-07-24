@@ -71,6 +71,10 @@ async def get_bucket_count(conn: S3GWClientDep) -> int:
 async def create_bucket(
     conn: S3GWClientDep, bucket_name: str, enable_object_locking: bool = False
 ) -> None:
+    """
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/create_bucket.html
+    """
     async with conn.conn() as s3:
         try:
             await s3.create_bucket(
@@ -161,9 +165,13 @@ async def set_bucket_versioning(
     response_model=BucketObjectLock,
     responses=s3gw_client_responses(),
 )
-async def get_bucket_object_lock(
+async def get_bucket_object_lock_configuration(
     conn: S3GWClientDep, bucket_name: str
 ) -> BucketObjectLock:
+    """
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_object_lock_configuration.html
+    """
     async with conn.conn() as s3:
         try:
             golc_res: GetObjectLockConfigurationOutputTypeDef = (
@@ -207,6 +215,59 @@ async def get_bucket_object_lock(
                 res = BucketObjectLock.parse_obj({"ObjectLockEnabled": False})
             else:
                 raise err
+    return res
+
+
+@router.put(
+    "/object-lock/{bucket_name}",
+    response_model=BucketObjectLock,
+    responses=s3gw_client_responses(),
+)
+async def set_bucket_object_lock_configuration(
+    conn: S3GWClientDep, bucket_name: str, config: BucketObjectLock
+) -> BucketObjectLock:
+    """
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_object_lock_configuration.html
+    """
+    res = BucketObjectLock.parse_obj({"ObjectLockEnabled": False})
+
+    if (
+        config.RetentionMode is not None
+        and config.RetentionValidity is not None
+        and config.RetentionUnit is not None
+    ):
+        async with conn.conn() as s3:
+            try:
+                await s3.put_object_lock_configuration(
+                    Bucket=bucket_name,
+                    ObjectLockConfiguration={
+                        "ObjectLockEnabled": "Enabled",
+                        "Rule": {
+                            "DefaultRetention": {
+                                "Mode": "GOVERNANCE"
+                                if config.RetentionMode == "GOVERNANCE"
+                                else "COMPLIANCE",
+                                "Days": config.RetentionValidity,
+                            }
+                        },
+                    }
+                    if config.RetentionUnit == "Days"
+                    else {
+                        "ObjectLockEnabled": "Enabled",
+                        "Rule": {
+                            "DefaultRetention": {
+                                "Mode": "GOVERNANCE"
+                                if config.RetentionMode == "GOVERNANCE"
+                                else "COMPLIANCE",
+                                "Years": config.RetentionValidity,
+                            }
+                        },
+                    },
+                )
+                res = config
+            except s3.exceptions.ClientError:
+                pass
     return res
 
 
@@ -260,10 +321,18 @@ async def set_bucket_tagging(
 async def get_bucket_attributes(
     conn: S3GWClientDep, bucket_name: str
 ) -> BucketAttributes:
+    """
+    Aggregating function to retrieve bucket related attributes:
+        - Versioning
+        - Tags
+        - ObjectLock configuration
+    """
     requests = [
         get_bucket(bucket_name=bucket_name, conn=conn),
         get_bucket_versioning(bucket_name=bucket_name, conn=conn),
-        get_bucket_object_lock(bucket_name=bucket_name, conn=conn),
+        get_bucket_object_lock_configuration(
+            bucket_name=bucket_name, conn=conn
+        ),
         get_bucket_tagging(bucket_name=bucket_name, conn=conn),
     ]
     gb_res, gbv_res, gbol_res, gbt_res = await asyncio.gather(
@@ -274,3 +343,21 @@ async def get_bucket_attributes(
     )
     res.VersioningEnabled = gbv_res
     return res
+
+
+@router.head(
+    "/exists/{bucket_name}",
+    response_model=bool,
+    responses=s3gw_client_responses(),
+)
+async def bucket_exists(conn: S3GWClientDep, bucket_name: str) -> bool:
+    """
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/head_bucket.html
+    """
+    async with conn.conn() as s3:
+        try:
+            await s3.head_bucket(Bucket=bucket_name)
+        except s3.exceptions.ClientError:
+            return False
+    return True
