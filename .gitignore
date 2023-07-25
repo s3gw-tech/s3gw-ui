@@ -22,3 +22,5 @@ node_modules
 .angular
 tmp
 proxy.conf.json
+
+.pre-commit-venv

@@ -22,3 +22,9 @@ repos:
     hooks:
       - id: flake8
         args: ["--config", "src/.flake8"]
+  - repo: local
+    hooks:
+      - id: types
+        name: check types
+        language: system
+        entry: bash -x pre-commit-check-pyright.sh
