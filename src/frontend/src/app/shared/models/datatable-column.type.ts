@@ -64,6 +64,7 @@ export enum DatatableCellTemplateName {
 export type DatatableColumn = {
   width?: number | string;
   css?: string;
+  cssHeader?: string;
   name: string;
   prop: string;
   compareProp?: string;

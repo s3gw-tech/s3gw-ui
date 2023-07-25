@@ -335,7 +335,7 @@ export class DatatableComponent implements Datatable, OnInit {
   }
 
   getHeaderClasses(column: DatatableColumn): string {
-    let css = column.css || '';
+    let css = column.cssHeader || '';
     if (column.sortable !== true) {
       return css;
     }
