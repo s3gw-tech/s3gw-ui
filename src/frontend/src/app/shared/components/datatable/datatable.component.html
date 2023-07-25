@@ -69,7 +69,7 @@
            [ngClass]="{'sticky-top': hasStickyHeader}">
       <tr>
         <th *ngFor="let column of columns"
-            class="align-middle"
+            class="align-middle overflow-hidden"
             scope="col"
             [width]="column.width"
             [class]="getHeaderClasses(column)"
