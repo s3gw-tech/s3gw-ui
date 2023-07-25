@@ -326,7 +326,7 @@ async def test_create_key(mocker: MockerFixture) -> None:
         assert method == "PUT"
         assert params is not None
         assert "uid" in params and params["uid"] == "foo"
-        assert "generate-key" in params and params["generate-key"] == True
+        assert "generate-key" in params and params["generate-key"] is True
 
         return httpx.Response(
             status_code=200,
@@ -443,7 +443,7 @@ async def test_quota_update(mocker: MockerFixture) -> None:
         assert "uid" in params and params["uid"] == "foo"
         assert "quota-type" in params and params["quota-type"] == "user"
         assert "max-objects" in params and params["max-objects"] == 1337
-        assert "enabled" in params and params["enabled"] == True
+        assert "enabled" in params and params["enabled"] is True
         return httpx.Response(status_code=200)
 
     mocker.patch("backend.admin_ops.users.do_request", _mock_do_request)

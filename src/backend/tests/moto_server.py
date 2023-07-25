@@ -42,9 +42,11 @@ def get_free_tcp_port(release_socket: bool = False):
 
 
 class MotoService:
-    """Will Create MotoService.
-    Service is ref-counted so there will only be one per process. Real Service will
-    be returned by `__aenter__`."""
+    """
+    Will Create MotoService.
+    Service is ref-counted so there will only be one per process. Real Service
+    will be returned by `__aenter__`.
+    """
 
     _services: Dict[str, MotoService] = dict()  # {name: instance}
 

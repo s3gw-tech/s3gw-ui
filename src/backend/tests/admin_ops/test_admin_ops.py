@@ -42,14 +42,14 @@ async def run_before_and_after_tests(s3_client: S3GWClient):
         for bucket_name in created_buckets:
             try:
                 await client.delete_bucket(Bucket=bucket_name)
-            except:
+            except Exception:
                 pass
         created_buckets.clear()
 
         for uid in created_users:
             try:
                 await admin.delete_user(s3_client, uid=uid)
-            except:
+            except Exception:
                 pass
         created_users.clear()
 
@@ -136,7 +136,7 @@ async def test_create_user(s3_client: S3GWClient) -> None:
     assert res.display_name == "DN" + str(uid1)
     assert res.email == str(uid1) + "@email"
     assert res.max_buckets == 101
-    assert res.suspended == False
+    assert res.suspended is False
     assert res.tenant == ""
 
 
@@ -168,7 +168,7 @@ async def test_get_user_info(s3_client: S3GWClient) -> None:
     assert res.display_name == "DN" + str(uid1)
     assert res.email == str(uid1) + "@email"
     assert res.max_buckets == 103
-    assert res.suspended == False
+    assert res.suspended is False
     assert res.tenant == ""
 
 
@@ -201,7 +201,7 @@ async def test_get_auth_user(s3_client: S3GWClient) -> None:
     res = await admin.get_auth_user(s3_client)
     assert res.user_id == "testid"
     assert res.display_name == "M. Tester"
-    assert res.is_admin == True
+    assert res.is_admin is True
 
 
 @pytest.mark.anyio
