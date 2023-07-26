@@ -176,6 +176,12 @@ export class UserFormPageComponent implements OnInit, IsDirty {
         },
         {
           type: 'checkbox',
+          name: 'admin',
+          label: TEXT('Administrator'),
+          value: false
+        },
+        {
+          type: 'checkbox',
           name: 'suspended',
           label: TEXT('Suspended'),
           value: false

@@ -49,11 +49,12 @@ describe('AdminOpsUserService', () => {
         object_usage: 1000,
         size_usage: 1000,
         suspended: true,
+        admin: false,
         keys: []
       })
       .subscribe();
     const req = httpTesting.expectOne(
-      '/admin/user?uid=foo&display-name=foo%20bar&email=foobar@gmail.com&max-buckets=1000&suspended=true'
+      '/admin/user?uid=foo&display-name=foo%20bar&email=foobar@gmail.com&max-buckets=1000&suspended=true&admin=false'
     );
     expect(req.request.method).toBe('PUT');
   });

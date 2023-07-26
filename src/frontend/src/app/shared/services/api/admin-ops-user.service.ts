@@ -18,6 +18,7 @@ export type User = {
   object_usage: number;
   size_usage: number;
   suspended: boolean;
+  admin: boolean;
   keys: Key[];
   bucket_quota?: {
     enabled: boolean;
@@ -229,6 +230,9 @@ export class AdminOpsUserService {
     }
     if (_.isBoolean(user.suspended)) {
       _.set(params, 'suspended', user.suspended);
+    }
+    if (_.isBoolean(user.admin)) {
+      _.set(params, 'admin', user.admin);
     }
     return new HttpParams({ fromObject: params });
   }

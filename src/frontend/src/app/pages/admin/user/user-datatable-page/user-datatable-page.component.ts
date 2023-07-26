@@ -110,6 +110,18 @@ export class UserDatatablePageComponent {
         prop: 'object_limit'
       },
       {
+        name: TEXT('Administrator'),
+        prop: 'admin',
+        cellTemplateName: DatatableCellTemplateName.checkIcon,
+        hidden: true
+      },
+      {
+        name: TEXT('Suspended'),
+        prop: 'suspended',
+        cellTemplateName: DatatableCellTemplateName.checkIcon,
+        hidden: true
+      },
+      {
         name: '',
         prop: '',
         cellTemplateName: DatatableCellTemplateName.actionMenu,

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.19.0]
 
+### Added
+
+- Add 'Administrator' checkbox to user create/edit dialog (gh#aquarist-labs/s3gw#636).
+
 ### Fixed
 
 - Table header breaks on zoom-in (gh#aquarist-labs/s3gw#618).
