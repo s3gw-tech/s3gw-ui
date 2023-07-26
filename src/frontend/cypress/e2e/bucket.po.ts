@@ -114,7 +114,7 @@ export class BucketPageHelper extends PageHelper {
     cy.clickButton('Create');
   }
 
-  lifecycleRuleCreate(ruleId: string): void {
+  createLifecycleRule(ruleId: string): void {
     cy.contains('table tbody tr', this.bucketName).within(() => {
       super.selectActionsButton();
       cy.clickButton('Lifecycle');
@@ -127,7 +127,7 @@ export class BucketPageHelper extends PageHelper {
     cy.clickButton('OK');
   }
 
-  lifecycleRuleModify(ruleId: string): void {
+  modifyLifecycleRule(ruleId: string): void {
     cy.contains('table tbody tr', ruleId).within(() => {
       super.selectActionsButton();
       cy.clickButton('Edit');
@@ -136,5 +136,9 @@ export class BucketPageHelper extends PageHelper {
     cy.get('input[id="prefix"]').clear().type('test01');
     cy.get('input[id="days"]').clear().type('365');
     cy.clickButton('OK');
+  }
+
+  deleteLifecycleRule(ruleId: string): void {
+    this.delete(ruleId);
   }
 }

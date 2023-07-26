@@ -74,7 +74,7 @@ Cypress.Commands.add('logout', () => {
 });
 
 Cypress.Commands.add('enableAdministration', () => {
-  cy.get('.form-check-input').click();
+  cy.get('input#viewMode').should('not.have.class', 'checked').check();
 });
 
 // Press the first found button with the given text.

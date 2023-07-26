@@ -8,7 +8,7 @@ describe('User Management', () => {
   const suspendUser = true;
   const accessKey = 'test_access_key1';
   const secretKey = 'test_secret_key1';
-  const users = new UserPageHelper(userId);
+  const userPageHelper = new UserPageHelper(userId);
 
   beforeEach(() => {
     localStorage.setItem('language', 'en_US');
@@ -23,9 +23,9 @@ describe('User Management', () => {
 
     if (currentTestTitle !== 'User page view') {
       //List the user created
-      users.list(userId);
+      userPageHelper.list(userId);
       // Delete the bucket after each test iteration
-      users.delete(userId);
+      userPageHelper.delete(userId);
     }
   });
 
@@ -35,28 +35,28 @@ describe('User Management', () => {
   });
 
   it('should create a user with default values', () => {
-    users.createUser(fullName);
-    users.manageKeys(accessKey, secretKey);
+    userPageHelper.createUser(fullName);
+    userPageHelper.manageKeys(accessKey, secretKey);
   });
 
   it('should create a user with custom max bucket mode', () => {
     const maxBucketsMode = 'Custom';
-    users.createUser('(#J-hn, *_^ D%e. =@+!&)', email, maxBucketsMode, maxBuckets);
+    userPageHelper.createUser('(#J-hn, *_^ D%e. =@+!&)', email, maxBucketsMode, maxBuckets);
   });
 
   it('should create a user with disabled max bucket mode', () => {
     const maxBucketsMode = 'Disabled';
-    users.createUser(fullName, email, maxBucketsMode);
-    users.editUser('new_user', 'new_user@example.com', 'Custom', '1000');
+    userPageHelper.createUser(fullName, email, maxBucketsMode);
+    userPageHelper.editUser('new_user', 'new_user@example.com', 'Custom', '1000');
   });
 
   it('should create a user with unlimited max bucket mode', () => {
     const maxBucketsMode = 'Unlimited';
-    users.createUser(fullName, email, maxBucketsMode);
+    userPageHelper.createUser(fullName, email, maxBucketsMode);
   });
 
   it('should create a user with custom max bucket mode and suspend it', () => {
     const maxBucketsMode = 'Custom';
-    users.createUser(fullName, email, maxBucketsMode, maxBuckets, suspendUser);
+    userPageHelper.createUser(fullName, email, maxBucketsMode, maxBuckets, suspendUser);
   });
 });
