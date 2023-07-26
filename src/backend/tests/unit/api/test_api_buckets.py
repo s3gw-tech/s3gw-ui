@@ -167,9 +167,12 @@ async def test_api_tagging(s3_client: S3GWClient) -> None:
     async with s3_client.conn() as client:
         await client.create_bucket(Bucket=str(bucket_name1))
 
-    await buckets.set_bucket_tagging(
+    # test success
+    sbt_res = await buckets.set_bucket_tagging(
         s3_client, str(bucket_name1), [{"Key": "kkk", "Value": "vvv"}]
     )
+    assert sbt_res
+
     res: List[buckets.Tag] = await buckets.get_bucket_tagging(
         s3_client, str(bucket_name1)
     )
@@ -177,34 +180,62 @@ async def test_api_tagging(s3_client: S3GWClient) -> None:
     assert res[0].Key == "kkk"
     assert res[0].Value == "vvv"
 
-    await buckets.set_bucket_tagging(s3_client, str(bucket_name1), [])
-    res: List[buckets.Tag] = await buckets.get_bucket_tagging(
+    sbt_res = await buckets.set_bucket_tagging(s3_client, str(bucket_name1), [])
+    assert sbt_res
+
+    res: List[buckets.Tag] = await bucket.get_bucket_tagging(
         s3_client, str(bucket_name1)
     )
     assert len(res) == 0
+
+    # test failure
+    sbt_res = await buckets.set_bucket_tagging(
+        s3_client, "not-exists", [{"Key": "kkk", "Value": "vvv"}]
+    )
+    assert not sbt_res
 
 
 @pytest.mark.anyio
 async def test_api_versioning(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket_name1 = uuid.uuid4()
+    bucket_name2 = uuid.uuid4()
     created_buckets.append(str(bucket_name1))
+    created_buckets.append(str(bucket_name2))
 
     async with s3_client.conn() as client:
         await client.create_bucket(Bucket=str(bucket_name1))
+        await client.create_bucket(
+            Bucket=str(bucket_name2), ObjectLockEnabledForBucket=True
+        )
+
+    # test success
 
     enabled: bool = await buckets.get_bucket_versioning(
         s3_client, str(bucket_name1)
     )
     assert not enabled
 
-    await buckets.set_bucket_versioning(s3_client, str(bucket_name1), True)
+    res = await buckets.set_bucket_versioning(s3_client, str(bucket_name1), True)
+    assert res
+
     enabled = await buckets.get_bucket_versioning(s3_client, str(bucket_name1))
     assert enabled
 
     await buckets.set_bucket_versioning(s3_client, str(bucket_name1), False)
     enabled = await buckets.get_bucket_versioning(s3_client, str(bucket_name1))
     assert not enabled
+
+    # test failure
+    res = await buckets.set_bucket_versioning(
+        s3_client, str(bucket_name2), False
+    )
+    assert not res
+
+    enabled: bool = await buckets.get_bucket_versioning(
+        s3_client, str(bucket_name2)
+    )
+    assert enabled
 
 
 @pytest.mark.anyio

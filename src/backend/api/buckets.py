@@ -134,22 +134,27 @@ async def get_bucket_versioning(conn: S3GWClientDep, bucket_name: str) -> bool:
     return res
 
 
-@router.put(
+@router.post(
     "/{bucket_name}/versioning",
+    response_model=bool,
     responses=s3gw_client_responses(),
 )
 async def set_bucket_versioning(
     conn: S3GWClientDep, bucket_name: str, enabled: bool
-) -> None:
+) -> bool:
     """
     See
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_versioning.html
     """
     async with conn.conn() as s3:
         vc = {"Status": "Enabled" if enabled else "Suspended"}
-        await s3.put_bucket_versioning(
-            Bucket=bucket_name, VersioningConfiguration=vc  # type: ignore
-        )
+        try:
+            await s3.put_bucket_versioning(
+                Bucket=bucket_name, VersioningConfiguration=vc  # type: ignore
+            )
+        except s3.exceptions.ClientError:
+            return False
+    return True
 
 
 @router.get(
@@ -291,18 +296,23 @@ async def get_bucket_tagging(
 
 @router.put(
     "/{bucket_name}/tagging",
+    response_model=bool,
     responses=s3gw_client_responses(),
 )
 async def set_bucket_tagging(
     conn: S3GWClientDep, bucket_name: str, tags: List[TagTypeDef]
-) -> None:
+) -> bool:
     """
     See
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_tagging.html
     """
     async with conn.conn() as s3:
         tag_set: TaggingTypeDef = {"TagSet": tags}
-        await s3.put_bucket_tagging(Bucket=bucket_name, Tagging=tag_set)
+        try:
+            await s3.put_bucket_tagging(Bucket=bucket_name, Tagging=tag_set)
+        except s3.exceptions.ClientError:
+            return False
+    return True
 
 
 @router.get(
