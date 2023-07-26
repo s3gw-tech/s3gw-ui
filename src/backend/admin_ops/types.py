@@ -89,6 +89,7 @@ class UserOpParams(ParamsModel):
     generate_key: Optional[bool] = Field(default=None)
     max_buckets: Optional[int] = Field(default=None)
     suspended: Optional[bool] = Field(default=None)
+    admin: Optional[bool] = Field(default=None)
     tenant: Optional[str] = Field(default=None)
 
 
