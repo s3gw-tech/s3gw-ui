@@ -21,7 +21,7 @@ from fastapi import HTTPException, status
 from pytest_mock import MockerFixture
 
 from backend.api import S3GWClient, buckets
-from backend.api.types import BucketObjectLock
+from backend.api.types import BucketAttributes, BucketObjectLock, Tag
 
 created_buckets: List[str] = []
 
@@ -400,3 +400,252 @@ async def test_api_set_bucket_object_lock_configuration(
         config=config1,
     )
     assert res.ObjectLockEnabled is False
+
+
+@pytest.mark.anyio
+async def test_api_bucket_update_1(
+    s3_client: S3GWClient,
+) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+
+    # Test update calls
+    #
+    # - ObjectLock configuration
+    # - Tags
+    #
+    # Test update doesn't call
+    #
+    # - Versioning
+    #
+
+    await buckets.create_bucket(
+        s3_client, str(bucket_name1), enable_object_locking=True
+    )
+
+    attrs1 = BucketAttributes(
+        Name=str(bucket_name1),
+        CreationDate=None,
+        ObjectLockEnabled=True,
+        RetentionEnabled=True,
+        RetentionMode="COMPLIANCE",
+        RetentionValidity=1,
+        RetentionUnit="Days",
+        TagSet=[
+            Tag(Key="tag1", Value="value1"),
+            Tag(Key="tag2", Value="value2"),
+        ],
+        VersioningEnabled=True,
+    )
+
+    res = await buckets.update_bucket(
+        s3_client,
+        attributes=attrs1,
+    )
+
+    assert res == attrs1
+
+    gba_res = await buckets.get_bucket_attributes(s3_client, str(bucket_name1))
+
+    assert res == gba_res
+
+
+@pytest.mark.anyio
+async def test_api_bucket_update_2(
+    s3_client: S3GWClient,
+) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+
+    # Test update calls
+    #
+    # - ObjectLock configuration
+    #
+    # Test update doesn't call
+    #
+    # - Versioning
+    # - Tags
+    #
+
+    await buckets.create_bucket(
+        s3_client, str(bucket_name1), enable_object_locking=True
+    )
+
+    attrs1 = BucketAttributes(
+        Name=str(bucket_name1),
+        CreationDate=None,
+        ObjectLockEnabled=True,
+        RetentionEnabled=True,
+        RetentionMode="COMPLIANCE",
+        RetentionValidity=1,
+        RetentionUnit="Days",
+        TagSet=[],
+        VersioningEnabled=True,
+    )
+
+    res = await buckets.update_bucket(
+        s3_client,
+        attributes=attrs1,
+    )
+
+    assert res == attrs1
+
+    gba_res = await buckets.get_bucket_attributes(s3_client, str(bucket_name1))
+
+    assert res == gba_res
+
+
+@pytest.mark.anyio
+async def test_api_bucket_update_3(
+    s3_client: S3GWClient,
+) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+
+    # Test update calls
+    #
+    # - Versioning
+    # - Tags
+    #
+    # Test update doesn't call
+    #
+    # - ObjectLock configuration
+    #
+
+    await buckets.create_bucket(s3_client, str(bucket_name1))
+
+    attrs1 = BucketAttributes(
+        Name=str(bucket_name1),
+        CreationDate=None,
+        ObjectLockEnabled=False,
+        RetentionEnabled=True,
+        RetentionMode="COMPLIANCE",
+        RetentionValidity=1,
+        RetentionUnit="Days",
+        TagSet=[
+            Tag(Key="tag1", Value="value1"),
+            Tag(Key="tag2", Value="value2"),
+        ],
+        VersioningEnabled=True,
+    )
+
+    res = await buckets.update_bucket(
+        s3_client,
+        attributes=attrs1,
+    )
+
+    assert res.ObjectLockEnabled is False
+    assert res.VersioningEnabled == attrs1.VersioningEnabled
+    assert set(res.TagSet) == set(attrs1.TagSet)
+
+    gba_res = await buckets.get_bucket_attributes(s3_client, str(bucket_name1))
+
+    assert gba_res.ObjectLockEnabled is False
+    assert gba_res.VersioningEnabled == attrs1.VersioningEnabled
+    assert set(gba_res.TagSet) == set(attrs1.TagSet)
+
+
+@pytest.mark.anyio
+async def test_api_bucket_update_4(
+    s3_client: S3GWClient,
+) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+
+    # Test update calls
+    #
+    # Test update doesn't call
+    #
+    # - Versioning
+    # - ObjectLock configuration
+    # - Tags
+    #
+
+    await buckets.create_bucket(
+        s3_client, str(bucket_name1), enable_object_locking=False
+    )
+
+    attrs1 = BucketAttributes(
+        Name=str(bucket_name1),
+        CreationDate=None,
+        ObjectLockEnabled=False,
+        RetentionEnabled=False,
+        RetentionMode="COMPLIANCE",
+        RetentionValidity=1,
+        RetentionUnit="Days",
+        TagSet=[],
+        VersioningEnabled=False,
+    )
+
+    res = await buckets.update_bucket(
+        s3_client,
+        attributes=attrs1,
+    )
+
+    assert res.ObjectLockEnabled is False
+    assert res.VersioningEnabled == attrs1.VersioningEnabled
+    assert set(res.TagSet) == set(attrs1.TagSet)
+
+    gba_res = await buckets.get_bucket_attributes(s3_client, str(bucket_name1))
+
+    assert gba_res.ObjectLockEnabled is False
+    assert gba_res.VersioningEnabled == attrs1.VersioningEnabled
+    assert set(gba_res.TagSet) == set(attrs1.TagSet)
+
+
+@pytest.mark.anyio
+async def test_api_bucket_update_5(
+    s3_client: S3GWClient,
+) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+
+    # Test update calls
+    #
+    # - Versioning
+    # - ObjectLock configuration
+    # - Tags
+    #
+    # Test update doesn't call
+    #
+    #
+
+    await buckets.create_bucket(
+        s3_client, str(bucket_name1), enable_object_locking=True
+    )
+
+    attrs1 = BucketAttributes(
+        Name=str(bucket_name1),
+        CreationDate=None,
+        ObjectLockEnabled=True,
+        RetentionEnabled=True,
+        RetentionMode="COMPLIANCE",
+        RetentionValidity=1,
+        RetentionUnit="Days",
+        TagSet=[
+            Tag(Key="tag1", Value="value1"),
+            Tag(Key="tag2", Value="value2"),
+        ],
+        VersioningEnabled=False,
+    )
+
+    res = await buckets.update_bucket(
+        s3_client,
+        attributes=attrs1,
+    )
+
+    # we expect the call to set VersioningEnabled = False to have failed.
+    # we set attrs1.VersioningEnabled with the opposite of what requested
+    # so that the assertion will succeed.
+    attrs1.VersioningEnabled = True
+
+    assert res == attrs1s
+
+    gba_res = await buckets.get_bucket_attributes(s3_client, str(bucket_name1))
+
+    assert attrs1 == gba_res

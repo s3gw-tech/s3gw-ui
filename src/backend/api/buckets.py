@@ -383,3 +383,84 @@ async def bucket_exists(conn: S3GWClientDep, bucket_name: str) -> bool:
         except s3.exceptions.ClientError:
             return False
     return True
+
+
+@router.post(
+    "/update",
+    response_model=BucketAttributes,
+    responses=s3gw_client_responses(),
+)
+async def update_bucket(
+    conn: S3GWClientDep, attributes: BucketAttributes
+) -> BucketAttributes:
+    """
+    Aggregating function to update bucket related attributes:
+        - Versioning
+        - Tags
+        - ObjectLock configuration
+    """
+    old_attributes = await get_bucket_attributes(
+        conn=conn, bucket_name=attributes.Name
+    )
+
+    versioning_op_res = True
+
+    # Versioning
+    if attributes.VersioningEnabled is not None:
+        if attributes.VersioningEnabled != old_attributes.VersioningEnabled:
+            versioning_op_res = await set_bucket_versioning(
+                conn=conn,
+                bucket_name=attributes.Name,
+                enabled=attributes.VersioningEnabled,
+            )
+
+    tagging_op_res = True
+
+    # Tags
+    if set(attributes.TagSet) != set(old_attributes.TagSet):
+        tagging_op_res = await set_bucket_tagging(
+            conn=conn,
+            bucket_name=attributes.Name,
+            tags=list(
+                map(
+                    lambda tag: {"Key": tag.Key, "Value": tag.Value},
+                    attributes.TagSet,
+                )
+            ),
+        )
+
+    res_dict = {}
+
+    # ObjectLock
+    if (
+        attributes.ObjectLockEnabled is not None
+        and attributes.RetentionMode is not None
+        and attributes.RetentionValidity is not None
+        and attributes.RetentionUnit is not None
+    ):
+        if attributes.ObjectLockEnabled and (
+            attributes.RetentionEnabled != old_attributes.RetentionEnabled
+            or attributes.RetentionMode != old_attributes.RetentionMode
+            or attributes.RetentionValidity != old_attributes.RetentionValidity
+            or attributes.RetentionUnit != old_attributes.RetentionUnit
+        ):
+            res = await set_bucket_object_lock_configuration(
+                conn=conn, bucket_name=attributes.Name, config=attributes
+            )
+            res_dict = res.dict()
+
+    res = BucketAttributes.parse_obj(attributes.dict() | res_dict)
+
+    # if versioning_op_res is false,
+    # set res.VersioningEnabled as the opposite of what requested
+    res.VersioningEnabled = (
+        res.VersioningEnabled
+        if versioning_op_res
+        else not res.VersioningEnabled
+    )
+
+    # if versioning_op_res is false,
+    # set res.TagSet = old_attributes.TagSet
+    res.TagSet = attributes.TagSet if tagging_op_res else old_attributes.TagSet
+
+    return res
