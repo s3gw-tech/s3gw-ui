@@ -29,4 +29,4 @@ def test_params_model_to_params() -> None:
     assert "key-type" in res and res["key-type"] == "s3"
     assert "access-key" in res and res["access-key"] == "bar"
     assert "secret-key" in res and res["secret-key"] == "baz"
-    assert "generate-key" in res and res["generate-key"] == True
+    assert "generate-key" in res and res["generate-key"] is True

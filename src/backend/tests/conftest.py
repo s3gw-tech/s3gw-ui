@@ -19,7 +19,7 @@ from typing import AsyncGenerator
 import pytest
 
 from backend.api import S3GWClient
-from backend.tests.mock_server import MotoService
+from backend.tests.moto_server import MotoService
 
 if os.environ.get("S3GW_TEST_DEBUG") is not None:
     logging.basicConfig(level=logging.DEBUG)

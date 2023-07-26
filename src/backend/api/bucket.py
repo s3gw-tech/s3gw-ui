@@ -68,7 +68,8 @@ class BucketAttributesResponse(BucketResponse, BucketObjectLockResponse):
 )
 async def get_bucket_list(conn: S3GWClientDep) -> List[BucketResponse]:
     """
-    See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/list_buckets.html
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/list_buckets.html
     """
     async with conn.conn() as s3:
         lb_res: ListBucketsOutputTypeDef = await s3.list_buckets()
@@ -121,7 +122,8 @@ async def create_bucket(
 )
 async def delete_bucket(conn: S3GWClientDep, bucket_name: str) -> None:
     """
-    See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/delete_bucket.html
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/delete_bucket.html
     """
     async with conn.conn() as s3:
         await s3.delete_bucket(Bucket=bucket_name)
@@ -148,7 +150,8 @@ async def get_bucket(conn: S3GWClientDep, bucket_name: str) -> BucketResponse:
 )
 async def get_bucket_versioning(conn: S3GWClientDep, bucket_name: str) -> bool:
     """
-    See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_bucket_versioning.html
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_bucket_versioning.html
     """
     async with conn.conn() as s3:
         gbv_res: GetBucketVersioningOutputTypeDef = (
@@ -166,7 +169,8 @@ async def set_bucket_versioning(
     conn: S3GWClientDep, bucket_name: str, enabled: bool
 ) -> None:
     """
-    See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_versioning.html
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_versioning.html
     """
     async with conn.conn() as s3:
         vc = {"Status": "Enabled" if enabled else "Suspended"}
@@ -240,7 +244,8 @@ async def get_bucket_tagging(
     conn: S3GWClientDep, bucket_name: str
 ) -> List[Tag]:
     """
-    See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_bucket_tagging.html
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_bucket_tagging.html
     """
     async with conn.conn() as s3:
         try:
@@ -264,7 +269,8 @@ async def set_bucket_tagging(
     conn: S3GWClientDep, bucket_name: str, tags: List[TagTypeDef]
 ) -> None:
     """
-    See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_tagging.html
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_tagging.html
     """
     async with conn.conn() as s3:
         tag_set: TaggingTypeDef = {"TagSet": tags}

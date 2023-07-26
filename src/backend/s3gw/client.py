@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pyright: reportUnnecessaryCast=false
+
 import contextlib
 from typing import AsyncGenerator, cast
 
@@ -67,7 +69,7 @@ class S3GWClient:
         `S3Client`'s operations, and convert them to `fastapi.HTTPException`.
         """
         session = AioSession()
-        async with session.create_client(
+        async with session.create_client(  # noqa: E501 # pyright: ignore [reportUnknownMemberType]
             "s3",
             endpoint_url=self._endpoint,
             aws_access_key_id=self._access_key,
@@ -83,9 +85,9 @@ class S3GWClient:
                 yield cast(S3Client, client)
             except ClientError as e:
                 raise decode_client_error(e)
-            except EndpointConnectionError as e:
+            except EndpointConnectionError:
                 raise EndpointNotFoundError()
-            except SSLError as e:
+            except SSLError:
                 raise SSLNotSupported()
             except HTTPException as e:
                 # probably an error raised by yielded client context; lets

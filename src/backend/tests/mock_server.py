@@ -19,7 +19,7 @@ import pytest
 from aiohttp.web import StreamResponse
 
 # aiobotocore
-from moto_server import MotoService, get_free_tcp_port, host
+from moto_server import get_free_tcp_port, host
 
 _proxy_bypass = {
     "http": None,
