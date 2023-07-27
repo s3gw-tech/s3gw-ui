@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import asyncio
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 
 import pydash
 from fastapi import Depends, HTTPException, status
@@ -21,6 +21,8 @@ from fastapi.logger import logger
 from fastapi.routing import APIRouter
 from pydantic import parse_obj_as
 from types_aiobotocore_s3.type_defs import (
+    BucketLifecycleConfigurationTypeDef,
+    GetBucketLifecycleConfigurationOutputTypeDef,
     GetBucketTaggingOutputTypeDef,
     GetBucketVersioningOutputTypeDef,
     GetObjectLockConfigurationOutputTypeDef,
@@ -464,3 +466,49 @@ async def update_bucket(
     res.TagSet = attributes.TagSet if tagging_op_res else old_attributes.TagSet
 
     return res
+
+
+@router.get(
+    "/lifecycle-configuration/{bucket_name}",
+    response_model=Optional[GetBucketLifecycleConfigurationOutputTypeDef],
+    responses=s3gw_client_responses(),
+)
+async def get_bucket_lifecycle_configuration(
+    conn: S3GWClientDep, bucket_name: str
+) -> Optional[GetBucketLifecycleConfigurationOutputTypeDef]:
+    """
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_bucket_lifecycle_configuration.html
+    """
+    async with conn.conn() as s3:
+        try:
+            res = await s3.get_bucket_lifecycle_configuration(
+                Bucket=bucket_name
+            )
+        except s3.exceptions.ClientError:
+            return None
+    return res
+
+
+@router.put(
+    "/lifecycle-configuration/{bucket_name}",
+    response_model=bool,
+    responses=s3gw_client_responses(),
+)
+async def set_bucket_lifecycle_configuration(
+    conn: S3GWClientDep,
+    bucket_name: str,
+    config: BucketLifecycleConfigurationTypeDef,
+) -> bool:
+    """
+    See
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_lifecycle_configuration.html
+    """
+    async with conn.conn() as s3:
+        try:
+            await s3.put_bucket_lifecycle_configuration(
+                Bucket=bucket_name, LifecycleConfiguration=config
+            )
+        except s3.exceptions.ClientError:
+            return False
+    return True

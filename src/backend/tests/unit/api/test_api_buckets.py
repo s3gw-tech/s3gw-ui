@@ -16,6 +16,7 @@ import contextlib
 import uuid
 from typing import Any, List
 
+import pydash
 import pytest
 from fastapi import HTTPException, status
 from pytest_mock import MockerFixture
@@ -183,7 +184,7 @@ async def test_api_tagging(s3_client: S3GWClient) -> None:
     sbt_res = await buckets.set_bucket_tagging(s3_client, str(bucket_name1), [])
     assert sbt_res
 
-    res: List[buckets.Tag] = await bucket.get_bucket_tagging(
+    res: List[buckets.Tag] = await buckets.get_bucket_tagging(
         s3_client, str(bucket_name1)
     )
     assert len(res) == 0
@@ -216,7 +217,9 @@ async def test_api_versioning(s3_client: S3GWClient) -> None:
     )
     assert not enabled
 
-    res = await buckets.set_bucket_versioning(s3_client, str(bucket_name1), True)
+    res = await buckets.set_bucket_versioning(
+        s3_client, str(bucket_name1), True
+    )
     assert res
 
     enabled = await buckets.get_bucket_versioning(s3_client, str(bucket_name1))
@@ -649,3 +652,134 @@ async def test_api_bucket_update_5(
     gba_res = await buckets.get_bucket_attributes(s3_client, str(bucket_name1))
 
     assert attrs1 == gba_res
+
+
+@pytest.mark.anyio
+async def test_api_get_bucket_lifecycle_configuration_not_exists(
+    s3_client: S3GWClient,
+) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+
+    # test lifecycle configuration does not exist
+
+    await buckets.create_bucket(s3_client, str(bucket_name1))
+
+    res = await buckets.get_bucket_lifecycle_configuration(
+        s3_client, str(bucket_name1)
+    )
+
+    assert res is None
+
+
+@pytest.mark.anyio
+async def test_api_put_get_bucket_lifecycle_configuration(
+    s3_client: S3GWClient,
+) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+
+    await buckets.create_bucket(s3_client, str(bucket_name1))
+
+    res = await buckets.set_bucket_lifecycle_configuration(
+        s3_client,
+        str(bucket_name1),
+        config={
+            "Rules": [
+                {
+                    "Expiration": {
+                        "Days": 3650,
+                    },
+                    "Filter": {
+                        "Prefix": "documents/",
+                    },
+                    "ID": "TestOnly",
+                    "Status": "Enabled",
+                    "Transitions": [
+                        {
+                            "Days": 365,
+                            "StorageClass": "GLACIER",
+                        },
+                    ],
+                },
+            ],
+        },
+    )
+
+    assert res is True
+
+    res = await buckets.get_bucket_lifecycle_configuration(
+        s3_client, str(bucket_name1)
+    )
+
+    assert res is not None
+
+    assert (
+        pydash.size(
+            pydash.get(
+                res,
+                "Rules",
+            )
+        )
+        == 1
+    )
+
+    assert (
+        pydash.get(
+            res,
+            "Rules[0].Expiration.Days",
+        )
+        == 3650
+    )
+
+    assert (
+        pydash.get(
+            res,
+            "Rules[0].Filter.Prefix",
+        )
+        == "documents/"
+    )
+
+    assert (
+        pydash.get(
+            res,
+            "Rules[0].ID",
+        )
+        == "TestOnly"
+    )
+
+    assert (
+        pydash.get(
+            res,
+            "Rules[0].Status",
+        )
+        == "Enabled"
+    )
+
+    assert (
+        pydash.size(
+            pydash.get(
+                res,
+                "Rules[0].Transitions",
+            )
+        )
+        == 1
+    )
+
+    assert (
+        pydash.get(
+            res,
+            "Rules[0].Transitions[0].Days",
+        )
+        == 365
+    )
+
+    assert (
+        pydash.get(
+            res,
+            "Rules[0].Transitions[0].StorageClass",
+        )
+        == "GLACIER"
+    )
