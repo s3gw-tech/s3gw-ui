@@ -297,7 +297,7 @@ async def get_bucket_tagging(
     return res
 
 
-@router.post(
+@router.put(
     "/tagging/{bucket_name}",
     responses=s3gw_client_responses(),
 )
@@ -345,7 +345,7 @@ async def get_bucket_attributes(
     return res
 
 
-@router.head(
+@router.get(
     "/exists/{bucket_name}",
     response_model=bool,
     responses=s3gw_client_responses(),
