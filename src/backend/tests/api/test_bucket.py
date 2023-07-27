@@ -19,6 +19,7 @@ import pytest
 from fastapi import HTTPException, status
 
 from backend.api import S3GWClient, bucket
+from backend.api.types import BucketObjectLock
 
 created_buckets: List[str] = []
 
@@ -57,7 +58,7 @@ async def test_api_list_bucket(s3_client: S3GWClient) -> None:
         await client.create_bucket(Bucket=str(bucket_name1))
         await client.create_bucket(Bucket=str(bucket_name2))
 
-    res: List[bucket.BucketResponse] = await bucket.get_bucket_list(s3_client)
+    res: List[bucket.Bucket] = await bucket.get_bucket_list(s3_client)
     assert any(res[0].Name in s for s in created_buckets)
     assert any(res[1].Name in s for s in created_buckets)
     assert len(res) == 2
@@ -174,3 +175,104 @@ async def test_api_get_bucket_attributes(s3_client: S3GWClient) -> None:
     assert len(res.TagSet) == 0
     assert res.ObjectLockEnabled
     assert res.VersioningEnabled
+
+
+@pytest.mark.anyio
+async def test_api_bucket_exists(s3_client: S3GWClient) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+
+    async with s3_client.conn() as client:
+        await client.create_bucket(Bucket=str(bucket_name1))
+
+    res = await bucket.bucket_exists(s3_client, str(bucket_name1))
+    assert res is True
+    res = await bucket.bucket_exists(s3_client, str(uuid.uuid4()))
+    assert res is False
+
+
+@pytest.mark.anyio
+async def test_api_get_bucket_object_lock_configuration(
+    s3_client: S3GWClient,
+) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    bucket_name2 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+    created_buckets.append(str(bucket_name2))
+
+    await bucket.create_bucket(
+        s3_client, str(bucket_name1), enable_object_locking=True
+    )
+    await bucket.set_bucket_versioning(s3_client, str(bucket_name1), True)
+    res = await bucket.get_bucket_object_lock_configuration(
+        s3_client, str(bucket_name1)
+    )
+    assert res.ObjectLockEnabled is True
+    await bucket.create_bucket(
+        s3_client, str(bucket_name2), enable_object_locking=False
+    )
+    res = await bucket.get_bucket_object_lock_configuration(
+        s3_client, str(bucket_name2)
+    )
+    assert res.ObjectLockEnabled is False
+
+
+@pytest.mark.anyio
+async def test_api_set_bucket_object_lock_configuration(
+    s3_client: S3GWClient,
+) -> None:
+    global created_buckets
+    bucket_name1 = uuid.uuid4()
+    bucket_name2 = uuid.uuid4()
+    bucket_name3 = uuid.uuid4()
+    created_buckets.append(str(bucket_name1))
+    created_buckets.append(str(bucket_name2))
+    created_buckets.append(str(bucket_name3))
+
+    await bucket.create_bucket(
+        s3_client, str(bucket_name1), enable_object_locking=True
+    )
+    await bucket.set_bucket_versioning(s3_client, str(bucket_name1), True)
+    config1 = BucketObjectLock(
+        ObjectLockEnabled=True,
+        RetentionEnabled=True,
+        RetentionMode="COMPLIANCE",
+        RetentionValidity=1,
+        RetentionUnit="Days",
+    )
+    res = await bucket.set_bucket_object_lock_configuration(
+        s3_client,
+        str(bucket_name1),
+        config=config1,
+    )
+    assert res == config1
+
+    await bucket.create_bucket(
+        s3_client, str(bucket_name2), enable_object_locking=True
+    )
+    await bucket.set_bucket_versioning(s3_client, str(bucket_name2), True)
+    config2 = BucketObjectLock(
+        ObjectLockEnabled=True,
+        RetentionEnabled=True,
+        RetentionMode="GOVERNANCE",
+        RetentionValidity=5,
+        RetentionUnit="Years",
+    )
+    res = await bucket.set_bucket_object_lock_configuration(
+        s3_client,
+        str(bucket_name2),
+        config=config2,
+    )
+    assert res == config2
+
+    await bucket.create_bucket(
+        s3_client, str(bucket_name3), enable_object_locking=False
+    )
+    res = await bucket.set_bucket_object_lock_configuration(
+        s3_client,
+        str(bucket_name3),
+        config=config1,
+    )
+    assert res.ObjectLockEnabled is False
