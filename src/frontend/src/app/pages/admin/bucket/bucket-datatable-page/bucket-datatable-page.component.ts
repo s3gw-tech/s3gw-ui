@@ -143,56 +143,53 @@ export class BucketDatatablePageComponent {
   }
 
   private doDelete(selected: DatatableData[]): void {
-    this.modalDialogService.confirmDeletion<Bucket>(
-      selected as Bucket[],
+    const buckets: Bucket[] = selected as Bucket[];
+    this.modalDialogService.confirmDeletionEx<Bucket>(
+      buckets,
       {
         singular: TEXT('Do you really want to delete the bucket <strong>{{ name }}</strong>?'),
         singularFmtArgs: (value: Bucket) => ({ name: value.bucket }),
-        plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> buckets?')
+        plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> buckets?'),
+        checkbox: TEXT('Purge objects before deletion')
       },
-      () => {
-        this.modalDialogService.yesNo(
-          TEXT('Do you want to remove the buckets objects before deletion?'),
-          (purgeObjects: boolean) => {
-            const sources: Observable<string>[] = [];
-            _.forEach(selected, (data: DatatableData) => {
-              sources.push(
-                this.bucketService.delete(data['bucket'], purgeObjects).pipe(
-                  catchError((err) => {
-                    if (err.error?.Code === 'BucketNotEmpty') {
-                      err.preventDefault?.();
-                      this.notificationService.showError(
-                        format(TEXT('The bucket {{ name }} is not empty.'), {
-                          name: data['bucket']
-                        }),
-                        TEXT('Delete bucket')
-                      );
-                      return EMPTY;
-                    }
-                    return throwError(err);
-                  })
-                )
-              );
-            });
-            this.rxjsUiHelperService
-              .concat<string>(
-                sources,
-                {
-                  start: TEXT('Please wait, deleting {{ total }} bucket(s) ...'),
-                  next: TEXT(
-                    'Please wait, deleting bucket {{ current }} of {{ total }} ({{ percent }}%) ...'
-                  )
-                },
-                {
-                  next: TEXT('Bucket {{ name }} has been deleted.'),
-                  nextFmtArgs: (name: string) => ({ name })
+      (purgeObjects: boolean) => {
+        const sources: Observable<string>[] = [];
+        _.forEach(buckets, (bucket: Bucket) => {
+          sources.push(
+            this.bucketService.delete(bucket.bucket, purgeObjects).pipe(
+              catchError((err) => {
+                if (err.error?.Code === 'BucketNotEmpty') {
+                  err.preventDefault?.();
+                  this.notificationService.showError(
+                    format(TEXT('The bucket {{ name }} is not empty.'), {
+                      name: bucket.bucket
+                    }),
+                    TEXT('Delete bucket')
+                  );
+                  return EMPTY;
                 }
+                return throwError(err);
+              })
+            )
+          );
+        });
+        this.rxjsUiHelperService
+          .concat<string>(
+            sources,
+            {
+              start: TEXT('Please wait, deleting {{ total }} bucket(s) ...'),
+              next: TEXT(
+                'Please wait, deleting bucket {{ current }} of {{ total }} ({{ percent }}%) ...'
               )
-              .subscribe({
-                complete: () => this.loadData()
-              });
-          }
-        );
+            },
+            {
+              next: TEXT('Bucket {{ name }} has been deleted.'),
+              nextFmtArgs: (name: string) => ({ name })
+            }
+          )
+          .subscribe({
+            complete: () => this.loadData()
+          });
       }
     );
   }

@@ -29,12 +29,7 @@ describe('Bucket Management', () => {
       cy.enableAdministration();
       cy.navigate('/admin/buckets');
       bucketPageHelper.list(bucketName);
-      bucketPageHelper.delete(bucketName);
-      // Confirm the deletion of the objects within the
-      // bucket.
-      cy.get('ngb-modal-window', { timeout: 2000 })
-        .contains('button', 'Yes')
-        .click({ force: true });
+      bucketPageHelper.deleteEx(bucketName, true);
     }
   });
 
@@ -67,7 +62,7 @@ describe('Bucket Management', () => {
     objectPageHelper.clearSearch();
 
     //delete and show deleted object in the bucket
-    objectPageHelper.deleteAllVersions(objectName);
+    objectPageHelper.deleteEx(objectName);
     objectPageHelper.showDeletedObject();
 
     //check if object is listed after delete
@@ -78,7 +73,7 @@ describe('Bucket Management', () => {
     // all versions which is necessary to be able to delete the
     // bucket in the `afterEach` hook.
     objectPageHelper.uploadObject();
-    objectPageHelper.deleteAllVersions(objectName, true);
+    objectPageHelper.deleteEx(objectName, true);
   });
 
   it('should manage life cycle', () => {
@@ -104,7 +99,7 @@ describe('Bucket Management', () => {
     objectPageHelper.uploadObject();
     objectPageHelper.downloadObject();
     objectPageHelper.reload();
-    objectPageHelper.deleteAllVersions(objectName, true);
+    objectPageHelper.deleteEx(objectName, true);
   });
 
   it.skip('manage versioned bucket with object locking and Compliance retention mode', () => {
@@ -114,7 +109,7 @@ describe('Bucket Management', () => {
     objectPageHelper.uploadObject();
     objectPageHelper.downloadObject();
     objectPageHelper.reload();
-    objectPageHelper.deleteAllVersions(objectName);
+    objectPageHelper.deleteEx(objectName);
     cy.contains('Forbidden by object lock.');
   });
 
@@ -125,7 +120,7 @@ describe('Bucket Management', () => {
     objectPageHelper.uploadObject();
     objectPageHelper.downloadObject();
     objectPageHelper.reload();
-    objectPageHelper.deleteAllVersions(objectName);
+    objectPageHelper.deleteEx(objectName);
     cy.contains('Forbidden by object lock.');
   });
 

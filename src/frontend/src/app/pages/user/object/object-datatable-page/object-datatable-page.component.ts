@@ -652,54 +652,58 @@ export class ObjectDatatablePageComponent implements OnInit {
   }
 
   private doDelete(selected: DatatableData[]): void {
-    const objects = selected as S3ObjectVersionList;
-    this.modalDialogService.confirmObjectDeletion<S3ObjectVersion>(
-      this.isBucketVersioned,
-      objects,
-      {
-        singular: TEXT('Do you really want to delete the object <strong>{{ name }}</strong>?'),
-        singularFmtArgs: (value: S3ObjectVersion) => ({ name: value.Key }),
-        plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> objects?')
-      },
-      (deep: boolean) => {
-        const sources: Observable<S3DeleteObjectOutput>[] = [];
-        _.forEach(objects, (object: S3ObjectVersion) => {
-          switch (object.Type) {
-            case 'FOLDER':
-              sources.push(
-                this.s3BucketService.deleteObjectByPrefix(
-                  this.bid,
-                  `${object.Key!}${this.delimiter}`,
-                  deep
-                )
-              );
-              break;
-            case 'OBJECT':
-              sources.push(this.s3BucketService.deleteObjectByPrefix(this.bid, object.Key!, deep));
-              break;
-          }
-        });
-        this.subscriptions.add(
-          this.rxjsUiHelperService
-            .concat<S3DeleteObjectOutput>(
-              sources,
-              {
-                start: TEXT('Please wait, deleting {{ total }} object(s) ...'),
-                next: TEXT(
-                  'Please wait, deleting object {{ current }} of {{ total }} ({{ percent }}%) ...'
-                )
-              },
-              {
-                next: TEXT('The object {{ name }} has been deleted.'),
-                nextFmtArgs: (output: S3DeleteObjectOutput) => ({ name: output.Key })
-              }
-            )
-            .subscribe({
-              complete: () => this.loadData()
-            })
-        );
-      }
-    );
+    const items: S3ObjectVersionList = selected as S3ObjectVersionList;
+    const question = {
+      singular: TEXT('Do you really want to delete the object <strong>{{ name }}</strong>?'),
+      singularFmtArgs: (value: S3ObjectVersion) => ({ name: value.Key }),
+      plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> objects?'),
+      checkbox: TEXT('Delete all versions')
+    };
+    const callbackFn = (deep: boolean) => {
+      const sources: Observable<S3DeleteObjectOutput>[] = [];
+      _.forEach(items, (item: S3ObjectVersion) => {
+        switch (item.Type) {
+          case 'FOLDER':
+            sources.push(
+              this.s3BucketService.deleteObjectByPrefix(
+                this.bid,
+                `${item.Key!}${this.delimiter}`,
+                deep
+              )
+            );
+            break;
+          case 'OBJECT':
+            sources.push(this.s3BucketService.deleteObjectByPrefix(this.bid, item.Key!, deep));
+            break;
+        }
+      });
+      this.subscriptions.add(
+        this.rxjsUiHelperService
+          .concat<S3DeleteObjectOutput>(
+            sources,
+            {
+              start: TEXT('Please wait, deleting {{ total }} object(s) ...'),
+              next: TEXT(
+                'Please wait, deleting object {{ current }} of {{ total }} ({{ percent }}%) ...'
+              )
+            },
+            {
+              next: TEXT('The object {{ name }} has been deleted.'),
+              nextFmtArgs: (output: S3DeleteObjectOutput) => ({ name: output.Key })
+            }
+          )
+          .subscribe({
+            complete: () => this.loadData()
+          })
+      );
+    };
+    if (!this.isBucketVersioned) {
+      this.modalDialogService.confirmDeletion<S3ObjectVersion>(items, question, () =>
+        callbackFn(false)
+      );
+    } else {
+      this.modalDialogService.confirmDeletionEx<S3ObjectVersion>(items, question, callbackFn);
+    }
   }
 
   private doCreateFolder(): void {

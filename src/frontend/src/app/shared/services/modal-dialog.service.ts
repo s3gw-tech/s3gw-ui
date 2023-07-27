@@ -20,7 +20,7 @@ export class ModalDialogService {
   constructor(private dialogService: DialogService) {}
 
   /**
-   * Display a modal dialog used to delete things.
+   * Display a modal dialog used to delete items.
    *
    * @param objects The list of objects that are affected by the action.
    * @param question The singular and plural question.
@@ -28,7 +28,7 @@ export class ModalDialogService {
    *   was successful.
    */
   confirmDeletion<T>(
-    objects: T[],
+    items: T[],
     question: {
       singular?: string;
       singularFmtArgs?: (value: T) => Record<any, any>;
@@ -52,59 +52,56 @@ export class ModalDialogService {
         type: 'yesNo',
         severity: 'danger',
         message:
-          objects.length > 1
+          items.length > 1
             ? format(question.plural!, {
-                count: objects.length
+                count: items.length
               })
-            : format(question.singular!, question.singularFmtArgs!(objects[0]))
+            : format(question.singular!, question.singularFmtArgs!(items[0]))
       } as ModalConfig
     );
   }
 
   /**
-   * Display a modal form dialog used to delete objects. The form
-   * contains a checkbox which will delete all versions of an object
-   * if enabled. If disabled, only the latest version is deleted.
+   * Display a modal dialog used to delete items. A checkbox is displayed
+   * as well with which an additional action can be activated or
+   * deactivated.
    *
-   * @param isBucketVersioned Is the bucket versioned?
-   * @param objects The list of objects that are affected by the action.
+   * @param items The list of items that are affected by the action.
    * @param question The singular and plural question.
    * @param callback The function that is executed if the confirmation
    *   was successful.
    */
-  confirmObjectDeletion<T>(
-    isBucketVersioned: boolean,
-    objects: T[],
+  confirmDeletionEx<T>(
+    items: T[],
     question: {
       singular?: string;
       singularFmtArgs?: (value: T) => Record<any, any>;
       plural?: string;
+      checkbox?: string;
     },
-    callback: (deep: boolean) => void
+    callback: (checked: boolean) => void
   ): NgbModalRef {
-    if (!isBucketVersioned) {
-      return this.confirmDeletion(objects, question, () => callback(false));
-    }
     _.defaults(question, {
       singular: TEXT('Do you really want to delete the item?'),
       singularFmtArgs: () => ({}),
-      plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> items?')
+      plural: TEXT('Do you really want to delete these <strong>{{ count }}</strong> items?'),
+      checkbox: TEXT('Force deletion')
     });
     return this.dialogService.open(
       DeclarativeFormModalComponent,
       (res: DeclarativeFormValues | false) => {
         if (res !== false) {
-          callback(res['deep']);
+          callback(res['checked']);
         }
       },
       {
         subtitleIconClass: `${this.icons.danger} s3gw-color-danger`,
         subtitle:
-          objects.length > 1
+          items.length > 1
             ? format(question.plural!, {
-                count: objects.length
+                count: items.length
               })
-            : format(question.singular!, question.singularFmtArgs!(objects[0])),
+            : format(question.singular!, question.singularFmtArgs!(items[0])),
         submitButtonText: TEXT('Yes'),
         submitButtonResult: undefined,
         submitButtonClass: 'btn-danger',
@@ -114,8 +111,8 @@ export class ModalDialogService {
           fields: [
             {
               type: 'checkbox',
-              name: 'deep',
-              label: TEXT('Delete all versions'),
+              name: 'checked',
+              label: question.checkbox,
               value: false
             }
           ]

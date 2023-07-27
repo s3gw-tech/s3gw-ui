@@ -23,6 +23,15 @@ export class PageHelper {
     cy.get('ngb-modal-window', { timeout: 2000 }).contains('button', 'Yes').click({ force: true });
   }
 
+  deleteEx(name: string, checked: boolean = false): void {
+    this.getTableElement(name);
+    cy.get('s3gw-datatable-actions').contains('button', 'Delete').click({ force: true });
+    if (checked) {
+      cy.get('ngb-modal-window', { timeout: 2000 }).get('[id="checked"]').check();
+    }
+    cy.get('ngb-modal-window', { timeout: 2000 }).contains('button', 'Yes').click({ force: true });
+  }
+
   list(name: string): void {
     cy.get('table').contains('td', name);
   }
