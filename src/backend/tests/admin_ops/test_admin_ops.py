@@ -20,7 +20,7 @@ import httpx
 import pytest
 
 from backend.admin_ops import signed_request
-from backend.api import S3GWClient, admin, bucket
+from backend.api import S3GWClient, admin, buckets
 
 created_buckets: List[str] = []
 created_users: List[str] = []
@@ -123,14 +123,11 @@ async def test_create_user(s3_client: S3GWClient) -> None:
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
-        key_type="s3",
         access_key=str(uid1),
         secret_key=str(uid1),
-        user_caps="",
         generate_key=False,
         max_buckets=101,
         suspended=False,
-        tenant="",
     )
     assert res.user_id == str(uid1)
     assert res.display_name == "DN" + str(uid1)
@@ -141,7 +138,7 @@ async def test_create_user(s3_client: S3GWClient) -> None:
 
 
 @pytest.mark.anyio
-async def test_get_user_info(s3_client: S3GWClient) -> None:
+async def test_get_user(s3_client: S3GWClient) -> None:
     global created_users
     uid1 = uuid.uuid4()
     created_users.append(str(uid1))
@@ -151,24 +148,17 @@ async def test_get_user_info(s3_client: S3GWClient) -> None:
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
-        key_type="s3",
-        access_key=str(uid1),
-        secret_key=str(uid1),
-        user_caps="",
-        generate_key=False,
+        generate_key=True,
         max_buckets=103,
-        suspended=False,
-        tenant="",
+        suspended=True,
     )
     assert res.user_id == str(uid1)
-    res = await admin.get_user_info(
-        s3_client, uid=str(uid1), with_statistics=False
-    )
+    res = await admin.get_user(s3_client, uid=str(uid1), stats=False)
     assert res.user_id == str(uid1)
     assert res.display_name == "DN" + str(uid1)
     assert res.email == str(uid1) + "@email"
     assert res.max_buckets == 103
-    assert res.suspended is False
+    assert res.suspended is True
     assert res.tenant == ""
 
 
@@ -183,14 +173,11 @@ async def test_delete_user(s3_client: S3GWClient) -> None:
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
-        key_type="s3",
         access_key=str(uid1),
         secret_key=str(uid1),
-        user_caps="",
         generate_key=False,
         max_buckets=105,
         suspended=False,
-        tenant="",
     )
     assert res.user_id == str(uid1)
     await admin.delete_user(s3_client, uid=str(uid1))
@@ -198,7 +185,7 @@ async def test_delete_user(s3_client: S3GWClient) -> None:
 
 @pytest.mark.anyio
 async def test_get_auth_user(s3_client: S3GWClient) -> None:
-    res = await admin.get_auth_user(s3_client)
+    res = await admin.authenticate_user(s3_client)
     assert res.user_id == "testid"
     assert res.display_name == "M. Tester"
     assert res.is_admin is True
@@ -217,33 +204,27 @@ async def test_list_uids(s3_client: S3GWClient) -> None:
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
-        key_type="s3",
         access_key=str(uid1),
         secret_key=str(uid1),
-        user_caps="",
         generate_key=False,
         max_buckets=105,
         suspended=False,
-        tenant="",
     )
     await admin.create_user(
         s3_client,
         uid=str(uid2),
         display_name="DN" + str(uid2),
         email=str(uid2) + "@email",
-        key_type="s3",
         access_key=str(uid2),
         secret_key=str(uid2),
-        user_caps="",
         generate_key=False,
         max_buckets=105,
         suspended=False,
-        tenant="",
     )
 
     created_users.append("testid")
 
-    res = await admin.list_uids(s3_client)
+    res = await admin.list_users(s3_client)
     assert len(res) == 3
     assert any(res[0] in s for s in created_users)
     assert any(res[1] in s for s in created_users)
@@ -263,18 +244,15 @@ async def test_create_key(s3_client: S3GWClient) -> None:
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
-        key_type="s3",
         access_key=str(uid1),
         secret_key=str(uid1),
-        user_caps="",
         generate_key=False,
         max_buckets=105,
         suspended=False,
-        tenant="",
     )
 
-    res = await admin.create_key(
-        s3_client, str(uid1), "s3", "zz" + str(uid1), "zz" + str(uid1), False
+    res = await admin.create_user_key(
+        s3_client, str(uid1), False, "zz" + str(uid1), "zz" + str(uid1)
     )
 
     assert len(res) == 2
@@ -288,7 +266,7 @@ async def test_create_key(s3_client: S3GWClient) -> None:
 
 @pytest.mark.anyio
 async def test_get_keys(s3_client: S3GWClient) -> None:
-    res = await admin.get_keys(s3_client, "testid")
+    res = await admin.get_user_keys(s3_client, "testid")
     assert len(res) == 1
     assert res[0].user == "testid"
     assert res[0].access_key == "test"
@@ -306,23 +284,20 @@ async def test_delete_key(s3_client: S3GWClient) -> None:
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
-        key_type="s3",
         access_key="zz" + str(uid1),
         secret_key="zz" + str(uid1),
-        user_caps="",
         generate_key=False,
         max_buckets=105,
         suspended=False,
-        tenant="",
     )
 
-    res = await admin.create_key(s3_client, str(uid1), "s3", "", "", True)
+    res = await admin.create_user_key(s3_client, str(uid1), True)
     assert len(res) == 2
     assert res[0].user == str(uid1)
 
-    res = await admin.delete_key(s3_client, str(uid1), res[0].access_key)
+    res = await admin.delete_user_key(s3_client, str(uid1), res[0].access_key)
 
-    res = await admin.get_keys(s3_client, str(uid1))
+    res = await admin.get_user_keys(s3_client, str(uid1))
     assert len(res) == 1
     assert res[0].user == str(uid1)
     assert res[0].access_key == "zz" + str(uid1)
@@ -340,16 +315,13 @@ async def test_quota_update(s3_client: S3GWClient) -> None:
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
-        key_type="s3",
         access_key=str(uid1),
         secret_key=str(uid1),
-        user_caps="",
         generate_key=False,
         max_buckets=105,
         suspended=False,
-        tenant="",
     )
-    await admin.quota_update(s3_client, str(uid1), 998, 2000, "user", True)
+    await admin.update_user_quota(s3_client, str(uid1), 998, 2000, True)
 
 
 @pytest.mark.anyio
@@ -362,10 +334,10 @@ async def test_bucket_list(s3_client: S3GWClient) -> None:
     created_buckets.append(str(bucket_name2))
     created_buckets.append(str(bucket_name3))
 
-    await bucket.create_bucket(s3_client, str(bucket_name1))
-    await bucket.create_bucket(s3_client, str(bucket_name2))
-    await bucket.create_bucket(s3_client, str(bucket_name3))
-    res = await admin.bucket_list(s3_client, "testid")
+    await buckets.create_bucket(s3_client, str(bucket_name1))
+    await buckets.create_bucket(s3_client, str(bucket_name2))
+    await buckets.create_bucket(s3_client, str(bucket_name3))
+    res = await admin.list_user_buckets(s3_client, "testid")
     assert len(res) == 3
     assert any(res[0].bucket in s for s in created_buckets)
     assert any(res[1].bucket in s for s in created_buckets)
@@ -380,7 +352,7 @@ async def test_bucket_info(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket_name1 = uuid.uuid4()
     created_buckets.append(str(bucket_name1))
-    await bucket.create_bucket(s3_client, str(bucket_name1))
+    await buckets.create_bucket(s3_client, str(bucket_name1))
     res = await admin.bucket_info(s3_client, str(bucket_name1))
     assert res.bucket == str(bucket_name1)
     assert res.owner == "testid"

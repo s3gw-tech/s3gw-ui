@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import asyncio
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Optional, cast
 
 from pydantic import parse_obj_as
 
@@ -34,14 +34,14 @@ async def get_user_info(
     url: str,
     access_key: str,
     secret_key: str,
-    uid: str | None = None,
-    with_statistics: bool = False,
+    uid: Optional[str] = None,
+    stats: bool = False,
 ) -> UserInfo:
     """
-    Obtain informations about the user to whom the `access_key:secret_key` pair
+    Obtain information about the user to whom the `access_key:secret_key` pair
     belongs to.
     """
-    params = {"access-key": access_key, "stats": with_statistics}
+    params = {"access-key": access_key, "stats": stats}
     if uid is not None and len(uid) > 0:
         params["uid"] = uid
 
@@ -103,7 +103,7 @@ async def list_users(
             access_key,
             secret_key,
             uid=uid,
-            with_statistics=with_statistics,
+            stats=with_statistics,
         )
         for uid in uids
     ]

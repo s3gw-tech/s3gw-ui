@@ -18,7 +18,7 @@ import httpx
 import pytest
 from pytest_httpx import HTTPXMock
 
-from backend.admin_ops.buckets import list
+from backend.admin_ops.buckets import list_buckets
 from backend.admin_ops.types import Bucket
 from backend.s3gw.errors import S3GWError
 
@@ -90,7 +90,7 @@ async def test_bucket_list(httpx_mock: HTTPXMock) -> None:
         json=bucket_list_response,
     )
 
-    res: List[Bucket] = await list(
+    res: List[Bucket] = await list_buckets(
         url="http://foo.bar:123",
         access_key="asd",
         secret_key="qwe",
@@ -110,7 +110,7 @@ async def test_bucket_list_failure(httpx_mock: HTTPXMock) -> None:
 
     raised = False
     try:
-        await list(
+        await list_buckets(
             url="http://foo.bar:123",
             access_key="asd",
             secret_key="qwe",
@@ -136,7 +136,7 @@ async def test_bucket_list_with_uid(httpx_mock: HTTPXMock) -> None:
         check_uid
     )
 
-    res: List[Bucket] = await list(
+    res: List[Bucket] = await list_buckets(
         url="http://foo.bar:123",
         access_key="asd",
         secret_key="qwe",

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict
 
 from pydantic import parse_obj_as
 
@@ -28,11 +28,11 @@ class BucketListParams(OptionalUIDParam):
     stats: bool
 
 
-async def list(
+async def list_buckets(
     url: str,
     access_key: str,
     secret_key: str,
-    uid: str | None = None,
+    uid: Optional[str] = None,
 ) -> List[Bucket]:
     """
     Obtains a list of `Bucket`, containing a multitude of information about each
@@ -42,7 +42,7 @@ async def list(
     See https://docs.ceph.com/en/latest/radosgw/adminops/#get-bucket-info
     """
     params: Dict[str, Any] = {"stats": True}
-    if uid is not None and len(uid) > 0:
+    if uid:
         params["uid"] = uid
 
     res = await do_request(
@@ -56,7 +56,7 @@ async def list(
     return parse_obj_as(List[Bucket], res.json())
 
 
-async def get(
+async def get_bucket(
     url: str,
     access_key: str,
     secret_key: str,
