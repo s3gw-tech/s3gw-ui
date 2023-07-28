@@ -18,7 +18,7 @@ from typing import List
 import pytest
 from fastapi import HTTPException, status
 
-from backend.api import S3GWClient, bucket
+from backend.api import S3GWClient, buckets
 from backend.api.types import BucketObjectLock
 
 created_buckets: List[str] = []
@@ -58,7 +58,7 @@ async def test_api_list_bucket(s3_client: S3GWClient) -> None:
         await client.create_bucket(Bucket=str(bucket_name1))
         await client.create_bucket(Bucket=str(bucket_name2))
 
-    res: List[bucket.Bucket] = await bucket.get_bucket_list(s3_client)
+    res: List[buckets.Bucket] = await buckets.list_buckets(s3_client)
     assert any(res[0].Name in s for s in created_buckets)
     assert any(res[1].Name in s for s in created_buckets)
     assert len(res) == 2
@@ -72,13 +72,13 @@ async def test_api_create_bucket(
     bucket_name1 = uuid.uuid4()
     created_buckets.append(str(bucket_name1))
 
-    await bucket.create_bucket(
+    await buckets.create_bucket(
         s3_client, str(bucket_name1), enable_object_locking=False
     )
 
     raised = False
     try:
-        await bucket.create_bucket(
+        await buckets.create_bucket(
             s3_client, str(bucket_name1), enable_object_locking=False
         )
     except HTTPException as e:
@@ -104,18 +104,18 @@ async def test_api_tagging(s3_client: S3GWClient) -> None:
     async with s3_client.conn() as client:
         await client.create_bucket(Bucket=str(bucket_name1))
 
-    await bucket.set_bucket_tagging(
+    await buckets.set_bucket_tagging(
         s3_client, str(bucket_name1), [{"Key": "kkk", "Value": "vvv"}]
     )
-    res: List[bucket.Tag] = await bucket.get_bucket_tagging(
+    res: List[buckets.Tag] = await buckets.get_bucket_tagging(
         s3_client, str(bucket_name1)
     )
     assert len(res) == 1
     assert res[0].Key == "kkk"
     assert res[0].Value == "vvv"
 
-    await bucket.set_bucket_tagging(s3_client, str(bucket_name1), [])
-    res: List[bucket.Tag] = await bucket.get_bucket_tagging(
+    await buckets.set_bucket_tagging(s3_client, str(bucket_name1), [])
+    res: List[buckets.Tag] = await buckets.get_bucket_tagging(
         s3_client, str(bucket_name1)
     )
     assert len(res) == 0
@@ -130,17 +130,17 @@ async def test_api_versioning(s3_client: S3GWClient) -> None:
     async with s3_client.conn() as client:
         await client.create_bucket(Bucket=str(bucket_name1))
 
-    enabled: bool = await bucket.get_bucket_versioning(
+    enabled: bool = await buckets.get_bucket_versioning(
         s3_client, str(bucket_name1)
     )
     assert not enabled
 
-    await bucket.set_bucket_versioning(s3_client, str(bucket_name1), True)
-    enabled = await bucket.get_bucket_versioning(s3_client, str(bucket_name1))
+    await buckets.set_bucket_versioning(s3_client, str(bucket_name1), True)
+    enabled = await buckets.get_bucket_versioning(s3_client, str(bucket_name1))
     assert enabled
 
-    await bucket.set_bucket_versioning(s3_client, str(bucket_name1), False)
-    enabled = await bucket.get_bucket_versioning(s3_client, str(bucket_name1))
+    await buckets.set_bucket_versioning(s3_client, str(bucket_name1), False)
+    enabled = await buckets.get_bucket_versioning(s3_client, str(bucket_name1))
     assert not enabled
 
 
@@ -150,14 +150,14 @@ async def test_api_delete_bucket(s3_client: S3GWClient) -> None:
     bucket_name1 = uuid.uuid4()
     created_buckets.append(str(bucket_name1))
 
-    total: int = await bucket.get_bucket_count(s3_client)
+    total: int = len(await buckets.list_buckets(s3_client))
 
-    await bucket.create_bucket(s3_client, str(bucket_name1))
-    current: int = await bucket.get_bucket_count(s3_client)
+    await buckets.create_bucket(s3_client, str(bucket_name1))
+    current: int = len(await buckets.list_buckets(s3_client))
     assert current == total + 1
 
-    await bucket.delete_bucket(s3_client, str(bucket_name1))
-    current = await bucket.get_bucket_count(s3_client)
+    await buckets.delete_bucket(s3_client, str(bucket_name1))
+    current = len(await buckets.list_buckets(s3_client))
     assert current == total
 
 
@@ -167,11 +167,11 @@ async def test_api_get_bucket_attributes(s3_client: S3GWClient) -> None:
     bucket_name1 = uuid.uuid4()
     created_buckets.append(str(bucket_name1))
 
-    await bucket.create_bucket(
+    await buckets.create_bucket(
         s3_client, str(bucket_name1), enable_object_locking=True
     )
-    await bucket.set_bucket_versioning(s3_client, str(bucket_name1), True)
-    res = await bucket.get_bucket_attributes(s3_client, str(bucket_name1))
+    await buckets.set_bucket_versioning(s3_client, str(bucket_name1), True)
+    res = await buckets.get_bucket_attributes(s3_client, str(bucket_name1))
     assert len(res.TagSet) == 0
     assert res.ObjectLockEnabled
     assert res.VersioningEnabled
@@ -186,9 +186,9 @@ async def test_api_bucket_exists(s3_client: S3GWClient) -> None:
     async with s3_client.conn() as client:
         await client.create_bucket(Bucket=str(bucket_name1))
 
-    res = await bucket.bucket_exists(s3_client, str(bucket_name1))
+    res = await buckets.bucket_exists(s3_client, str(bucket_name1))
     assert res is True
-    res = await bucket.bucket_exists(s3_client, str(uuid.uuid4()))
+    res = await buckets.bucket_exists(s3_client, str(uuid.uuid4()))
     assert res is False
 
 
@@ -202,18 +202,18 @@ async def test_api_get_bucket_object_lock_configuration(
     created_buckets.append(str(bucket_name1))
     created_buckets.append(str(bucket_name2))
 
-    await bucket.create_bucket(
+    await buckets.create_bucket(
         s3_client, str(bucket_name1), enable_object_locking=True
     )
-    await bucket.set_bucket_versioning(s3_client, str(bucket_name1), True)
-    res = await bucket.get_bucket_object_lock_configuration(
+    await buckets.set_bucket_versioning(s3_client, str(bucket_name1), True)
+    res = await buckets.get_bucket_object_lock_configuration(
         s3_client, str(bucket_name1)
     )
     assert res.ObjectLockEnabled is True
-    await bucket.create_bucket(
+    await buckets.create_bucket(
         s3_client, str(bucket_name2), enable_object_locking=False
     )
-    res = await bucket.get_bucket_object_lock_configuration(
+    res = await buckets.get_bucket_object_lock_configuration(
         s3_client, str(bucket_name2)
     )
     assert res.ObjectLockEnabled is False
@@ -231,10 +231,10 @@ async def test_api_set_bucket_object_lock_configuration(
     created_buckets.append(str(bucket_name2))
     created_buckets.append(str(bucket_name3))
 
-    await bucket.create_bucket(
+    await buckets.create_bucket(
         s3_client, str(bucket_name1), enable_object_locking=True
     )
-    await bucket.set_bucket_versioning(s3_client, str(bucket_name1), True)
+    await buckets.set_bucket_versioning(s3_client, str(bucket_name1), True)
     config1 = BucketObjectLock(
         ObjectLockEnabled=True,
         RetentionEnabled=True,
@@ -242,17 +242,17 @@ async def test_api_set_bucket_object_lock_configuration(
         RetentionValidity=1,
         RetentionUnit="Days",
     )
-    res = await bucket.set_bucket_object_lock_configuration(
+    res = await buckets.set_bucket_object_lock_configuration(
         s3_client,
         str(bucket_name1),
         config=config1,
     )
     assert res == config1
 
-    await bucket.create_bucket(
+    await buckets.create_bucket(
         s3_client, str(bucket_name2), enable_object_locking=True
     )
-    await bucket.set_bucket_versioning(s3_client, str(bucket_name2), True)
+    await buckets.set_bucket_versioning(s3_client, str(bucket_name2), True)
     config2 = BucketObjectLock(
         ObjectLockEnabled=True,
         RetentionEnabled=True,
@@ -260,17 +260,17 @@ async def test_api_set_bucket_object_lock_configuration(
         RetentionValidity=5,
         RetentionUnit="Years",
     )
-    res = await bucket.set_bucket_object_lock_configuration(
+    res = await buckets.set_bucket_object_lock_configuration(
         s3_client,
         str(bucket_name2),
         config=config2,
     )
     assert res == config2
 
-    await bucket.create_bucket(
+    await buckets.create_bucket(
         s3_client, str(bucket_name3), enable_object_locking=False
     )
-    res = await bucket.set_bucket_object_lock_configuration(
+    res = await buckets.set_bucket_object_lock_configuration(
         s3_client,
         str(bucket_name3),
         config=config1,

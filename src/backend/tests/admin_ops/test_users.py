@@ -143,13 +143,13 @@ async def test_list_users(mocker: MockerFixture) -> None:
         access_key: str,
         secret_key: str,
         uid: str,
-        with_statistics: bool,
+        stats: bool,
     ) -> UserInfo:
         assert url == "http://fail.tld"
         assert access_key == "asd"
         assert secret_key == "qwe"
         assert uid is not None and len(uid) > 0
-        assert not with_statistics
+        assert not stats
         info = UserInfo.parse_obj(res_user_info_json)
         info.user_id = uid
         info.display_name = f"{uid} name"
