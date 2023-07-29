@@ -328,10 +328,32 @@ async def get_bucket_attributes(
         get_bucket_tagging(bucket_name=bucket_name, conn=conn),
     ]
     reqs_res = await asyncio.gather(*reqs, return_exceptions=True)
+    assert len(reqs_res) == 4
+
+    gb_res, gbv_res, gbl_res, gbt_res = reqs_res
+
+    if isinstance(gb_res, Exception):
+        logger.error(f"unable to obtain bucket '{bucket_name}': {gb_res}")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
+    elif isinstance(gbv_res, Exception):
+        logger.error(
+            f"unable to obtain bucket '{bucket_name}' versioning: {gbv_res}"
+        )
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
+    elif isinstance(gbl_res, Exception):
+        logger.error(
+            f"unable to obtain bucket '{bucket_name}' object lock config:"
+            "{gbl_res}"
+        )
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
+    elif isinstance(gbt_res, Exception):
+        logger.error(f"unable to obtain bucket '{bucket_name}' tags: {gbt_res}")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     res = BucketAttributes.parse_obj(
-        reqs_res[0].dict() | reqs_res[2].dict() | {"TagSet": reqs_res[3]}
+        gb_res.dict() | gbl_res.dict() | {"TagSet": gbt_res}
     )
-    res.VersioningEnabled = reqs_res[1]
+    res.VersioningEnabled = gbv_res
     return res
 
 
