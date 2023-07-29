@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import contextlib
 import uuid
 from typing import Any, List
 
@@ -70,7 +71,7 @@ async def test_api_list_bucket(s3_client: S3GWClient) -> None:
 
 @pytest.mark.anyio
 async def test_api_create_bucket(
-    s3_client: S3GWClient, is_mock_server: bool
+    s3_client: S3GWClient, is_mock_server: bool, mocker: MockerFixture
 ) -> None:
     global created_buckets
     bucket_name1 = uuid.uuid4()
@@ -97,6 +98,64 @@ async def test_api_create_bucket(
         assert not raised
     else:
         assert raised
+
+    # test whether we actually raise the appropriate HTTPException if an error
+    # is found.
+    orig_conn = s3_client.conn
+
+    class MockClient:
+        def __init__(self):
+            self._error_to_raise = None
+            self._exception_to_raise = None
+
+        def _mock_create_bucket(self, *args: Any, **kwargs: Any):
+            assert self._exception_to_raise is not None
+            raise self._exception_to_raise
+
+        def set_error(self, error: str) -> None:
+            self._error_to_raise = error
+
+        @contextlib.asynccontextmanager
+        async def conn(self):
+            async with orig_conn() as client:
+                assert self._error_to_raise is not None
+                if self._error_to_raise == "exists":
+                    self._exception_to_raise = (
+                        client.exceptions.BucketAlreadyExists(
+                            {"foo": "bar"}, "create_bucket"
+                        )
+                    )
+                elif self._error_to_raise == "owned":
+                    self._exception_to_raise = (
+                        client.exceptions.BucketAlreadyOwnedByYou(
+                            {"foo": "bar"}, "create_bucket"
+                        )
+                    )
+                client.create_bucket = self._mock_create_bucket
+                yield client
+
+    f = MockClient()
+    mocker.patch.object(s3_client, "conn", f.conn)
+
+    raised = False
+    try:
+        f.set_error("exists")
+        await buckets.create_bucket(s3_client, "baz", False)
+    except HTTPException as e:
+        assert e.status_code == 409
+        assert e.detail == "Bucket already exists"
+        raised = True
+    assert raised
+
+    raised = False
+    try:
+        f.set_error("owned")
+        await buckets.create_bucket(s3_client, "baz", False)
+    except HTTPException as e:
+        assert e.status_code == 409
+        assert e.detail == "Bucket already owned by requester"
+        raised = True
+    assert raised
 
 
 @pytest.mark.anyio
