@@ -23,7 +23,7 @@ from fastapi import FastAPI
 from fastapi.logger import logger
 from fastapi.staticfiles import StaticFiles
 
-from backend.api import admin, auth, buckets, objects
+from backend.api import admin, auth, buckets, config, objects
 from backend.config import Config
 from backend.logging import setup_logging
 
@@ -59,6 +59,10 @@ def s3gw_factory(
             "name": "admin ops",
             "description": "Admin operations, non-S3 compliant",
         },
+        {
+            "name": "config",
+            "description": "Backend config operations",
+        },
     ]
 
     s3gw_app = FastAPI(docs_url=None)
@@ -81,6 +85,7 @@ def s3gw_factory(
     s3gw_api.include_router(auth.router)
     s3gw_api.include_router(buckets.router)
     s3gw_api.include_router(objects.router)
+    s3gw_api.include_router(config.router)
 
     s3gw_app.mount("/api", s3gw_api, name="api")
     if static_dir is not None:
