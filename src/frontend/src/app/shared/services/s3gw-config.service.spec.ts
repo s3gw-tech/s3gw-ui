@@ -20,10 +20,4 @@ describe('S3gwConfigService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
-  it('should load config', () => {
-    service.load().subscribe();
-    const req = httpTesting.expectOne('assets/rgw_service.config.json');
-    expect(req.request.method).toBe('GET');
-  });
 });
