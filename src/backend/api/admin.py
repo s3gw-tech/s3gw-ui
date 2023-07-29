@@ -22,7 +22,7 @@ import backend.admin_ops.types as admin_ops_types
 import backend.admin_ops.users as admin_ops_users
 from backend.api import S3GWClient, s3gw_client, s3gw_client_responses
 
-router = APIRouter(prefix="/admin")
+router = APIRouter(prefix="/admin", tags=["admin ops"])
 
 S3GWClientDep = Annotated[S3GWClient, Depends(s3gw_client)]
 

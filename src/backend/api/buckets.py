@@ -39,7 +39,7 @@ from backend.api.types import (
     TagSet,
 )
 
-router = APIRouter(prefix="/buckets")
+router = APIRouter(prefix="/buckets", tags=["bucket"])
 
 S3GWClientDep = Annotated[S3GWClient, Depends(s3gw_client)]
 

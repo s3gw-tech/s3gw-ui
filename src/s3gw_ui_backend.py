@@ -55,6 +55,10 @@ def s3gw_factory(
             "name": "bucket",
             "description": "Bucket related operations",
         },
+        {
+            "name": "admin ops",
+            "description": "Admin operations, non-S3 compliant",
+        },
     ]
 
     s3gw_app = FastAPI(docs_url=None)
