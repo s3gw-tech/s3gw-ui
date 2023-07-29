@@ -17,6 +17,7 @@ from typing import Any, List
 
 import pytest
 from fastapi import HTTPException, status
+from pytest_mock import MockerFixture
 
 from backend.api import S3GWClient, buckets
 from backend.api.types import BucketObjectLock
@@ -180,6 +181,34 @@ async def test_api_get_bucket_attributes(
     assert len(res.TagSet) == 0
     assert res.ObjectLockEnabled
     assert res.VersioningEnabled
+
+
+@pytest.mark.anyio
+async def test_api_get_bucket_attributes_failures(
+    s3_client: S3GWClient, mock_get_bucket: Any, mocker: MockerFixture
+) -> None:
+    patch_funcs = [
+        "backend.api.buckets.get_bucket",
+        "backend.api.buckets.get_bucket_versioning",
+        "backend.api.buckets.get_bucket_object_lock_configuration",
+        "backend.api.buckets.get_bucket_tagging",
+    ]
+
+    for fn in patch_funcs:
+        p = mocker.patch(fn)
+        p.side_effect = Exception()
+        error = False
+
+        try:
+            await buckets.get_bucket_attributes(s3_client, "foo")
+        except HTTPException as e:
+            assert e.status_code == 500
+            error = True
+
+        assert error
+
+        p.side_effect = None
+        p.return_value = True  # it doesn't matter at this point
 
 
 @pytest.mark.anyio
