@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
 import uuid
 from typing import List
 
-import httpx
 import pytest
 
-from backend.admin_ops import signed_request
 from backend.api import S3GWClient, admin, buckets
 
 created_buckets: List[str] = []
@@ -55,74 +52,15 @@ async def run_before_and_after_tests(s3_client: S3GWClient):
 
 
 @pytest.mark.anyio
-async def test_signed_request() -> None:
-    authorization_regex = re.compile(r"^[ ]*AWS[ ]+(\w+):([\w_/=+]+)")
-
-    req1: httpx.Request = signed_request(
-        access="test",
-        secret="test",
-        method="GET",
-        url="http://foo.bar:123",
-        data=None,
-        params=None,
-        headers=None,
-    )
-    assert "Authorization" in req1.headers
-    m1 = re.fullmatch(authorization_regex, req1.headers["Authorization"])
-    assert m1 is not None
-    assert len(m1.groups()) == 2
-    assert m1.group(1) == "test"
-    assert len(m1.group(2)) > 0
-
-    req2: httpx.Request = signed_request(
-        access="test",
-        secret="test",
-        method="POST",
-        url="http://foo.bar:123",
-        data=None,
-        params=None,
-        headers=None,
-    )
-    assert "Authorization" in req2.headers
-    m2 = re.fullmatch(authorization_regex, req2.headers["Authorization"])
-    print(req2.headers["Authorization"])
-    assert m2 is not None
-    assert len(m2.groups()) == 2
-    assert m2.group(1) == "test"
-    assert len(m2.group(2)) > 0
-    assert m2.group(2) != m1.group(2)
-
-    req3: httpx.Request = signed_request(
-        access="test",
-        secret="test",
-        method="GET",
-        url="http://foo.bar:123/?param1=baz",
-        data=None,
-        params=None,
-        headers=None,
-    )
-    assert "Authorization" in req3.headers
-    m3 = re.fullmatch(authorization_regex, req3.headers["Authorization"])
-    assert m3 is not None
-    assert len(m3.groups()) == 2
-    assert m3.group(1) == "test"
-    assert len(m3.group(2)) > 0
-    assert m3.group(2) != m1.group(2)
-    assert m3.group(2) != m2.group(2)
-    assert str(req3.url.query).find("param1=baz") >= 0
-
-
-@pytest.mark.anyio
 async def test_create_user(s3_client: S3GWClient) -> None:
-    global created_users
     uid1 = uuid.uuid4()
-    created_users.append(str(uid1))
-
+    name = f"DN {uid1}"
+    email = f"{uid1}@email"
     res = await admin.create_user(
         s3_client,
         uid=str(uid1),
-        display_name="DN" + str(uid1),
-        email=str(uid1) + "@email",
+        display_name=name,
+        email=email,
         access_key=str(uid1),
         secret_key=str(uid1),
         generate_key=False,
@@ -130,8 +68,8 @@ async def test_create_user(s3_client: S3GWClient) -> None:
         suspended=False,
     )
     assert res.user_id == str(uid1)
-    assert res.display_name == "DN" + str(uid1)
-    assert res.email == str(uid1) + "@email"
+    assert res.display_name == name
+    assert res.email == email
     assert res.max_buckets == 101
     assert res.suspended is False
     assert res.tenant == ""

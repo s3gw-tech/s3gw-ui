@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import uuid
-from typing import List
+from typing import Any, List
 
 import pytest
 from fastapi import HTTPException, status
@@ -59,6 +59,9 @@ async def test_api_list_bucket(s3_client: S3GWClient) -> None:
         await client.create_bucket(Bucket=str(bucket_name2))
 
     res: List[buckets.Bucket] = await buckets.list_buckets(s3_client)
+    print(f"bucket list res: {res}")
+    print(f"created buckets: {created_buckets}")
+    assert len(res) == 2
     assert any(res[0].Name in s for s in created_buckets)
     assert any(res[1].Name in s for s in created_buckets)
     assert len(res) == 2
@@ -162,7 +165,9 @@ async def test_api_delete_bucket(s3_client: S3GWClient) -> None:
 
 
 @pytest.mark.anyio
-async def test_api_get_bucket_attributes(s3_client: S3GWClient) -> None:
+async def test_api_get_bucket_attributes(
+    s3_client: S3GWClient, mock_get_bucket: Any
+) -> None:
     global created_buckets
     bucket_name1 = uuid.uuid4()
     created_buckets.append(str(bucket_name1))
