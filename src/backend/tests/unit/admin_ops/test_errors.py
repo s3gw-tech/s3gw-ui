@@ -37,7 +37,7 @@ def test_errors_from_response() -> None:
             raise error_from_response(res)
         except exc as e:
             raised = True
-            assert type(e) != S3GWError
+            assert type(e) is not S3GWError
         except Exception:
             print(f"Failed handling error '{err}'")
             assert False
@@ -49,7 +49,7 @@ def test_errors_from_response() -> None:
         raise error_from_response(res)
     except S3GWError as e:
         raised = True
-        assert type(e) == S3GWError
+        assert type(e) is S3GWError
     except Exception:
         assert False
     assert raised
@@ -60,7 +60,7 @@ def test_errors_from_response() -> None:
         raise error_from_response(res)
     except S3GWError as e:
         raised = True
-        assert type(e) == S3GWError
+        assert type(e) is S3GWError
     except Exception:
         assert False
     assert raised

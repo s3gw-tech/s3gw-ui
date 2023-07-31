@@ -51,8 +51,8 @@ async def list_buckets(conn: S3GWClientDep) -> List[Bucket]:
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/list_buckets.html
     """
     async with conn.conn() as s3:
-        lb_res: ListBucketsOutputTypeDef = await s3.list_buckets()
-        res = parse_obj_as(List[Bucket], lb_res["Buckets"])
+        s3_res: ListBucketsOutputTypeDef = await s3.list_buckets()
+        res = parse_obj_as(List[Bucket], s3_res["Buckets"])
     return res
 
 
@@ -129,14 +129,14 @@ async def get_bucket_versioning(conn: S3GWClientDep, bucket_name: str) -> bool:
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_bucket_versioning.html
     """
     async with conn.conn() as s3:
-        gbv_res: GetBucketVersioningOutputTypeDef = (
+        s3_res: GetBucketVersioningOutputTypeDef = (
             await s3.get_bucket_versioning(Bucket=bucket_name)
         )
-        res = pydash.get(gbv_res, "Status", "Suspended") == "Enabled"
+        res = pydash.get(s3_res, "Status", "Suspended") == "Enabled"
     return res
 
 
-@router.post(
+@router.put(
     "/{bucket_name}/versioning",
     response_model=bool,
     responses=s3gw_client_responses(),
@@ -147,6 +147,8 @@ async def set_bucket_versioning(
     """
     See
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_versioning.html
+
+    :return: Returns `True` on success, otherwise `False`.
     """
     async with conn.conn() as s3:
         vc = {"Status": "Enabled" if enabled else "Suspended"}
@@ -173,38 +175,45 @@ async def get_bucket_object_lock_configuration(
     """
     async with conn.conn() as s3:
         try:
-            req_res: GetObjectLockConfigurationOutputTypeDef = (
+            s3_res: GetObjectLockConfigurationOutputTypeDef = (
                 await s3.get_object_lock_configuration(Bucket=bucket_name)
             )
             res = BucketObjectLock(
                 ObjectLockEnabled=pydash.get(
-                    req_res, "ObjectLockConfiguration.ObjectLockEnabled"
+                    s3_res, "ObjectLockConfiguration.ObjectLockEnabled"
                 )
                 == "Enabled",
                 RetentionEnabled=pydash.has(
-                    req_res,
+                    s3_res,
                     "ObjectLockConfiguration.Rule.DefaultRetention.Mode",
                 ),
                 RetentionMode=pydash.get(
-                    req_res,
+                    s3_res,
                     "ObjectLockConfiguration.Rule.DefaultRetention.Mode",
                 ),
                 RetentionValidity=pydash.get(
-                    req_res,
+                    s3_res,
+                    "ObjectLockConfiguration.Rule.DefaultRetention.Years",
+                    0,
+                )
+                or pydash.get(
+                    s3_res,
                     "ObjectLockConfiguration.Rule.DefaultRetention.Days",
-                    pydash.get(
-                        req_res,
-                        "ObjectLockConfiguration.Rule.DefaultRetention.Years",
-                    ),
+                    None,
                 ),
                 RetentionUnit="Years"
-                if pydash.is_number(
-                    pydash.get(
-                        req_res,
-                        "ObjectLockConfiguration.Rule.DefaultRetention.Years",
-                    )
+                if pydash.get(
+                    s3_res,
+                    "ObjectLockConfiguration.Rule.DefaultRetention.Years",
+                    0,
                 )
-                else "Days",
+                else "Days"
+                if pydash.get(
+                    s3_res,
+                    "ObjectLockConfiguration.Rule.DefaultRetention.Days",
+                    0,
+                )
+                else None,
             )
         except s3.exceptions.ClientError as err:
             if (
@@ -284,10 +293,10 @@ async def get_bucket_tagging(
     """
     async with conn.conn() as s3:
         try:
-            gbt_res: GetBucketTaggingOutputTypeDef = (
-                await s3.get_bucket_tagging(Bucket=bucket_name)
+            s3_res: GetBucketTaggingOutputTypeDef = await s3.get_bucket_tagging(
+                Bucket=bucket_name
             )
-            res = parse_obj_as(List[Tag], gbt_res["TagSet"])
+            res = parse_obj_as(List[Tag], s3_res["TagSet"])
         except s3.exceptions.ClientError as err:
             if err.response["Error"]["Code"] == "NoSuchTagSet":
                 res = []
@@ -307,6 +316,8 @@ async def set_bucket_tagging(
     """
     See
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_tagging.html
+
+    :return: Returns `True` on success, otherwise `False`.
     """
     async with conn.conn() as s3:
         tag_set: TaggingTypeDef = {"TagSet": tags}
@@ -332,12 +343,12 @@ async def get_bucket_attributes(
         - ObjectLock configuration
     """
     reqs = [
-        get_bucket(bucket_name=bucket_name, conn=conn),
-        get_bucket_versioning(bucket_name=bucket_name, conn=conn),
+        get_bucket(conn=conn, bucket_name=bucket_name),
+        get_bucket_versioning(conn=conn, bucket_name=bucket_name),
         get_bucket_object_lock_configuration(
-            bucket_name=bucket_name, conn=conn
+            conn=conn, bucket_name=bucket_name
         ),
-        get_bucket_tagging(bucket_name=bucket_name, conn=conn),
+        get_bucket_tagging(conn=conn, bucket_name=bucket_name),
     ]
     reqs_res = await asyncio.gather(*reqs, return_exceptions=True)
     assert len(reqs_res) == 4
@@ -387,13 +398,13 @@ async def bucket_exists(conn: S3GWClientDep, bucket_name: str) -> bool:
     return True
 
 
-@router.post(
-    "/update",
+@router.put(
+    "/{bucket_name}",
     response_model=BucketAttributes,
     responses=s3gw_client_responses(),
 )
 async def update_bucket(
-    conn: S3GWClientDep, attributes: BucketAttributes
+    conn: S3GWClientDep, bucket_name: str, attributes: BucketAttributes
 ) -> BucketAttributes:
     """
     Aggregating function to update bucket related attributes:
@@ -402,7 +413,7 @@ async def update_bucket(
         - ObjectLock configuration
     """
     old_attributes = await get_bucket_attributes(
-        conn=conn, bucket_name=attributes.Name
+        conn=conn, bucket_name=bucket_name
     )
 
     versioning_op_res = True
@@ -412,7 +423,7 @@ async def update_bucket(
         if attributes.VersioningEnabled != old_attributes.VersioningEnabled:
             versioning_op_res = await set_bucket_versioning(
                 conn=conn,
-                bucket_name=attributes.Name,
+                bucket_name=bucket_name,
                 enabled=attributes.VersioningEnabled,
             )
 
@@ -422,7 +433,7 @@ async def update_bucket(
     if set(attributes.TagSet) != set(old_attributes.TagSet):
         tagging_op_res = await set_bucket_tagging(
             conn=conn,
-            bucket_name=attributes.Name,
+            bucket_name=bucket_name,
             tags=list(
                 map(
                     lambda tag: {"Key": tag.Key, "Value": tag.Value},
@@ -447,7 +458,7 @@ async def update_bucket(
             or attributes.RetentionUnit != old_attributes.RetentionUnit
         ):
             res = await set_bucket_object_lock_configuration(
-                conn=conn, bucket_name=attributes.Name, config=attributes
+                conn=conn, bucket_name=bucket_name, config=attributes
             )
             res_dict = res.dict()
 
@@ -469,29 +480,30 @@ async def update_bucket(
 
 
 @router.get(
-    "/lifecycle-configuration/{bucket_name}",
-    response_model=Optional[GetBucketLifecycleConfigurationOutputTypeDef],
+    "/{bucket_name}/lifecycle-configuration",
+    response_model=Optional[BucketLifecycleConfigurationTypeDef],
     responses=s3gw_client_responses(),
 )
 async def get_bucket_lifecycle_configuration(
     conn: S3GWClientDep, bucket_name: str
-) -> Optional[GetBucketLifecycleConfigurationOutputTypeDef]:
+) -> Optional[BucketLifecycleConfigurationTypeDef]:
     """
     See
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_bucket_lifecycle_configuration.html
     """
     async with conn.conn() as s3:
         try:
-            res = await s3.get_bucket_lifecycle_configuration(
-                Bucket=bucket_name
+            s3_res: GetBucketLifecycleConfigurationOutputTypeDef = (
+                await s3.get_bucket_lifecycle_configuration(Bucket=bucket_name)
             )
+            res = parse_obj_as(BucketLifecycleConfigurationTypeDef, s3_res)
         except s3.exceptions.ClientError:
             return None
     return res
 
 
 @router.put(
-    "/lifecycle-configuration/{bucket_name}",
+    "/{bucket_name}/lifecycle-configuration",
     response_model=bool,
     responses=s3gw_client_responses(),
 )
@@ -503,6 +515,8 @@ async def set_bucket_lifecycle_configuration(
     """
     See
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/put_bucket_lifecycle_configuration.html
+
+    :return: Returns `True` on success, otherwise `False`.
     """
     async with conn.conn() as s3:
         try:
