@@ -93,17 +93,12 @@ jobs:
         working-directory: src
         run: tox -e types
 
-  backend-tests:
+  backend-unit-tests:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout s3gw UI
         uses: actions/checkout@v3
-
-      - name: Setup k3d
-        uses: nolar/setup-k3d-k3s@v1
-        with:
-          skip-creation: true
 
       - name: Install Python 3.10
         uses: actions/setup-python@v4
@@ -114,12 +109,9 @@ jobs:
       - name: Install tox
         run: pip install tox
 
-      - name: Run tests
-        run: |
-          make cluster-start
-          make test-ui-backend-with-s3gw
-        env:
-          BE_IMAGE_TAG: v0.17.0
+      - name: Run unit tests
+        working-directory: src
+        run: tox -e py310
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3

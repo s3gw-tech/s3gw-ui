@@ -107,6 +107,7 @@ async def test_s3server(s3_server: str) -> None:
         assert len(lst["Buckets"]) == 1
         buckets = [x["Name"] for x in lst["Buckets"]]
         assert "foo" in buckets
+        await client.delete_bucket(Bucket="foo")
 
 
 def test_decode_client_error() -> None:
