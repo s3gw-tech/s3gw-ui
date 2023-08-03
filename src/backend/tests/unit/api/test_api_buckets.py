@@ -44,7 +44,7 @@ async def run_before_and_after_tests(s3_client: S3GWClient):
         for bucket_name in created_buckets:
             try:
                 await client.delete_bucket(Bucket=bucket_name)
-            except Exception:
+            except (Exception,):
                 pass
         created_buckets.clear()
 
