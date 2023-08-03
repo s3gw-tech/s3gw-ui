@@ -248,7 +248,7 @@ export class AdminOpsUserService {
     if (_.isString(key.user) && !_.isEmpty(key.user)) {
       _.set(params, 'subuser', key.generate_key);
     }
-    if (_.isBoolean(key.generate_key)) {
+    if (_.isBoolean(key.generate_key) && key.generate_key) {
       _.set(params, 'generate-key', key.generate_key);
       params = _.omit(params, ['access-key', 'secret-key']);
     }
