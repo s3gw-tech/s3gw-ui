@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Table column header breaks on zoom-in (gh#aquarist-labs/s3gw#618).
 - Remove scroll option from table column header (gh#aquarist-labs/s3gw#633).
+- Specifying manual user keys is not possible (gh#aquarist-labs/s3gw#652).
 
 ## [0.18.0]
 
