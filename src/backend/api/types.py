@@ -81,3 +81,12 @@ class BucketAttributes(Bucket, BucketObjectLock):
             return Bucket.__eq__(self, other)
         else:
             return NotImplemented
+
+
+class Object(BaseModel):
+    Name: str
+    Type: Literal["OBJECT", "FOLDER"]
+    Key: str
+    LastModified: Optional[dt] = None
+    ETag: Optional[str] = None
+    Size: Optional[int] = None

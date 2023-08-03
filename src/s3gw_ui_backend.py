@@ -22,7 +22,7 @@ from fastapi import FastAPI
 from fastapi.logger import logger
 from fastapi.staticfiles import StaticFiles
 
-from backend.api import admin, buckets, object
+from backend.api import admin, buckets, objects
 from backend.logging import setup_logging
 
 
@@ -68,7 +68,7 @@ def s3gw_factory(
 
     s3gw_api.include_router(admin.router)
     s3gw_api.include_router(buckets.router)
-    s3gw_api.include_router(object.router)
+    s3gw_api.include_router(objects.router)
 
     s3gw_app.mount("/api", s3gw_api, name="api")
     if static_dir is not None:
