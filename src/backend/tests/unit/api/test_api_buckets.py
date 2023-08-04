@@ -24,6 +24,7 @@ from pytest_mock import MockerFixture
 
 from backend.api import S3GWClient, buckets
 from backend.api.types import Bucket, BucketAttributes, BucketObjectLock, Tag
+from backend.tests.unit.helpers import S3ApiMock
 
 created_buckets: List[str] = []
 
@@ -228,21 +229,11 @@ async def test_api_versioning(s3_client: S3GWClient) -> None:
 async def test_api_versioning_failure(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
-    orig_conn = s3_client.conn
-
-    class MockClient:
-        @contextlib.asynccontextmanager
-        async def conn(self):
-            async with orig_conn() as s3:
-                mocker.patch.object(
-                    s3,
-                    "put_bucket_versioning",
-                    side_effect=ClientError({}, "put_bucket_versioning"),
-                )
-                yield s3
-
-    f = MockClient()
-    mocker.patch.object(s3_client, "conn", f.conn)
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "put_bucket_versioning",
+        side_effect=ClientError({}, "put_bucket_versioning"),
+    )
 
     res = await buckets.set_bucket_versioning(s3_client, "foo", True)
     assert res is False
@@ -542,23 +533,11 @@ async def test_api_put_get_bucket_lifecycle_configuration(
 async def test_api_put_get_bucket_lifecycle_configuration_failure(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
-    orig_conn = s3_client.conn
-
-    class MockClient:
-        @contextlib.asynccontextmanager
-        async def conn(self):
-            async with orig_conn() as s3:
-                mocker.patch.object(
-                    s3,
-                    "put_bucket_lifecycle_configuration",
-                    side_effect=ClientError(
-                        {}, "put_bucket_lifecycle_configuration"
-                    ),
-                )
-                yield s3
-
-    f = MockClient()
-    mocker.patch.object(s3_client, "conn", f.conn)
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "put_bucket_lifecycle_configuration",
+        side_effect=ClientError({}, "put_bucket_lifecycle_configuration"),
+    )
 
     res = await buckets.set_bucket_lifecycle_configuration(
         s3_client,
