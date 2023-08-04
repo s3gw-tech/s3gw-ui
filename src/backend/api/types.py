@@ -18,7 +18,13 @@ from datetime import datetime as dt
 from typing import List, Literal, Optional
 
 from pydantic import BaseModel
-from types_aiobotocore_s3.literals import ObjectLockRetentionModeType
+from pydantic.fields import Field
+from types_aiobotocore_s3.literals import (
+    ObjectLockLegalHoldStatusType,
+    ObjectLockModeType,
+    ObjectLockRetentionModeType,
+)
+from types_aiobotocore_s3.type_defs import OwnerTypeDef
 
 
 class Bucket(BaseModel):
@@ -46,6 +52,10 @@ class Tag(BaseModel):
         return hash((self.Key, self.Value))
 
 
+class TagSet(BaseModel):
+    TagSet: List[Tag]
+
+
 class BucketObjectLock(BaseModel):
     ObjectLockEnabled: Optional[bool]
     RetentionEnabled: Optional[bool]
@@ -63,8 +73,7 @@ class BucketObjectLock(BaseModel):
         )
 
 
-class BucketAttributes(Bucket, BucketObjectLock):
-    TagSet: List[Tag]
+class BucketAttributes(Bucket, BucketObjectLock, TagSet):
     VersioningEnabled: Optional[bool]
 
     def __eq__(self, other: object) -> bool:
@@ -84,9 +93,84 @@ class BucketAttributes(Bucket, BucketObjectLock):
 
 
 class Object(BaseModel):
-    Name: str
-    Type: Literal["OBJECT", "FOLDER"]
     Key: str
+    VersionId: Optional[str] = None
     LastModified: Optional[dt] = None
     ETag: Optional[str] = None
+    ObjectLockMode: Optional[ObjectLockModeType] = None
+    ObjectLockRetainUntilDate: Optional[dt] = None
+    ObjectLockLegalHoldStatus: Optional[ObjectLockLegalHoldStatusType] = None
+    Owner: Optional[OwnerTypeDef] = None
+    ContentType: Optional[str] = None
+    Name: str
     Size: Optional[int] = None
+    Type: Literal["OBJECT", "FOLDER"] = "OBJECT"
+
+
+class DeletedObject(BaseModel):
+    Key: str
+    VersionId: Optional[str] = None
+    DeleteMarker: bool
+    DeleteMarkerVersionId: Optional[str] = None
+
+
+class ObjectIdentifier(BaseModel):
+    Key: str
+    VersionId: str = ""
+
+
+class ObjectRequest(ObjectIdentifier):
+    pass
+
+
+class ListObjectsRequest(BaseModel):
+    Prefix: str = ""
+    Delimiter: str = "/"
+
+
+class ListObjectVersionsRequest(ListObjectsRequest):
+    pass
+
+
+class ObjectVersion(Object):
+    IsDeleted: bool
+    IsLatest: bool
+
+
+class ObjectLockLegalHold(BaseModel):
+    Status: ObjectLockLegalHoldStatusType
+
+
+class ObjectAttributes(Object, TagSet):
+    pass
+
+
+class SetObjectTaggingRequest(ObjectIdentifier, TagSet):
+    pass
+
+
+class SetObjectLockLegalHoldRequest(ObjectIdentifier):
+    LegalHold: ObjectLockLegalHold
+
+
+class RestoreObjectRequest(ObjectIdentifier):
+    pass
+
+
+class DeleteObjectRequest(ObjectIdentifier):
+    pass
+
+
+class DeleteObjectByPrefixRequest(BaseModel):
+    Prefix: str = Field(
+        title="The prefix of the objects to delete.",
+        description="Note, a prefix like `a/b/` will delete all objects "
+        "starting with that prefix, whereas `a/b` will only delete this "
+        "specific object.",
+    )
+    Delimiter: str = "/"
+    AllVersions: bool = Field(
+        False,
+        description="If `True`, all versions will be deleted, otherwise "
+        "the latest one.",
+    )

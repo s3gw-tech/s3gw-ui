@@ -18,6 +18,7 @@ import contextlib
 import re
 from typing import Annotated, Any, AsyncGenerator, Dict, Tuple, cast
 
+import boto3.utils
 from aiobotocore.session import AioSession
 from botocore.config import Config as S3Config
 from botocore.exceptions import ClientError, EndpointConnectionError, SSLError
@@ -75,6 +76,18 @@ class S3GWClient:
         `S3Client`'s operations, and convert them to `fastapi.HTTPException`.
         """
         session = AioSession()
+
+        # aioboto3 behaves different from aiobotocore when it comes to the
+        # registration of default handlers. Since we are not using the session
+        # from aioboto3 here we have to do the registration ourselves. This is
+        # necessary to get the `upload_fileobj` functionality.
+        session.register(
+            "creating-client-class.s3",
+            boto3.utils.lazy_call(
+                "aioboto3.s3.inject.inject_s3_transfer_methods"
+            ),
+        )
+
         async with session.create_client(  # noqa: E501 # pyright: ignore [reportUnknownMemberType]
             "s3",
             endpoint_url=self.endpoint,
@@ -130,11 +143,13 @@ def decode_client_error(e: ClientError) -> Tuple[int, str]:
             if e.response["Error"]["Code"] == "InvalidAccessKeyId":
                 msg = "Invalid credentials"
                 status_code = status.HTTP_401_UNAUTHORIZED
-            else:
+            elif e.response["Error"]["Code"] == "NoSuchKey":
+                msg = "No such key"
+                status_code = status.HTTP_404_NOT_FOUND
+            elif e.response["Error"]["Code"].isnumeric():
                 status_code = int(e.response["Error"]["Code"])
                 if "Message" in e.response["Error"]:
                     msg = e.response["Error"]["Message"]
-
     return (status_code, msg)
 
 
