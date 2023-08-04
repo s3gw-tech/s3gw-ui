@@ -11,25 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import asyncio
-import contextlib
+
 import datetime
-from typing import Any, List
+from typing import List
 
 import pytest
 from pytest_mock import MockerFixture
 
 from backend.api import S3GWClient, objects
 from backend.api.types import Object
+from backend.tests.unit.helpers import S3ApiMock, async_return
 
 created_buckets: List[str] = []
 created_objects: dict[str, set[str]] = {}
-
-
-def async_return(result: Any):
-    f: asyncio.Future[Any] = asyncio.Future()
-    f.set_result(result)
-    return f
 
 
 @pytest.fixture(autouse=True)
@@ -122,50 +116,40 @@ async def test_build_key_5() -> None:
 async def test_get_object_list(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
-    orig_conn = s3_client.conn
-
-    class MockClient:
-        @contextlib.asynccontextmanager
-        async def conn(self):
-            async with orig_conn() as s3:
-                mocker.patch.object(
-                    s3,
-                    "list_objects_v2",
-                    return_value=async_return(
-                        {
-                            "IsTruncated": False,
-                            "Contents": [
-                                {
-                                    "Key": "file2.txt",
-                                    "LastModified": datetime.datetime(
-                                        2023,
-                                        8,
-                                        3,
-                                        7,
-                                        38,
-                                        32,
-                                        206000,
-                                    ),
-                                    "ETag": '"d64d9778d4726d54386ed"',
-                                    "Size": 514,
-                                    "StorageClass": "STANDARD",
-                                },
-                            ],
-                            "Name": "test01",
-                            "Prefix": "",
-                            "Delimiter": "/",
-                            "MaxKeys": 1000,
-                            "CommonPrefixes": [{"Prefix": "a/"}],
-                            "EncodingType": "url",
-                            "KeyCount": 1,
-                            "ContinuationToken": "",
-                        }
-                    ),
-                )
-                yield s3
-
-    mc = MockClient()
-    mocker.patch.object(s3_client, "conn", mc.conn)
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "list_objects_v2",
+        return_value=async_return(
+            {
+                "IsTruncated": False,
+                "Contents": [
+                    {
+                        "Key": "file2.txt",
+                        "LastModified": datetime.datetime(
+                            2023,
+                            8,
+                            3,
+                            7,
+                            38,
+                            32,
+                            206000,
+                        ),
+                        "ETag": '"d64d9778d4726d54386ed"',
+                        "Size": 514,
+                        "StorageClass": "STANDARD",
+                    },
+                ],
+                "Name": "test01",
+                "Prefix": "",
+                "Delimiter": "/",
+                "MaxKeys": 1000,
+                "CommonPrefixes": [{"Prefix": "a/"}],
+                "EncodingType": "url",
+                "KeyCount": 1,
+                "ContinuationToken": "",
+            }
+        ),
+    )
 
     res = await objects.get_object_list(s3_client, "test01")
     assert [
@@ -192,88 +176,76 @@ async def test_get_object_list(
 async def test_get_object_list_truncated(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
-    orig_conn = s3_client.conn
-
-    class MockClient:
-        mocked_fn = None
-
-        @contextlib.asynccontextmanager
-        async def conn(self):
-            async with orig_conn() as s3:
-                self.mocked_fn = mocker.patch.object(
-                    s3,
-                    "list_objects_v2",
-                    side_effect=[
-                        async_return(
-                            {
-                                "Contents": [
-                                    {
-                                        "Key": "file2.txt",
-                                        "LastModified": datetime.datetime(
-                                            2023,
-                                            8,
-                                            3,
-                                            7,
-                                            38,
-                                            32,
-                                            206000,
-                                        ),
-                                        "ETag": '"d64d9778d4726d54386ed"',
-                                        "Size": 514,
-                                        "StorageClass": "STANDARD",
-                                    },
-                                ],
-                                "Name": "test01",
-                                "Prefix": "",
-                                "Delimiter": "/",
-                                "MaxKeys": 1000,
-                                "CommonPrefixes": [],
-                                "EncodingType": "url",
-                                "KeyCount": 1,
-                                "IsTruncated": True,
-                                "ContinuationToken": "",
-                                "NextContinuationToken": "foo",
-                            }
-                        ),
-                        async_return(
-                            {
-                                "Contents": [
-                                    {
-                                        "Key": "file4.txt",
-                                        "LastModified": datetime.datetime(
-                                            2023,
-                                            8,
-                                            3,
-                                            15,
-                                            34,
-                                            59,
-                                            233000,
-                                        ),
-                                        "ETag": '"1f679c59605c1d914d892"',
-                                        "Size": 13796,
-                                        "StorageClass": "STANDARD",
-                                    },
-                                ],
-                                "Name": "test01",
-                                "Prefix": "",
-                                "Delimiter": "/",
-                                "MaxKeys": 1000,
-                                "CommonPrefixes": [],
-                                "EncodingType": "url",
-                                "KeyCount": 1,
-                                "IsTruncated": False,
-                                "ContinuationToken": "foo",
-                            }
-                        ),
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "list_objects_v2",
+        side_effect=[
+            async_return(
+                {
+                    "Contents": [
+                        {
+                            "Key": "file2.txt",
+                            "LastModified": datetime.datetime(
+                                2023,
+                                8,
+                                3,
+                                7,
+                                38,
+                                32,
+                                206000,
+                            ),
+                            "ETag": '"d64d9778d4726d54386ed"',
+                            "Size": 514,
+                            "StorageClass": "STANDARD",
+                        },
                     ],
-                )
-                yield s3
-
-    mc = MockClient()
-    mocker.patch.object(s3_client, "conn", mc.conn)
+                    "Name": "test01",
+                    "Prefix": "",
+                    "Delimiter": "/",
+                    "MaxKeys": 1000,
+                    "CommonPrefixes": [],
+                    "EncodingType": "url",
+                    "KeyCount": 1,
+                    "IsTruncated": True,
+                    "ContinuationToken": "",
+                    "NextContinuationToken": "foo",
+                }
+            ),
+            async_return(
+                {
+                    "Contents": [
+                        {
+                            "Key": "file4.txt",
+                            "LastModified": datetime.datetime(
+                                2023,
+                                8,
+                                3,
+                                15,
+                                34,
+                                59,
+                                233000,
+                            ),
+                            "ETag": '"1f679c59605c1d914d892"',
+                            "Size": 13796,
+                            "StorageClass": "STANDARD",
+                        },
+                    ],
+                    "Name": "test01",
+                    "Prefix": "",
+                    "Delimiter": "/",
+                    "MaxKeys": 1000,
+                    "CommonPrefixes": [],
+                    "EncodingType": "url",
+                    "KeyCount": 1,
+                    "IsTruncated": False,
+                    "ContinuationToken": "foo",
+                }
+            ),
+        ],
+    )
 
     res = await objects.get_object_list(s3_client, "test01")
-    assert mc.mocked_fn.call_count == 2  # type: ignore
+    assert s3api_mock.mocked_fn["list_objects_v2"].call_count == 2
     assert [
         Object(
             Name="file2.txt",
