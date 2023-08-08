@@ -41,7 +41,9 @@ describe('User Management', () => {
 
   it('should create a user with custom max bucket mode', () => {
     const maxBucketsMode = 'Custom';
+    const autogenerate = false;
     userPageHelper.createUser('(#J-hn, *_^ D%e. =@+!&)', email, maxBucketsMode, maxBuckets);
+    userPageHelper.manageKeys(accessKey, secretKey, autogenerate);
   });
 
   it('should create a user with disabled max bucket mode', () => {
