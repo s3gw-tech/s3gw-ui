@@ -16,7 +16,7 @@ import asyncio
 from typing import Annotated, List, Optional
 
 import pydash
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Response, status
 from fastapi.logger import logger
 from fastapi.routing import APIRouter
 from pydantic import parse_obj_as
@@ -280,7 +280,7 @@ async def set_bucket_object_lock_configuration(
 
 
 @router.get(
-    "/{bucket_name}/tagging",
+    "/{bucket_name}/tags",
     response_model=List[Tag],
     responses=s3gw_client_responses(),
 )
@@ -306,7 +306,7 @@ async def get_bucket_tagging(
 
 
 @router.put(
-    "/{bucket_name}/tagging",
+    "/{bucket_name}/tags",
     response_model=bool,
     responses=s3gw_client_responses(),
 )
@@ -380,22 +380,18 @@ async def get_bucket_attributes(
     return res
 
 
-@router.get(
-    "/{bucket_name}/exists",
-    response_model=bool,
+@router.head(
+    "/{bucket_name}",
     responses=s3gw_client_responses(),
 )
-async def bucket_exists(conn: S3GWClientDep, bucket_name: str) -> bool:
+async def bucket_exists(conn: S3GWClientDep, bucket_name: str) -> Response:
     """
     See
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/head_bucket.html
     """
     async with conn.conn() as s3:
-        try:
-            await s3.head_bucket(Bucket=bucket_name)
-        except s3.exceptions.ClientError:
-            return False
-    return True
+        await s3.head_bucket(Bucket=bucket_name)
+    return Response(content="", status_code=status.HTTP_200_OK)
 
 
 @router.put(

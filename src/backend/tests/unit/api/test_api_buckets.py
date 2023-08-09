@@ -86,7 +86,7 @@ async def test_api_create_bucket(
     await buckets.create_bucket(s3_client, bucket_name)
 
     res = await buckets.bucket_exists(s3_client, bucket_name)
-    assert res is True
+    assert res.status_code == status.HTTP_200_OK
 
     raised = False
     try:
@@ -312,9 +312,12 @@ async def test_api_bucket_exists(s3_client: S3GWClient) -> None:
         await client.create_bucket(Bucket=bucket_name)
 
     res = await buckets.bucket_exists(s3_client, bucket_name)
-    assert res is True
-    res = await buckets.bucket_exists(s3_client, str(uuid.uuid4()))
-    assert res is False
+    assert res.status_code == status.HTTP_200_OK
+
+    with pytest.raises(HTTPException) as e:
+        await buckets.bucket_exists(s3_client, str(uuid.uuid4()))
+    assert e.value.status_code == 404
+    assert e.value.detail == "Not Found"
 
 
 @pytest.mark.anyio

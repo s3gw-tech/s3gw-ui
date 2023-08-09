@@ -120,7 +120,7 @@ class S3GWClient:
 def decode_client_error(e: ClientError) -> Tuple[int, str]:
     """
     Returns a tuple of `(status_code, error_message)` according to the
-    `botocore's ClientError` exception thas is passed as an argument.
+    `botocore's ClientError` exception that is passed as an argument.
     """
     status_code = 500
     msg = "Unknown Error"
@@ -130,6 +130,10 @@ def decode_client_error(e: ClientError) -> Tuple[int, str]:
             if e.response["Error"]["Code"] == "InvalidAccessKeyId":
                 msg = "Invalid credentials"
                 status_code = status.HTTP_401_UNAUTHORIZED
+            else:
+                status_code = int(e.response["Error"]["Code"])
+                if "Message" in e.response["Error"]:
+                    msg = e.response["Error"]["Message"]
 
     return (status_code, msg)
 
