@@ -7,6 +7,9 @@ RUN npm ci \
 
 FROM node:lts-alpine
 
+ARG QUAY_EXPIRATION=Never
+LABEL quay.expires-after=${QUAY_EXPIRATION}
+
 COPY --from=builder /srv/app/dist/s3gw-ui /app
 COPY entrypoint.sh /usr/bin/entrypoint.sh
 
