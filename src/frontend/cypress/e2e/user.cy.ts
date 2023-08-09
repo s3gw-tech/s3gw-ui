@@ -5,6 +5,7 @@ describe('User Management', () => {
   const fullName = 'JohnDoe';
   const email = 'john@example.com';
   const maxBuckets = '10';
+  const adminUser = true;
   const suspendUser = true;
   const accessKey = 'test_access_key1';
   const secretKey = 'test_secret_key1';
@@ -60,5 +61,13 @@ describe('User Management', () => {
   it('should create a user with custom max bucket mode and suspend it', () => {
     const maxBucketsMode = 'Custom';
     userPageHelper.createUser(fullName, email, maxBucketsMode, maxBuckets, suspendUser);
+  });
+
+  it('should create a user with admin permissions', () => {
+    const maxBucketsMode = 'Custom';
+    userPageHelper.createUser(fullName, email, maxBucketsMode, maxBuckets, false, adminUser);
+
+    //Disable admin permissions
+    userPageHelper.editUser('new_user', 'new_user@example.com', 'Custom', '1000', false, adminUser);
   });
 });

@@ -10,7 +10,8 @@ export class UserPageHelper extends PageHelper {
     email?: string,
     maxBucketsMode?: string,
     maxBuckets?: string,
-    suspendUser?: boolean
+    suspendUser?: boolean,
+    adminUser?: boolean
   ): void {
     cy.clickButton('Create');
     cy.get('#user_id').type(this.userId);
@@ -32,6 +33,11 @@ export class UserPageHelper extends PageHelper {
     if (suspendUser) {
       cy.get('#suspended').check();
     }
+
+    if (adminUser) {
+      cy.get('#admin').click();
+    }
+
     cy.clickButton('Create');
   }
 
@@ -40,7 +46,8 @@ export class UserPageHelper extends PageHelper {
     email?: string,
     maxBucketsMode?: string,
     maxBuckets?: string,
-    suspendUser?: boolean
+    suspendUser?: boolean,
+    adminUser?: boolean
   ): void {
     cy.contains('table tbody tr', this.userId).within(() => {
       super.selectActionsButton();
@@ -64,6 +71,10 @@ export class UserPageHelper extends PageHelper {
 
     if (suspendUser) {
       cy.get('#suspended').check();
+    }
+
+    if (adminUser) {
+      cy.get('#admin').click();
     }
 
     cy.clickButton('Update');
