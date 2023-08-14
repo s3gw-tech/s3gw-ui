@@ -14,15 +14,15 @@
 
 import datetime
 import io
-from typing import List
+from typing import Any, List
 
 import pytest
 from botocore.exceptions import ClientError
 from fastapi import HTTPException, Response, UploadFile, status
-from fastapi.responses import StreamingResponse
 from pytest_mock import MockerFixture
 
 from backend.api import S3GWClient, objects
+from backend.api.objects import ObjectBodyStreamingResponse
 from backend.api.types import (
     DeletedObject,
     DeleteObjectByPrefixRequest,
@@ -1212,35 +1212,40 @@ async def test_delete_object_by_prefix(
 async def test_download_object(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
-    obj_data = {
-        "Key": "file2.txt",
-        "VersionId": "kOTpzRH08N4TWDlXUz5U9BjZJm85sGV",
-        "LastModified": "2023-08-07T09:01:14+00:00",
-        "ETag": '"75ec5355d8c2c299d9ff530edbb248fc"',
-        "ContentLength": 14,
-        "Body": "This is a test",
-        "ContentType": "text/plain",
-    }
-
     s3api_mock = S3ApiMock(s3_client, mocker)
     s3api_mock.patch(
-        "head_object",
-        return_value=async_return(obj_data),
-    )
-    s3api_mock.patch(
         "get_object",
-        return_value=async_return(obj_data),
+        return_value=async_return(
+            {
+                "Key": "file2.txt",
+                "VersionId": "kOTpzRH08N4TWDlXUz5U9BjZJm85sGV",
+                "LastModified": "2023-08-07T09:01:14+00:00",
+                "ETag": '"75ec5355d8c2c299d9ff530edbb248fc"',
+                "ContentLength": 14,
+                "Body": "This is a test",
+                "ContentType": "text/plain",
+            }
+        ),
     )
 
-    res: StreamingResponse = await objects.download_object(
+    s3sr: ObjectBodyStreamingResponse = await objects.download_object(
         s3_client,
         "test01",
         ObjectRequest(Key="file2.txt"),
     )
-    assert isinstance(res, StreamingResponse)
-    assert res.media_type == "text/plain"
-    assert res.headers.get("content-length") == "14"
-    assert res.headers.get("etag") == '"75ec5355d8c2c299d9ff530edbb248fc"'
+    assert s3sr.status_code == 200
+    assert s3sr.background is None
+
+    async def send(args: Any):
+        pass
+
+    p = mocker.patch("fastapi.responses.StreamingResponse.stream_response")
+
+    await s3sr.stream_response(send)
+    p.assert_called_once()
+    assert s3sr.media_type == "text/plain"
+    assert s3sr.headers.get("content-length") == "14"
+    assert s3sr.headers.get("etag") == '"75ec5355d8c2c299d9ff530edbb248fc"'
 
 
 @pytest.mark.anyio

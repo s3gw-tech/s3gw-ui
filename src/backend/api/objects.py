@@ -13,7 +13,7 @@
 # limitations under the License.
 import asyncio
 from collections import deque
-from typing import Annotated, Deque, Dict, List, Optional
+from typing import Annotated, Deque, List, Optional
 
 import pydash
 from fastapi import (
@@ -29,6 +29,7 @@ from fastapi.logger import logger
 from fastapi.responses import StreamingResponse
 from fastapi.routing import APIRouter
 from pydantic import parse_obj_as
+from starlette.types import Send
 from types_aiobotocore_s3.type_defs import (
     CommonPrefixTypeDef,
     CopyObjectOutputTypeDef,
@@ -85,6 +86,55 @@ def build_key(
         prefix.reverse()
         parts.extendleft(prefix)
     return delimiter.join(parts)
+
+
+class ObjectBodyStreamingResponse(StreamingResponse):
+    """
+    Helper class to stream the object body.
+    """
+
+    def __init__(
+        self, conn: S3GWClientDep, bucket_name: str, params: ObjectRequest
+    ):
+        # Note, do not call the parent class constructor which does some
+        # initializations that we don't want at the moment. These are
+        # done at a later stage, e.g. in the `stream_response` method.
+        self._conn = conn
+        self._bucket_name = bucket_name
+        self._params = params
+        self.status_code = 200
+        self.background = None
+
+    async def stream_response(self, send: Send) -> None:
+        # We need to fetch the object to be able to stream it later and
+        # to populate the response header with information of the object,
+        # e.g. content type, size or ETag.
+        async with self._conn.conn() as s3:
+            s3_res: GetObjectOutputTypeDef = await s3.get_object(
+                Bucket=self._bucket_name,
+                Key=self._params.Key,
+                VersionId=self._params.VersionId,
+            )
+
+            filename: str = split_key(self._params.Key).pop()
+            headers = {
+                "content-length": str(s3_res["ContentLength"]),
+                "content-disposition": f"attachment; filename={filename}",
+            }
+            if "ETag" in s3_res:
+                headers["etag"] = s3_res["ETag"]
+
+            # Set the properties of the class and initialize the headers.
+            # This is usually all done in the `StreamingResponse` class
+            # constructor, but the necessary information is only available
+            # after the object has been fetched via S3 API. So we need to
+            # do the necessary work right here afterward.
+            self.body_iterator = s3_res["Body"]
+            self.media_type = s3_res["ContentType"]
+            self.init_headers(headers)
+
+            # Finally call the method of the derived class.
+            await super().stream_response(send)
 
 
 @router.get(
@@ -568,39 +618,17 @@ async def delete_object_by_prefix(
 @router.get(
     "/{bucket_name}/download",
     summary="Download an object",
-    response_class=StreamingResponse,
+    response_class=ObjectBodyStreamingResponse,
     responses=s3gw_client_responses(),
 )
 async def download_object(
     conn: S3GWClientDep, bucket_name: str, params: ObjectRequest
-) -> StreamingResponse:
+) -> ObjectBodyStreamingResponse:
     """
     See
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_object.html
     """
-
-    async def stream_object():
-        async with conn.conn() as s3:
-            s3_res: GetObjectOutputTypeDef = await s3.get_object(
-                Bucket=bucket_name, Key=params.Key, VersionId=params.VersionId
-            )
-            async for chunk in s3_res["Body"]:
-                yield chunk
-
-    obj_info: Object = await head_object(conn, bucket_name, params)
-    filename: str = split_key(params.Key).pop()
-    headers: Dict[str, str] = {
-        "content-disposition": f"attachment; filename={filename}",
-    }
-    if obj_info.Size is not None:
-        headers["content-length"] = str(obj_info.Size)
-    if obj_info.ETag is not None:
-        headers["etag"] = obj_info.ETag
-    return StreamingResponse(
-        content=stream_object(),
-        media_type=obj_info.ContentType or "application/octet-stream",
-        headers=headers,
-    )
+    return ObjectBodyStreamingResponse(conn, bucket_name, params)
 
 
 @router.post(
