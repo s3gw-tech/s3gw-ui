@@ -27,13 +27,17 @@ from types_aiobotocore_s3.type_defs import (
     GetBucketVersioningOutputTypeDef,
     GetObjectLockConfigurationOutputTypeDef,
     ListBucketsOutputTypeDef,
-    TaggingTypeDef,
-    TagTypeDef,
 )
 
 import backend.admin_ops.buckets as admin_ops_buckets
 from backend.api import S3GWClient, s3gw_client, s3gw_client_responses
-from backend.api.types import Bucket, BucketAttributes, BucketObjectLock, Tag
+from backend.api.types import (
+    Bucket,
+    BucketAttributes,
+    BucketObjectLock,
+    Tag,
+    TagSet,
+)
 
 router = APIRouter(prefix="/buckets")
 
@@ -311,7 +315,7 @@ async def get_bucket_tagging(
     responses=s3gw_client_responses(),
 )
 async def set_bucket_tagging(
-    conn: S3GWClientDep, bucket_name: str, tags: List[TagTypeDef]
+    conn: S3GWClientDep, bucket_name: str, tag_set: TagSet
 ) -> bool:
     """
     See
@@ -320,9 +324,10 @@ async def set_bucket_tagging(
     :return: Returns `True` on success, otherwise `False`.
     """
     async with conn.conn() as s3:
-        tag_set: TaggingTypeDef = {"TagSet": tags}
         try:
-            await s3.put_bucket_tagging(Bucket=bucket_name, Tagging=tag_set)
+            await s3.put_bucket_tagging(
+                Bucket=bucket_name, Tagging=tag_set.dict()  # pyright: ignore
+            )
         except s3.exceptions.ClientError:
             return False
     return True
@@ -330,6 +335,7 @@ async def set_bucket_tagging(
 
 @router.get(
     "/{bucket_name}/attributes",
+    summary="Get aggregated bucket attributes",
     response_model=BucketAttributes,
     responses=s3gw_client_responses(),
 )
@@ -430,12 +436,7 @@ async def update_bucket(
         tagging_op_res = await set_bucket_tagging(
             conn=conn,
             bucket_name=bucket_name,
-            tags=list(
-                map(
-                    lambda tag: {"Key": tag.Key, "Value": tag.Value},
-                    attributes.TagSet,
-                )
-            ),
+            tag_set=TagSet(TagSet=attributes.TagSet),
         )
 
     res_dict = {}

@@ -19,11 +19,17 @@ from typing import Any, List
 import pydash
 import pytest
 from botocore.exceptions import ClientError
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Response, status
 from pytest_mock import MockerFixture
 
 from backend.api import S3GWClient, buckets
-from backend.api.types import Bucket, BucketAttributes, BucketObjectLock, Tag
+from backend.api.types import (
+    Bucket,
+    BucketAttributes,
+    BucketObjectLock,
+    Tag,
+    TagSet,
+)
 from backend.tests.unit.helpers import S3ApiMock
 
 created_buckets: List[str] = []
@@ -174,7 +180,9 @@ async def test_api_tagging(s3_client: S3GWClient) -> None:
 
     # test success
     sbt_res = await buckets.set_bucket_tagging(
-        s3_client, bucket_name, [{"Key": "kkk", "Value": "vvv"}]
+        s3_client,
+        bucket_name,
+        TagSet.parse_obj({"TagSet": [{"Key": "kkk", "Value": "vvv"}]}),
     )
     assert sbt_res
 
@@ -185,7 +193,9 @@ async def test_api_tagging(s3_client: S3GWClient) -> None:
     assert res[0].Key == "kkk"
     assert res[0].Value == "vvv"
 
-    sbt_res = await buckets.set_bucket_tagging(s3_client, bucket_name, [])
+    sbt_res = await buckets.set_bucket_tagging(
+        s3_client, bucket_name, TagSet(TagSet=[])
+    )
     assert sbt_res
 
     res: List[buckets.Tag] = await buckets.get_bucket_tagging(
@@ -195,7 +205,9 @@ async def test_api_tagging(s3_client: S3GWClient) -> None:
 
     # test failure
     sbt_res = await buckets.set_bucket_tagging(
-        s3_client, "not-exists", [{"Key": "kkk", "Value": "vvv"}]
+        s3_client,
+        "not-exists",
+        TagSet.parse_obj({"TagSet": [{"Key": "kkk", "Value": "vvv"}]}),
     )
     assert not sbt_res
 
@@ -311,7 +323,7 @@ async def test_api_bucket_exists(s3_client: S3GWClient) -> None:
     async with s3_client.conn() as client:
         await client.create_bucket(Bucket=bucket_name)
 
-    res = await buckets.bucket_exists(s3_client, bucket_name)
+    res: Response = await buckets.bucket_exists(s3_client, bucket_name)
     assert res.status_code == status.HTTP_200_OK
 
     with pytest.raises(HTTPException) as e:

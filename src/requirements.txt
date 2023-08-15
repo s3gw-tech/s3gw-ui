@@ -1,9 +1,10 @@
-fastapi==0.95.0
-pydantic==1.10.7
+fastapi==0.101.0
+pydantic==1.10.12
 uvicorn==0.21.1
 aioboto3==11.0.1
 pydash==7.0.4
 
+types-boto3
 types-aioboto3
 types-aiobotocore==2.5.0.post2
 types-aiobotocore-s3==2.5.0.post1
@@ -14,3 +15,6 @@ anyio==3.6.2
 # httpx is easier than aiohttp for what we want, so we'll bite the bullet of
 # an additional dependency.
 httpx==0.24.0
+
+# Required by fastapi to support file uploads.
+python-multipart
