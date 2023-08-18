@@ -32,6 +32,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
     fields: []
   };
 
+  private readonly editing: boolean;
   private listIds$: Observable<string[]>;
   private ownerOptions: Record<any, string> = {};
 
@@ -41,7 +42,8 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
     private adminOpsUserService: AdminOpsUserService,
     private router: Router
   ) {
-    this.createForm(this.router.url.startsWith(`/admin/buckets/edit`));
+    this.editing = this.router.url.startsWith(`/admin/buckets/edit`);
+    this.createForm();
     (this.listIds$ = this.adminOpsUserService.listIds()).subscribe({
       next: (users: string[]) => {
         // Update the options of the 'owner' field.
@@ -89,6 +91,9 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
             if (bucket.retention_enabled) {
               this.form.getControl('retention_enabled')?.disable();
             }
+            if (this.editing && bucket.versioning_enabled) {
+              this.form.getControl('versioning_enabled')?.disable();
+            }
           },
           error: (err) => {
             this.pageStatus = PageStatus.loadingError;
@@ -104,7 +109,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
     return !this.form.pristine;
   }
 
-  private createForm(editing: boolean) {
+  private createForm() {
     this.config = {
       buttons: [
         {
@@ -114,9 +119,9 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
         },
         {
           type: 'submit',
-          text: editing ? TEXT('Update') : TEXT('Create'),
+          text: this.editing ? TEXT('Update') : TEXT('Create'),
           click: () => {
-            if (editing) {
+            if (this.editing) {
               this.updateBucket();
             } else {
               this.createBucket();
@@ -129,7 +134,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           type: 'hidden',
           name: 'id',
           value: '',
-          submitValue: editing
+          submitValue: this.editing
         },
         {
           type: 'text',
@@ -137,8 +142,8 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           label: TEXT('Name'),
           hint: TEXT('The name of the bucket.'),
           value: '',
-          readonly: editing,
-          autofocus: !editing,
+          readonly: this.editing,
+          autofocus: !this.editing,
           validators: {
             required: true,
             custom: S3gwValidators.bucketName(),
@@ -151,7 +156,7 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           label: TEXT('Owner'),
           hint: TEXT('The owner of the bucket.'),
           value: '',
-          readonly: editing,
+          readonly: this.editing,
           options: this.ownerOptions,
           validators: {
             required: true
@@ -216,10 +221,10 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           name: 'object_lock_enabled',
           label: TEXT('Enabled'),
           hint: TEXT(
-            'Enable object locking only if you need to prevent objects from being deleted. Can only be enabled while bucket creation.'
+            'Enable object locking only if you need to prevent objects from being deleted. Can only be enabled during bucket creation.'
           ),
           value: false,
-          readonly: editing,
+          readonly: this.editing,
           modifiers: [
             {
               type: 'value',
