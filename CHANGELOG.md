@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Disable versioning checkbox after bucket creation (gh#aquarist-labs/s3gw#672).
+- Do not restore latest object version (gh#aquarist-labs/s3gw#678).
 
 ## [0.19.0]
 
