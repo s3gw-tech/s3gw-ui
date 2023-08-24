@@ -167,7 +167,7 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
       {
         title: TEXT('Restore'),
         icon: this.icons.restore,
-        disabled: object.IsDeleted,
+        disabled: object.IsDeleted || object.IsLatest,
         callback: () => this.doRestore(object)
       }
     ];
