@@ -99,7 +99,7 @@ export class AdminOpsUserService {
   public create(user: User): Observable<User> {
     const credentials: Credentials = this.authSessionService.getCredentials();
     const params: HttpParams = this.user2Params(user);
-    return this.s3gwApiService.post<User>('admin/users/', { credentials, params });
+    return this.s3gwApiService.put<User>('admin/users/', { credentials, params });
   }
 
   public delete(uid: string): Observable<string> {

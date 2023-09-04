@@ -89,7 +89,7 @@ async def update_user(
     return res
 
 
-@router.post(
+@router.put(
     "/users/",
     response_model=admin_ops_types.UserInfo,
     responses=s3gw_client_responses(),
@@ -97,7 +97,6 @@ async def update_user(
 )
 async def create_user(
     conn: S3GWClientDep,
-    response: Response,
     uid: str,
     display_name: str,
     email: str,
@@ -128,7 +127,6 @@ async def create_user(
             admin=admin,
         ),
     )
-    response.headers["location"] = router.url_path_for("get_user", uid=uid)
     return res
 
 
@@ -165,18 +163,18 @@ async def list_users(
 
 @router.post(
     "/users/{uid}/keys",
-    response_model=List[admin_ops_types.UserKey],
     responses=s3gw_client_responses(),
     status_code=status.HTTP_201_CREATED,
 )
 async def create_user_key(
     conn: S3GWClientDep,
+    response: Response,
     uid: str,
     generate_key: bool = True,
     access_key: Optional[str] = None,
     secret_key: Optional[str] = None,
-) -> List[admin_ops_types.UserKey]:
-    res = await admin_ops_users.create_key(
+) -> None:
+    await admin_ops_users.create_key(
         conn.endpoint,
         conn.access_key,
         conn.secret_key,
@@ -187,11 +185,12 @@ async def create_user_key(
             generate_key=generate_key,
         ),
     )
-    return res
+    response.headers["location"] = router.url_path_for("get_user_keys", uid=uid)
 
 
 @router.get(
     "/users/{uid}/keys",
+    name="get_user_keys",
     response_model=List[admin_ops_types.UserKey],
     responses=s3gw_client_responses(),
 )

@@ -62,7 +62,7 @@ describe('AdminOpsUserService', () => {
     const req = httpTesting.expectOne(
       '/admin/users/?uid=foo&display_name=foo%20bar&email=foobar@gmail.com&max_buckets=1000&suspended=true&admin=false'
     );
-    expect(req.request.method).toBe('POST');
+    expect(req.request.method).toBe('PUT');
   });
 
   it('should call delete', () => {

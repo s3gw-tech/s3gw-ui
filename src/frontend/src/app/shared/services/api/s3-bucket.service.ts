@@ -407,7 +407,7 @@ export class S3BucketService {
       enable_object_locking: _.defaultTo(bucketAttrs.ObjectLockEnabled, false)
       /* eslint-enable @typescript-eslint/naming-convention */
     };
-    return this.s3gwApiService.post(`buckets/`, { credentials, params }).pipe(
+    return this.s3gwApiService.put(`buckets/`, { credentials, params }).pipe(
       switchMap(() => {
         return this.update(bucketAttrs, credentials);
       })

@@ -78,7 +78,6 @@ async def test_api_list_bucket(s3_client: S3GWClient) -> None:
 @pytest.mark.anyio
 async def test_api_create_bucket(
     s3_client: S3GWClient,
-    response: Response,
     is_mock_server: bool,
     mocker: MockerFixture,
 ) -> None:
@@ -86,15 +85,14 @@ async def test_api_create_bucket(
     bucket: str = str(uuid.uuid4())
     created_buckets.append(bucket)
 
-    await buckets.create_bucket(s3_client, response, bucket)
-    assert "location" in response.headers
+    await buckets.create_bucket(s3_client, bucket)
 
     res = await buckets.bucket_exists(s3_client, bucket)
     assert res.status_code == status.HTTP_200_OK
 
     raised = False
     try:
-        await buckets.create_bucket(s3_client, response, bucket)
+        await buckets.create_bucket(s3_client, bucket)
     except HTTPException as e:
         assert e.status_code == status.HTTP_409_CONFLICT
         assert e.detail == "Bucket already exists"
@@ -149,7 +147,7 @@ async def test_api_create_bucket(
     raised = False
     try:
         f.set_error("exists")
-        await buckets.create_bucket(s3_client, response, "baz", False)
+        await buckets.create_bucket(s3_client, "baz", False)
     except HTTPException as e:
         assert e.status_code == 409
         assert e.detail == "Bucket already exists"
@@ -159,7 +157,7 @@ async def test_api_create_bucket(
     raised = False
     try:
         f.set_error("owned")
-        await buckets.create_bucket(s3_client, response, "baz", False)
+        await buckets.create_bucket(s3_client, "baz", False)
     except HTTPException as e:
         assert e.status_code == 409
         assert e.detail == "Bucket already owned by requester"
@@ -246,16 +244,14 @@ async def test_api_versioning_failure(
 
 
 @pytest.mark.anyio
-async def test_api_delete_bucket(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_delete_bucket(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket: str = str(uuid.uuid4())
     created_buckets.append(bucket)
 
     total: int = len(await buckets.list_buckets(s3_client))
 
-    await buckets.create_bucket(s3_client, response, bucket)
+    await buckets.create_bucket(s3_client, bucket)
     current: int = len(await buckets.list_buckets(s3_client))
     assert current == total + 1
 
@@ -265,16 +261,12 @@ async def test_api_delete_bucket(
 
 
 @pytest.mark.anyio
-async def test_api_get_bucket_attributes(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_get_bucket_attributes(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket: str = str(uuid.uuid4())
     created_buckets.append(bucket)
 
-    await buckets.create_bucket(
-        s3_client, response, bucket, enable_object_locking=True
-    )
+    await buckets.create_bucket(s3_client, bucket, enable_object_locking=True)
     await buckets.set_bucket_versioning(s3_client, bucket, True)
     res = await buckets.get_bucket_attributes(s3_client, bucket)
     assert len(res.TagSet) == 0
@@ -329,7 +321,7 @@ async def test_api_bucket_exists(s3_client: S3GWClient) -> None:
 
 @pytest.mark.anyio
 async def test_api_get_bucket_object_lock_configuration(
-    s3_client: S3GWClient, response: Response
+    s3_client: S3GWClient,
 ) -> None:
     global created_buckets
     bucket1: str = str(uuid.uuid4())
@@ -337,20 +329,18 @@ async def test_api_get_bucket_object_lock_configuration(
     created_buckets.append(bucket1)
     created_buckets.append(bucket2)
 
-    await buckets.create_bucket(
-        s3_client, response, bucket1, enable_object_locking=True
-    )
+    await buckets.create_bucket(s3_client, bucket1, enable_object_locking=True)
     await buckets.set_bucket_versioning(s3_client, bucket1, True)
     res = await buckets.get_bucket_object_lock_configuration(s3_client, bucket1)
     assert res.ObjectLockEnabled is True
-    await buckets.create_bucket(s3_client, response, bucket2)
+    await buckets.create_bucket(s3_client, bucket2)
     res = await buckets.get_bucket_object_lock_configuration(s3_client, bucket2)
     assert res.ObjectLockEnabled is False
 
 
 @pytest.mark.anyio
 async def test_api_set_bucket_object_lock_configuration(
-    s3_client: S3GWClient, response: Response
+    s3_client: S3GWClient,
 ) -> None:
     global created_buckets
     bucket1: str = str(uuid.uuid4())
@@ -360,9 +350,7 @@ async def test_api_set_bucket_object_lock_configuration(
     created_buckets.append(bucket2)
     created_buckets.append(bucket3)
 
-    await buckets.create_bucket(
-        s3_client, response, bucket1, enable_object_locking=True
-    )
+    await buckets.create_bucket(s3_client, bucket1, enable_object_locking=True)
     await buckets.set_bucket_versioning(s3_client, bucket1, True)
     config1 = BucketObjectLock(
         ObjectLockEnabled=True,
@@ -378,9 +366,7 @@ async def test_api_set_bucket_object_lock_configuration(
     )
     assert res == config1
 
-    await buckets.create_bucket(
-        s3_client, response, bucket2, enable_object_locking=True
-    )
+    await buckets.create_bucket(s3_client, bucket2, enable_object_locking=True)
     await buckets.set_bucket_versioning(s3_client, bucket2, True)
     config2 = BucketObjectLock(
         ObjectLockEnabled=True,
@@ -396,7 +382,7 @@ async def test_api_set_bucket_object_lock_configuration(
     )
     assert res == config2
 
-    await buckets.create_bucket(s3_client, response, bucket3)
+    await buckets.create_bucket(s3_client, bucket3)
     res = await buckets.set_bucket_object_lock_configuration(
         s3_client,
         bucket3,
@@ -407,14 +393,14 @@ async def test_api_set_bucket_object_lock_configuration(
 
 @pytest.mark.anyio
 async def test_api_get_bucket_lifecycle_configuration_not_exists(
-    s3_client: S3GWClient, response: Response
+    s3_client: S3GWClient,
 ) -> None:
     global created_buckets
     bucket: str = str(uuid.uuid4())
     created_buckets.append(bucket)
 
     # test lifecycle configuration does not exist
-    await buckets.create_bucket(s3_client, response, bucket)
+    await buckets.create_bucket(s3_client, bucket)
 
     res = await buckets.get_bucket_lifecycle_configuration(s3_client, bucket)
     assert len(res["Rules"]) == 0
@@ -443,13 +429,13 @@ async def test_api_get_bucket_lifecycle_configuration_failure(
 
 @pytest.mark.anyio
 async def test_api_set_bucket_lifecycle_configuration(
-    s3_client: S3GWClient, response: Response
+    s3_client: S3GWClient,
 ) -> None:
     global created_buckets
     bucket: str = str(uuid.uuid4())
     created_buckets.append(bucket)
 
-    await buckets.create_bucket(s3_client, response, bucket)
+    await buckets.create_bucket(s3_client, bucket)
 
     res = await buckets.set_bucket_lifecycle_configuration(
         s3_client,
@@ -601,9 +587,7 @@ async def test_api_delete_bucket_lifecycle_configuration(
 
 
 @pytest.mark.anyio
-async def test_api_bucket_update_1(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_bucket_update_1(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket: str = str(uuid.uuid4())
     created_buckets.append(bucket)
@@ -618,9 +602,7 @@ async def test_api_bucket_update_1(
     # - Versioning
     #
 
-    await buckets.create_bucket(
-        s3_client, response, bucket, enable_object_locking=True
-    )
+    await buckets.create_bucket(s3_client, bucket, enable_object_locking=True)
 
     attributes = BucketAttributes(
         Name=bucket,
@@ -649,9 +631,7 @@ async def test_api_bucket_update_1(
 
 
 @pytest.mark.anyio
-async def test_api_bucket_update_2(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_bucket_update_2(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket: str = str(uuid.uuid4())
     created_buckets.append(bucket)
@@ -666,9 +646,7 @@ async def test_api_bucket_update_2(
     # - Tags
     #
 
-    await buckets.create_bucket(
-        s3_client, response, bucket, enable_object_locking=True
-    )
+    await buckets.create_bucket(s3_client, bucket, enable_object_locking=True)
 
     attributes = BucketAttributes(
         Name=bucket,
@@ -694,9 +672,7 @@ async def test_api_bucket_update_2(
 
 
 @pytest.mark.anyio
-async def test_api_bucket_update_3(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_bucket_update_3(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket: str = str(uuid.uuid4())
     created_buckets.append(bucket)
@@ -711,7 +687,7 @@ async def test_api_bucket_update_3(
     # - ObjectLock configuration
     #
 
-    await buckets.create_bucket(s3_client, response, bucket)
+    await buckets.create_bucket(s3_client, bucket)
 
     attributes = BucketAttributes(
         Name=bucket,
@@ -744,9 +720,7 @@ async def test_api_bucket_update_3(
 
 
 @pytest.mark.anyio
-async def test_api_bucket_update_4(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_bucket_update_4(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket: str = str(uuid.uuid4())
     created_buckets.append(bucket)
@@ -760,7 +734,7 @@ async def test_api_bucket_update_4(
     # - Tags
     #
 
-    await buckets.create_bucket(s3_client, response, bucket)
+    await buckets.create_bucket(s3_client, bucket)
 
     attributes = BucketAttributes(
         Name=bucket,

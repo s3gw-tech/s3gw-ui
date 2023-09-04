@@ -60,14 +60,13 @@ async def list_buckets(conn: S3GWClientDep) -> List[Bucket]:
     return res
 
 
-@router.post(
+@router.put(
     "/",
     responses=s3gw_client_responses(),
     status_code=status.HTTP_201_CREATED,
 )
 async def create_bucket(
     conn: S3GWClientDep,
-    response: Response,
     bucket: str,
     enable_object_locking: bool = False,
 ) -> None:
@@ -80,9 +79,6 @@ async def create_bucket(
             await s3.create_bucket(
                 Bucket=bucket,
                 ObjectLockEnabledForBucket=enable_object_locking,
-            )
-            response.headers["location"] = router.url_path_for(
-                "get_bucket_attributes", bucket=bucket
             )
         except s3.exceptions.BucketAlreadyExists:
             # everything points towards rgw (and even moto's server) to assume

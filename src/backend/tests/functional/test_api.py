@@ -54,13 +54,12 @@ async def run_before_and_after_tests(s3_client: S3GWClient):
 
 
 @pytest.mark.anyio
-async def test_create_user(s3_client: S3GWClient, response: Response) -> None:
+async def test_create_user(s3_client: S3GWClient) -> None:
     uid1 = uuid.uuid4()
     name = f"DN {uid1}"
     email = f"{uid1}@email"
     res = await admin.create_user(
         s3_client,
-        response,
         uid=str(uid1),
         display_name=name,
         email=email,
@@ -76,18 +75,16 @@ async def test_create_user(s3_client: S3GWClient, response: Response) -> None:
     assert res.max_buckets == 101
     assert res.suspended is False
     assert res.tenant == ""
-    assert "location" in response.headers
 
 
 @pytest.mark.anyio
-async def test_get_user(s3_client: S3GWClient, response: Response) -> None:
+async def test_get_user(s3_client: S3GWClient) -> None:
     global created_users
     uid1 = uuid.uuid4()
     created_users.append(str(uid1))
 
     res = await admin.create_user(
         s3_client,
-        response,
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
@@ -106,14 +103,13 @@ async def test_get_user(s3_client: S3GWClient, response: Response) -> None:
 
 
 @pytest.mark.anyio
-async def test_delete_user(s3_client: S3GWClient, response: Response) -> None:
+async def test_delete_user(s3_client: S3GWClient) -> None:
     global created_users
     uid1 = uuid.uuid4()
     created_users.append(str(uid1))
 
     res = await admin.create_user(
         s3_client,
-        response,
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
@@ -128,7 +124,7 @@ async def test_delete_user(s3_client: S3GWClient, response: Response) -> None:
 
 
 @pytest.mark.anyio
-async def test_list_uids(s3_client: S3GWClient, response: Response) -> None:
+async def test_list_uids(s3_client: S3GWClient) -> None:
     global created_users
     uid1 = uuid.uuid4()
     uid2 = uuid.uuid4()
@@ -137,7 +133,6 @@ async def test_list_uids(s3_client: S3GWClient, response: Response) -> None:
 
     await admin.create_user(
         s3_client,
-        response,
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
@@ -149,7 +144,6 @@ async def test_list_uids(s3_client: S3GWClient, response: Response) -> None:
     )
     await admin.create_user(
         s3_client,
-        response,
         uid=str(uid2),
         display_name="DN" + str(uid2),
         email=str(uid2) + "@email",
@@ -181,7 +175,6 @@ async def test_create_key(s3_client: S3GWClient, response: Response) -> None:
 
     await admin.create_user(
         s3_client,
-        response,
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
@@ -192,17 +185,15 @@ async def test_create_key(s3_client: S3GWClient, response: Response) -> None:
         suspended=False,
     )
 
-    res = await admin.create_user_key(
-        s3_client, str(uid1), False, "zz" + str(uid1), "zz" + str(uid1)
+    await admin.create_user_key(
+        s3_client,
+        response,
+        str(uid1),
+        False,
+        "zz" + str(uid1),
+        "zz" + str(uid1),
     )
-
-    assert len(res) == 2
-    assert res[0].user == str(uid1)
-    assert res[0].access_key == str(uid1)
-    assert res[0].secret_key == str(uid1)
-    assert res[1].user == str(uid1)
-    assert res[1].access_key == "zz" + str(uid1)
-    assert res[1].secret_key == "zz" + str(uid1)
+    assert "location" in response.headers
 
 
 @pytest.mark.anyio
@@ -217,44 +208,44 @@ async def test_get_keys(s3_client: S3GWClient) -> None:
 @pytest.mark.anyio
 async def test_delete_key(s3_client: S3GWClient, response: Response) -> None:
     global created_users
-    uid1 = uuid.uuid4()
-    created_users.append(str(uid1))
+    uid1 = str(uuid.uuid4())
+    created_users.append(uid1)
 
     await admin.create_user(
         s3_client,
-        response,
-        uid=str(uid1),
-        display_name="DN" + str(uid1),
-        email=str(uid1) + "@email",
-        access_key="zz" + str(uid1),
-        secret_key="zz" + str(uid1),
+        uid=uid1,
+        display_name="DN" + uid1,
+        email=uid1 + "@email",
+        access_key="zz" + uid1,
+        secret_key="zz" + uid1,
         generate_key=False,
         max_buckets=105,
         suspended=False,
     )
 
-    res = await admin.create_user_key(s3_client, str(uid1), True)
+    await admin.create_user_key(s3_client, response, uid1, True)
+    assert "location" in response.headers
+
+    res = await admin.get_user_keys(s3_client, uid1)
     assert len(res) == 2
-    assert res[0].user == str(uid1)
 
-    await admin.delete_user_key(s3_client, str(uid1), res[0].access_key)
+    await admin.delete_user_key(s3_client, uid1, res[0].access_key)
 
-    res = await admin.get_user_keys(s3_client, str(uid1))
+    res = await admin.get_user_keys(s3_client, uid1)
     assert len(res) == 1
-    assert res[0].user == str(uid1)
-    assert res[0].access_key == "zz" + str(uid1)
-    assert res[0].secret_key == "zz" + str(uid1)
+    assert res[0].user == uid1
+    assert res[0].access_key == "zz" + uid1
+    assert res[0].secret_key == "zz" + uid1
 
 
 @pytest.mark.anyio
-async def test_quota_update(s3_client: S3GWClient, response: Response) -> None:
+async def test_quota_update(s3_client: S3GWClient) -> None:
     global created_users
     uid1 = uuid.uuid4()
     created_users.append(str(uid1))
 
     await admin.create_user(
         s3_client,
-        response,
         uid=str(uid1),
         display_name="DN" + str(uid1),
         email=str(uid1) + "@email",
@@ -268,7 +259,7 @@ async def test_quota_update(s3_client: S3GWClient, response: Response) -> None:
 
 
 @pytest.mark.anyio
-async def test_bucket_list(s3_client: S3GWClient, response: Response) -> None:
+async def test_bucket_list(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket1 = uuid.uuid4()
     bucket2 = uuid.uuid4()
@@ -277,9 +268,9 @@ async def test_bucket_list(s3_client: S3GWClient, response: Response) -> None:
     created_buckets.append(str(bucket2))
     created_buckets.append(str(bucket3))
 
-    await buckets.create_bucket(s3_client, response, str(bucket1))
-    await buckets.create_bucket(s3_client, response, str(bucket3))
-    await buckets.create_bucket(s3_client, response, str(bucket2))
+    await buckets.create_bucket(s3_client, str(bucket1))
+    await buckets.create_bucket(s3_client, str(bucket3))
+    await buckets.create_bucket(s3_client, str(bucket2))
     res = await admin.list_user_buckets(s3_client, "testid")
     assert len(res) == 3
     assert any(res[0].bucket in s for s in created_buckets)
@@ -291,11 +282,11 @@ async def test_bucket_list(s3_client: S3GWClient, response: Response) -> None:
 
 
 @pytest.mark.anyio
-async def test_bucket_info(s3_client: S3GWClient, response: Response) -> None:
+async def test_bucket_info(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket1 = uuid.uuid4()
     created_buckets.append(str(bucket1))
-    await buckets.create_bucket(s3_client, response, str(bucket1))
+    await buckets.create_bucket(s3_client, str(bucket1))
     res = await buckets.bucket_exists(s3_client, str(bucket1))
     assert res.status_code == status.HTTP_200_OK
 
@@ -322,9 +313,7 @@ async def test_api_versioning_2(s3_client: S3GWClient) -> None:
 
 
 @pytest.mark.anyio
-async def test_api_bucket_update_1(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_bucket_update_1(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket1: str = str(uuid.uuid4())
     created_buckets.append(bucket1)
@@ -339,9 +328,7 @@ async def test_api_bucket_update_1(
     # - Versioning
     #
 
-    await buckets.create_bucket(
-        s3_client, response, bucket1, enable_object_locking=True
-    )
+    await buckets.create_bucket(s3_client, bucket1, enable_object_locking=True)
 
     attrs1 = BucketAttributes(
         Name=bucket1,
@@ -372,9 +359,7 @@ async def test_api_bucket_update_1(
 
 
 @pytest.mark.anyio
-async def test_api_bucket_update_2(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_bucket_update_2(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket1: str = str(uuid.uuid4())
     created_buckets.append(bucket1)
@@ -389,9 +374,7 @@ async def test_api_bucket_update_2(
     # - Tags
     #
 
-    await buckets.create_bucket(
-        s3_client, response, bucket1, enable_object_locking=True
-    )
+    await buckets.create_bucket(s3_client, bucket1, enable_object_locking=True)
 
     attrs1 = BucketAttributes(
         Name=bucket1,
@@ -419,9 +402,7 @@ async def test_api_bucket_update_2(
 
 
 @pytest.mark.anyio
-async def test_api_bucket_update_3(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_bucket_update_3(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket1: str = str(uuid.uuid4())
     created_buckets.append(bucket1)
@@ -436,7 +417,7 @@ async def test_api_bucket_update_3(
     # - ObjectLock configuration
     #
 
-    await buckets.create_bucket(s3_client, response, bucket1)
+    await buckets.create_bucket(s3_client, bucket1)
 
     attrs1 = BucketAttributes(
         Name=bucket1,
@@ -471,9 +452,7 @@ async def test_api_bucket_update_3(
 
 
 @pytest.mark.anyio
-async def test_api_bucket_update_4(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_bucket_update_4(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket1: str = str(uuid.uuid4())
     created_buckets.append(bucket1)
@@ -487,7 +466,7 @@ async def test_api_bucket_update_4(
     # - Tags
     #
 
-    await buckets.create_bucket(s3_client, response, bucket1)
+    await buckets.create_bucket(s3_client, bucket1)
 
     attrs1 = BucketAttributes(
         Name=bucket1,
@@ -519,9 +498,7 @@ async def test_api_bucket_update_4(
 
 
 @pytest.mark.anyio
-async def test_api_bucket_update_5(
-    s3_client: S3GWClient, response: Response
-) -> None:
+async def test_api_bucket_update_5(s3_client: S3GWClient) -> None:
     global created_buckets
     bucket1: str = str(uuid.uuid4())
     created_buckets.append(bucket1)
@@ -536,9 +513,7 @@ async def test_api_bucket_update_5(
     #
     #
 
-    await buckets.create_bucket(
-        s3_client, response, bucket1, enable_object_locking=True
-    )
+    await buckets.create_bucket(s3_client, bucket1, enable_object_locking=True)
 
     attrs1 = BucketAttributes(
         Name=bucket1,

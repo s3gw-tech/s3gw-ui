@@ -39,14 +39,13 @@ async def test_admin_ops_get_user(
 
 @pytest.mark.anyio
 async def test_admin_ops_create_user(
-    s3_client: S3GWClient, response: Response, mocker: MockerFixture
+    s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
     p = mocker.patch("backend.admin_ops.users.create")
     await admin.create_user(
-        s3_client, response, "foo", "bar", "baz@fail.tld", False, 1000, True
+        s3_client, "foo", "bar", "baz@fail.tld", False, 1000, True
     )
     p.assert_called_once()
-    assert "location" in response.headers
 
 
 @pytest.mark.anyio
@@ -89,11 +88,12 @@ async def test_admin_ops_list_users_2(
 
 @pytest.mark.anyio
 async def test_admin_ops_create_user_key(
-    s3_client: S3GWClient, mocker: MockerFixture
+    s3_client: S3GWClient, response: Response, mocker: MockerFixture
 ) -> None:
     p = mocker.patch("backend.admin_ops.users.create_key")
-    await admin.create_user_key(s3_client, "foo", True)
+    await admin.create_user_key(s3_client, response, "foo", True)
     p.assert_called_once()
+    assert "location" in response.headers
 
 
 @pytest.mark.anyio
