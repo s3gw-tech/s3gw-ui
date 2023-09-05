@@ -85,8 +85,8 @@ export class S3gwApiService {
   private buildHeaders(credentials: Credentials): Record<string, any> {
     return {
       /* eslint-disable @typescript-eslint/naming-convention */
-      'X-S3gw-Endpoint': this.config.url,
-      'X-S3gw-Credentials': `${credentials.accessKey}:${credentials.secretKey}`
+      'S3GW-Endpoint': this.config.url,
+      'S3GW-Credentials': `${credentials.accessKey}:${credentials.secretKey}`
       /* eslint-enable @typescript-eslint/naming-convention */
     };
   }

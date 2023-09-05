@@ -156,17 +156,15 @@ def decode_client_error(e: ClientError) -> Tuple[int, str]:
 
 
 async def s3gw_client(
-    x_s3gw_endpoint: Annotated[str, Header()],
-    x_s3gw_credentials: Annotated[str, Header()],
+    s3gw_endpoint: Annotated[str, Header()],
+    s3gw_credentials: Annotated[str, Header()],
 ) -> S3GWClient:
     """
     To be used for FastAPI's dependency injection, reads the request's HTTP
     headers for s3gw's endpoint and user credentials, returning an `S3GWClient`
     class instance.
     """
-    m = re.fullmatch(
-        r"https?://[\w.-]+(?:\.[\w]+)?(?::\d+)?/?", x_s3gw_endpoint
-    )
+    m = re.fullmatch(r"https?://[\w.-]+(?:\.[\w]+)?(?::\d+)?/?", s3gw_endpoint)
     if m is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -174,7 +172,7 @@ async def s3gw_client(
         )
 
     # credentials follow the format 'access_key:secret_key'
-    m = re.fullmatch(r"^([\w+/=]+):([\w+/=]+)$", x_s3gw_credentials)
+    m = re.fullmatch(r"^([\w+/=]+):([\w+/=]+)$", s3gw_credentials)
     if m is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -184,7 +182,7 @@ async def s3gw_client(
     assert len(m.groups()) == 2
     access, secret = m.group(1), m.group(2)
     assert len(access) > 0 and len(secret) > 0
-    return S3GWClient(x_s3gw_endpoint, access, secret)
+    return S3GWClient(s3gw_endpoint, access, secret)
 
 
 def s3gw_client_responses() -> Dict[int | str, Dict[str, Any]]:
