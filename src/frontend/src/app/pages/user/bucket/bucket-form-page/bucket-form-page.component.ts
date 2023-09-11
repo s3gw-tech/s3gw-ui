@@ -76,6 +76,11 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           if (this.editing && bucket.VersioningEnabled) {
             this.form.getControl('VersioningEnabled')?.disable();
           }
+          if (this.editing && bucket.RetentionEnabled && bucket.RetentionMode === 'COMPLIANCE') {
+            this.form.getControl('RetentionMode')?.disable();
+            this.form.getControl('RetentionValidity')?.disable();
+            this.form.getControl('RetentionUnit')?.disable();
+          }
         },
         error: (err) => {
           this.pageStatus = PageStatus.loadingError;
