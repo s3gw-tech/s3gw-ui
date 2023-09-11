@@ -1,12 +1,11 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
-import { forkJoin, iif, Observable, of, switchMap } from 'rxjs';
-import { map, mergeMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
-import { AuthResponse } from '~/app/shared/services/api/auth.service';
-import { RgwService } from '~/app/shared/services/api/rgw.service';
+import { S3gwApiService } from '~/app/shared/services/api/s3gw-api.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 
 export type User = {
@@ -71,135 +70,104 @@ export type Quota = {
   providedIn: 'root'
 })
 export class AdminOpsUserService {
-  constructor(private authSessionService: AuthSessionService, private rgwService: RgwService) {}
-
-  /**
-   * Check if the given credentials are valid and the user is allowed
-   * to access the RGW Admin Ops API.
-   */
-  public authenticate(credentials: Credentials): Observable<AuthResponse> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params: Record<string, any> = { 'access-key': credentials.accessKey! };
-    return this.rgwService.get<User>('admin/user', { credentials, params }).pipe(
-      map((resp: User) => ({
-        userId: resp.user_id,
-        displayName: resp.display_name,
-        isAdmin: true
-      }))
-    );
-  }
+  constructor(
+    private authSessionService: AuthSessionService,
+    private s3gwApiService: S3gwApiService
+  ) {}
 
   /**
    * Get a list of user IDs.
    */
   public listIds(): Observable<string[]> {
     const credentials: Credentials = this.authSessionService.getCredentials();
-    return this.rgwService.get<string[]>('admin/metadata/user', { credentials });
+    return this.s3gwApiService.get<string[]>('admin/users/', { credentials });
   }
 
   /**
    * Get a list of users.
    */
   public list(stats: boolean = false): Observable<User[]> {
-    return this.listIds().pipe(
-      mergeMap((uids: string[]) =>
-        iif(
-          () => uids.length > 0,
-          forkJoin(uids.map((uid: string) => this.get(uid, stats))),
-          of([])
-        )
-      )
-    );
+    const credentials: Credentials = this.authSessionService.getCredentials();
+    const params: HttpParams = new HttpParams({ fromObject: { details: true, stats } });
+    return this.s3gwApiService.get<User[]>('admin/users/', { credentials, params });
   }
 
   public count(): Observable<number> {
     return this.listIds().pipe(map((uids: string[]) => uids.length));
   }
 
-  /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#create-user
-   */
-  public create(user: User): Observable<void> {
+  public create(user: User): Observable<User> {
     const credentials: Credentials = this.authSessionService.getCredentials();
-    const params: Record<string, any> = this.user2Params(user);
-    return this.rgwService.put<void>('admin/user', { credentials, params });
+    const params: HttpParams = this.user2Params(user);
+    return this.s3gwApiService.put<User>('admin/users/', { credentials, params });
   }
 
-  /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-user
-   */
   public delete(uid: string): Observable<string> {
     const credentials: Credentials = this.authSessionService.getCredentials();
-    const params: Record<string, any> = { uid };
-    return this.rgwService.delete<void>('admin/user', { credentials, params }).pipe(map(() => uid));
+    return this.s3gwApiService.delete<string>(`admin/users/${uid}`, { credentials });
   }
 
-  /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#modify-user
-   */
   public update(user: Partial<User>): Observable<User> {
     const credentials: Credentials = this.authSessionService.getCredentials();
-    const params: Record<string, any> = this.user2Params(user);
-    return this.rgwService.post<User>('admin/user', { credentials, params });
+    const params: HttpParams = this.user2Params(_.omit(user, 'user_id'));
+    return this.s3gwApiService.put<User>(`admin/users/${user.user_id}`, { credentials, params });
   }
 
-  /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#get-user-info
-   */
   public get(uid: string, stats: boolean = false): Observable<User> {
     const credentials: Credentials = this.authSessionService.getCredentials();
-    const params: Record<string, any> = { uid, stats };
-    return this.rgwService.get<User>('admin/user', { credentials, params });
+    const params: Record<string, any> = { stats };
+    return this.s3gwApiService.get<User>(`admin/users/${uid}`, { credentials, params });
   }
 
   /**
    * Check if the specified user exists.
    */
   public exists(uid: string): Observable<boolean> {
-    return this.listIds().pipe(map((uids: string[]) => uids.includes(uid)));
+    const credentials: Credentials = this.authSessionService.getCredentials();
+    return this.s3gwApiService.head(`admin/users/${uid}`, { credentials }).pipe(
+      map(() => true),
+      catchError((err) => {
+        if (_.isFunction(err.preventDefault)) {
+          err.preventDefault();
+        }
+        return of(false);
+      })
+    );
   }
 
-  /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#create-key
-   */
   public createKey(uid: string, key: Key): Observable<void> {
     const credentials: Credentials = this.authSessionService.getCredentials();
-    const params: Record<string, any> = this.key2Params(uid, key);
-    return this.rgwService.put<void>('admin/user?key', { credentials, params });
+    const params: Record<string, any> = this.key2Params(key);
+    return this.s3gwApiService.post<void>(`admin/users/${uid}/keys`, { credentials, params });
   }
 
-  public getKey(uid: string): Observable<Key> {
-    return this.get(uid).pipe(map((user: User) => user.keys[0]));
+  public getKeys(uid: string): Observable<Key[]> {
+    const credentials: Credentials = this.authSessionService.getCredentials();
+    return this.s3gwApiService.get<Key[]>(`admin/users/${uid}/keys`, { credentials });
   }
 
   /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-key
+   * Get the first key that is found.
+   *
+   * @param uid The ID of the user.
    */
+  public getKey(uid: string): Observable<Key> {
+    return this.getKeys(uid).pipe(map((keys: Key[]): Key => keys[0]));
+  }
+
   public deleteKey(uid: string, accessKey: string): Observable<Key> {
     const credentials: Credentials = this.authSessionService.getCredentials();
     const params: Record<string, any> = new HttpParams({
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      fromObject: { uid, 'access-key': accessKey }
+      fromObject: { access_key: accessKey }
     });
-    return this.rgwService.delete<void>('admin/user?key', { credentials, params }).pipe(
-      switchMap(() =>
-        of({
-          /* eslint-disable @typescript-eslint/naming-convention */
-          access_key: accessKey,
-          user: uid
-          /* eslint-enable @typescript-eslint/naming-convention */
-        })
-      )
-    );
+    return this.s3gwApiService.delete<Key>(`admin/users/${uid}/keys`, { credentials, params });
   }
 
-  /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#quotas
-   */
   updateQuota(uid: string, quota: Quota) {
     const credentials: Credentials = this.authSessionService.getCredentials();
-    const params: Record<string, any> = this.quota2Params(uid, quota);
-    return this.rgwService.put('admin/user?quota', { credentials, params });
+    const params: Record<string, any> = this.quota2Params(quota);
+    return this.s3gwApiService.put(`admin/users/${uid}/quota`, { credentials, params });
   }
 
   /**
@@ -220,13 +188,13 @@ export class AdminOpsUserService {
       _.set(params, 'uid', user.user_id);
     }
     if (_.isString(user.display_name) && !_.isEmpty(user.display_name)) {
-      _.set(params, 'display-name', user.display_name);
+      _.set(params, 'display_name', user.display_name);
     }
     if (_.isString(user.email)) {
       _.set(params, 'email', user.email);
     }
     if (_.isNumber(user.max_buckets)) {
-      _.set(params, 'max-buckets', user.max_buckets);
+      _.set(params, 'max_buckets', user.max_buckets);
     }
     if (_.isBoolean(user.suspended)) {
       _.set(params, 'suspended', user.suspended);
@@ -237,37 +205,37 @@ export class AdminOpsUserService {
     return new HttpParams({ fromObject: params });
   }
 
-  private key2Params(uid: string, key: Key): HttpParams {
-    let params: Record<string, any> = { uid };
+  private key2Params(key: Key): HttpParams {
+    let params: Record<string, any> = {};
     if (_.isString(key.access_key) && !_.isEmpty(key.access_key)) {
-      _.set(params, 'access-key', key.access_key);
+      _.set(params, 'access_key', key.access_key);
     }
     if (_.isString(key.secret_key) && !_.isEmpty(key.secret_key)) {
-      _.set(params, 'secret-key', key.secret_key);
+      _.set(params, 'secret_key', key.secret_key);
     }
     if (_.isString(key.user) && !_.isEmpty(key.user)) {
       _.set(params, 'subuser', key.generate_key);
     }
     if (_.isBoolean(key.generate_key) && key.generate_key) {
-      _.set(params, 'generate-key', key.generate_key);
-      params = _.omit(params, ['access-key', 'secret-key']);
+      _.set(params, 'generate_key', key.generate_key);
+      params = _.omit(params, ['access_key', 'secret_key']);
     }
     return new HttpParams({ fromObject: params });
   }
 
-  private quota2Params(uid: string, quota: Quota) {
-    const params: Record<string, any> = { uid };
+  private quota2Params(quota: Quota) {
+    const params: Record<string, any> = {};
     if (_.isString(quota.type)) {
-      _.set(params, 'quota-type', quota.type);
+      _.set(params, 'quota_type', quota.type);
     }
     if (_.isBoolean(quota.enabled)) {
       _.set(params, 'enabled', quota.enabled);
     }
     if (_.isNumber(quota.max_size)) {
-      _.set(params, 'max-size', quota.max_size);
+      _.set(params, 'max_size', quota.max_size);
     }
     if (_.isNumber(quota.max_objects)) {
-      _.set(params, 'max-objects', quota.max_objects);
+      _.set(params, 'max_objects', quota.max_objects);
     }
     return new HttpParams({ fromObject: params });
   }

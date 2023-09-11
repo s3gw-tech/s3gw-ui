@@ -96,7 +96,7 @@ export class BucketDatatablePageComponent {
   loadData(): void {
     this.pageStatus = !this.firstLoadComplete ? PageStatus.loading : PageStatus.reloading;
     this.bucketService
-      .list(true)
+      .list()
       .pipe(
         finalize(() => {
           this.firstLoadComplete = true;

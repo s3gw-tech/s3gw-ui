@@ -37,7 +37,7 @@ def signed_request(
     understood by RGW's admin ops authentication.
     """
     creds = Credentials(access, secret)
-    awsreq = AWSRequest(
+    aws_req = AWSRequest(
         method=method, url=url, data=data, params=params, headers=headers
     )
     # NOTE(jecluis): it seems that query parameters are not considered for the
@@ -45,14 +45,14 @@ def signed_request(
     # after the base URL:port address. E.g., http://foo.bar:123/?param1=baz
     # works, whereas http://foo.bar:123?param1=baz does not.
     #
-    HmacV1Auth(credentials=creds).add_auth(awsreq)
+    HmacV1Auth(credentials=creds).add_auth(aws_req)
 
     return httpx.Request(
         method=method,
         url=url,
-        params=awsreq.params,
-        data=awsreq.data,
-        headers=dict(awsreq.headers),
+        params=aws_req.params,
+        data=aws_req.data,
+        headers=dict(aws_req.headers),
     )
 
 
@@ -66,7 +66,6 @@ async def send_request(req: httpx.Request) -> httpx.Response:
         res: httpx.Response = await client.send(req)
         if not res.is_success:
             raise error_from_response(res)
-
         return res
 
 
@@ -78,6 +77,7 @@ async def do_request(
     endpoint: str,
     method: HTTPMethodType,
     params: Dict[str, Any] | None = None,
+    headers: Dict[str, Any] | None = None,
 ) -> httpx.Response:
     ep = endpoint if endpoint.startswith("/") else f"/{endpoint}"
 
@@ -87,6 +87,7 @@ async def do_request(
         method=method,
         url=f"{url}{ep}",
         params=params,
+        headers=headers,
     )
 
     return await send_request(req)

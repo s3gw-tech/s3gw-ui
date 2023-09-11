@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { finalize } from 'rxjs/operators';
 
@@ -21,7 +20,14 @@ import { DatatableRowAction } from '~/app/shared/models/datatable-row-action.typ
 import { DeclarativeFormValues } from '~/app/shared/models/declarative-form-config.type';
 import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
 import { PageAction } from '~/app/shared/models/page-action.type';
-import { S3BucketService } from '~/app/shared/services/api/s3-bucket.service';
+import {
+  S3BucketName,
+  S3BucketService,
+  S3GetBucketLifecycleConfiguration,
+  S3ID,
+  S3LifecycleRule,
+  S3LifecycleRules
+} from '~/app/shared/services/api/s3-bucket.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
@@ -32,8 +38,8 @@ import { NotificationService } from '~/app/shared/services/notification.service'
   styleUrls: ['./bucket-lifecycle-datatable-page.component.scss']
 })
 export class BucketLifecycleDatatablePageComponent implements OnInit {
-  public bid: AWS.S3.Types.BucketName = '';
-  public rules: AWS.S3.Types.LifecycleRules = [];
+  public bid: S3BucketName = '';
+  public rules: S3LifecycleRules = [];
   public datatableActions: DatatableAction[] = [];
   public datatableColumns: DatatableColumn[] = [];
   public icons = Icon;
@@ -58,7 +64,7 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
           minSelected: 1
         },
         callback: (event: Event, action: DatatableAction, table: Datatable) =>
-          this.doDelete(table.selected as AWS.S3.Types.LifecycleRules)
+          this.doDelete(table.selected as S3LifecycleRules)
       }
     ];
     this.datatableColumns = [
@@ -124,10 +130,10 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
         })
       )
       .subscribe({
-        next: (config: AWS.S3.Types.GetBucketLifecycleConfigurationOutput) => {
+        next: (config: S3GetBucketLifecycleConfiguration) => {
           // Pick only the required properties of a life cycle rule.
           this.rules = config.Rules
-            ? _.map(config.Rules, (rule: AWS.S3.Types.LifecycleRule) =>
+            ? _.map(config.Rules, (rule: S3LifecycleRule) =>
                 _.pick(rule, ['ID', 'Status', 'Expiration', 'Prefix', 'Filter'])
               )
             : [];
@@ -140,13 +146,13 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
       });
   }
 
-  private onActionMenu(rule: AWS.S3.Types.LifecycleRule): DatatableRowAction[] {
+  private onActionMenu(rule: S3LifecycleRule): DatatableRowAction[] {
     const result: DatatableRowAction[] = [
       {
         title: TEXT('Edit'),
         icon: this.icons.edit,
         callback: (data: DatatableData) => {
-          this.doEdit(data as AWS.S3.Types.LifecycleRule);
+          this.doEdit(data as S3LifecycleRule);
         }
       },
       {
@@ -155,7 +161,7 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
       {
         title: TEXT('Delete'),
         icon: this.icons.delete,
-        callback: (data: DatatableData) => this.doDelete([data as AWS.S3.Types.LifecycleRule])
+        callback: (data: DatatableData) => this.doDelete([data as S3LifecycleRule])
       }
     ];
     return result;
@@ -168,7 +174,7 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
         if (false === values) {
           return;
         }
-        const newRule: AWS.S3.Types.LifecycleRule = {
+        const newRule: S3LifecycleRule = {
           /* eslint-disable @typescript-eslint/naming-convention */
           ID: values['id'],
           Status: values['enabled'] ? 'Enabled' : 'Disabled',
@@ -180,7 +186,7 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
           }
           /* eslint-enable @typescript-eslint/naming-convention */
         };
-        const newRules: AWS.S3.Types.LifecycleRules = [newRule, ...this.rules];
+        const newRules: S3LifecycleRules = [newRule, ...this.rules];
         this.s3BucketService
           .setLifecycleConfiguration(this.bid, newRules)
           .pipe()
@@ -192,17 +198,14 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
     );
   }
 
-  private doEdit(rule: AWS.S3.Types.LifecycleRule): void {
+  private doEdit(rule: S3LifecycleRule): void {
     this.dialogService.open(
       DeclarativeFormModalComponent,
       (values: DeclarativeFormValues | false) => {
         if (false === values) {
           return;
         }
-        const ruleToModify: AWS.S3.Types.LifecycleRule | undefined = _.find(this.rules, [
-          'ID',
-          rule.ID
-        ]);
+        const ruleToModify: S3LifecycleRule | undefined = _.find(this.rules, ['ID', rule.ID]);
         if (_.isUndefined(ruleToModify)) {
           return;
         }
@@ -223,22 +226,22 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
     );
   }
 
-  private doDelete(rules: AWS.S3.Types.LifecycleRules): void {
-    const removeIDs: AWS.S3.Types.ID[] = _.map(rules, _.property('ID'));
-    this.modalDialogService.confirmDeletion<AWS.S3.Types.ID>(
+  private doDelete(rules: S3LifecycleRules): void {
+    const removeIDs: S3ID[] = _.map(rules, _.property('ID'));
+    this.modalDialogService.confirmDeletion<S3ID>(
       removeIDs,
       {
         singular: TEXT(
           'Do you really want to delete the lifecycle rule <strong>{{ name }}</strong>?'
         ),
-        singularFmtArgs: (id: AWS.S3.Types.ID) => ({ name: id }),
+        singularFmtArgs: (id: S3ID) => ({ name: id }),
         plural: TEXT(
           'Do you really want to delete these <strong>{{ count }}</strong> lifecycle rules?'
         )
       },
       () => {
         const newRules = _.cloneDeep(this.rules);
-        _.remove(newRules, (rule: AWS.S3.Types.LifecycleRule) => removeIDs.includes(rule.ID!));
+        _.remove(newRules, (rule: S3LifecycleRule) => removeIDs.includes(rule.ID!));
         this.s3BucketService
           .setLifecycleConfiguration(this.bid, newRules)
           .pipe()
@@ -260,10 +263,7 @@ export class BucketLifecycleDatatablePageComponent implements OnInit {
     );
   }
 
-  private createForm(
-    mode: 'create' | 'edit',
-    rule?: AWS.S3.Types.LifecycleRule
-  ): DeclarativeFormModalConfig {
+  private createForm(mode: 'create' | 'edit', rule?: S3LifecycleRule): DeclarativeFormModalConfig {
     return {
       formConfig: {
         title: mode === 'create' ? TEXT('Lifecycle Rule: Create') : TEXT('Lifecycle Rule'),

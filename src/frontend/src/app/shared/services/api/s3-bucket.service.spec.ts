@@ -1,4 +1,3 @@
-import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ToastrModule } from 'ngx-toastr';
 
@@ -8,7 +7,6 @@ import { TestingModule } from '~/app/testing.module';
 
 describe('S3BucketService', () => {
   let service: S3BucketService;
-  let httpTesting: HttpTestingController;
   let authSessionService: AuthSessionService;
 
   beforeEach(() => {
@@ -17,7 +15,6 @@ describe('S3BucketService', () => {
       imports: [TestingModule, ToastrModule.forRoot()]
     });
     service = TestBed.inject(S3BucketService);
-    httpTesting = TestBed.inject(HttpTestingController);
     authSessionService = TestBed.inject(AuthSessionService);
     authSessionService.set('bar', 'baz', '456');
   });

@@ -110,18 +110,38 @@ async def test_s3server(s3_server: str) -> None:
         await client.delete_bucket(Bucket="foo")
 
 
-def test_decode_client_error() -> None:
+def test_decode_client_error_1() -> None:
     error = ClientError(
         error_response={
-            "Error": {"Code": "InvalidAccessKeyId", "Message": "foo bar"}
+            "Error": {"Code": "InvalidAccessKeyId", "Message": "foo bar"},
+            "ResponseMetadata": {  # pyright: ignore [reportGeneralTypeIssues]
+                "HTTPStatusCode": 401
+            },
         },
         operation_name="TestOperation",
     )
-    (code, msg) = decode_client_error(error)
-    assert code == status.HTTP_401_UNAUTHORIZED
-    assert msg == "Invalid credentials"
+    (status_code, detail) = decode_client_error(error)
+    assert status_code == status.HTTP_401_UNAUTHORIZED
+    assert detail == "Invalid access key"
 
+
+def test_decode_client_error_2() -> None:
     error = ClientError(error_response={}, operation_name="TestOperation2")
-    (code, msg) = decode_client_error(error)
-    assert code == status.HTTP_500_INTERNAL_SERVER_ERROR
-    assert msg == "Unknown Error"
+    (status_code, detail) = decode_client_error(error)
+    assert status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert detail == "Unknown error"
+
+
+def test_decode_client_error_3() -> None:
+    error = ClientError(
+        error_response={
+            "Error": {
+                "Code": "403",
+                "Message": "foo bar",
+            },  # pyright: ignore [reportGeneralTypeIssues]
+        },
+        operation_name="TestOperation",
+    )
+    (status_code, detail) = decode_client_error(error)
+    assert status_code == status.HTTP_403_FORBIDDEN
+    assert detail == "foo bar"

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Optional, Union
 
-from fastapi import Depends
+from fastapi import Depends, Response, status
 from fastapi.routing import APIRouter
 
 import backend.admin_ops.buckets as admin_ops_buckets
@@ -30,8 +30,23 @@ S3GWClientDep = Annotated[S3GWClient, Depends(s3gw_client)]
 ##############################################################################
 # Users
 ##############################################################################
+@router.head(
+    "/users/{uid}",
+    responses=s3gw_client_responses(),
+)
+async def user_exists(conn: S3GWClientDep, uid: str) -> Response:
+    res = await admin_ops_users.list_uids(
+        conn.endpoint, conn.access_key, conn.secret_key
+    )
+    status_code = (
+        status.HTTP_200_OK if uid in res else status.HTTP_404_NOT_FOUND
+    )
+    return Response(content="", status_code=status_code)
+
+
 @router.get(
     "/users/{uid}",
+    name="get_user",
     response_model=admin_ops_types.UserInfo,
     responses=s3gw_client_responses(),
 )
@@ -39,15 +54,46 @@ async def get_user(
     conn: S3GWClientDep, uid: str, stats: bool = False
 ) -> admin_ops_types.UserInfo:
     res = await admin_ops_users.get_user_info(
-        conn.endpoint, conn.access_key, conn.secret_key, uid, stats
+        conn.endpoint, conn.access_key, conn.secret_key, uid=uid, stats=stats
     )
     return res
 
 
-@router.post(
-    "/users",
+@router.put(
+    "/users/{uid}",
     response_model=admin_ops_types.UserInfo,
     responses=s3gw_client_responses(),
+)
+async def update_user(
+    conn: S3GWClientDep,
+    uid: str,
+    display_name: Optional[str] = None,
+    email: Optional[str] = None,
+    suspended: Optional[bool] = None,
+    max_buckets: Optional[int] = None,
+    admin: Optional[bool] = None,
+) -> admin_ops_types.UserInfo:
+    res = await admin_ops_users.update(
+        conn.endpoint,
+        conn.access_key,
+        conn.secret_key,
+        user=admin_ops_types.UserOpParams(
+            uid=uid,
+            display_name=display_name,
+            email=email,
+            max_buckets=max_buckets,
+            suspended=suspended,
+            admin=admin,
+        ),
+    )
+    return res
+
+
+@router.put(
+    "/users/",
+    response_model=admin_ops_types.UserInfo,
+    responses=s3gw_client_responses(),
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_user(
     conn: S3GWClientDep,
@@ -61,6 +107,7 @@ async def create_user(
     secret_key: Optional[str] = None,
     user_caps: Optional[str] = None,
     tenant: Optional[str] = None,
+    admin: Optional[bool] = None,
 ) -> admin_ops_types.UserInfo:
     res = await admin_ops_users.create(
         conn.endpoint,
@@ -77,6 +124,7 @@ async def create_user(
             max_buckets=max_buckets,
             suspended=suspended,
             tenant=tenant,
+            admin=admin,
         ),
     )
     return res
@@ -84,9 +132,10 @@ async def create_user(
 
 @router.delete(
     "/users/{uid}",
+    response_model=str,
     responses=s3gw_client_responses(),
 )
-async def delete_user(conn: S3GWClientDep, uid: str) -> None:
+async def delete_user(conn: S3GWClientDep, uid: str) -> str:
     res = await admin_ops_users.delete(
         conn.endpoint, conn.access_key, conn.secret_key, uid=uid
     )
@@ -94,42 +143,38 @@ async def delete_user(conn: S3GWClientDep, uid: str) -> None:
 
 
 @router.get(
-    "/users/{uid}/authenticate",
-    response_model=admin_ops_types.AuthUser,
+    "/users/",
+    response_model=Union[List[str], List[admin_ops_types.UserInfo]],
     responses=s3gw_client_responses(),
 )
-async def authenticate_user(conn: S3GWClientDep) -> admin_ops_types.AuthUser:
-    res = await admin_ops_users.get_auth_user(
-        conn.endpoint, conn.access_key, conn.secret_key
-    )
+async def list_users(
+    conn: S3GWClientDep, details: bool = False, stats: bool = False
+) -> Union[List[str], List[admin_ops_types.UserInfo]]:
+    if not details:
+        res = await admin_ops_users.list_uids(
+            conn.endpoint, conn.access_key, conn.secret_key
+        )
+    else:
+        res = await admin_ops_users.list_users(
+            conn.endpoint, conn.access_key, conn.secret_key, stats
+        )
     return res
 
 
-@router.get(
-    "/users",
-    response_model=List[str],
-    responses=s3gw_client_responses(),
-)
-async def list_users(conn: S3GWClientDep) -> List[str]:
-    res = await admin_ops_users.list_uids(
-        conn.endpoint, conn.access_key, conn.secret_key
-    )
-    return res
-
-
-@router.put(
+@router.post(
     "/users/{uid}/keys",
-    response_model=List[admin_ops_types.UserKeys],
     responses=s3gw_client_responses(),
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_user_key(
     conn: S3GWClientDep,
+    response: Response,
     uid: str,
     generate_key: bool = True,
     access_key: Optional[str] = None,
     secret_key: Optional[str] = None,
-) -> List[admin_ops_types.UserKeys]:
-    res = await admin_ops_users.create_key(
+) -> None:
+    await admin_ops_users.create_key(
         conn.endpoint,
         conn.access_key,
         conn.secret_key,
@@ -140,17 +185,18 @@ async def create_user_key(
             generate_key=generate_key,
         ),
     )
-    return res
+    response.headers["location"] = router.url_path_for("get_user_keys", uid=uid)
 
 
 @router.get(
     "/users/{uid}/keys",
-    response_model=List[admin_ops_types.UserKeys],
+    name="get_user_keys",
+    response_model=List[admin_ops_types.UserKey],
     responses=s3gw_client_responses(),
 )
 async def get_user_keys(
     conn: S3GWClientDep, uid: str
-) -> List[admin_ops_types.UserKeys]:
+) -> List[admin_ops_types.UserKey]:
     res = await admin_ops_users.get_keys(
         conn.endpoint, conn.access_key, conn.secret_key, uid=uid
     )
@@ -158,24 +204,27 @@ async def get_user_keys(
 
 
 @router.delete(
-    "/users/{uid}/keys/{access_key}",
+    "/users/{uid}/keys",
+    response_model=admin_ops_types.UserKey,
     responses=s3gw_client_responses(),
 )
 async def delete_user_key(
     conn: S3GWClientDep, uid: str, access_key: str
-) -> None:
-    await admin_ops_users.delete_key(
+) -> admin_ops_types.UserKey:
+    res = await admin_ops_users.delete_key(
         conn.endpoint,
         conn.access_key,
         conn.secret_key,
         uid=uid,
         user_access_key=access_key,
     )
+    return res
 
 
 @router.put(
     "/users/{uid}/quota",
     responses=s3gw_client_responses(),
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def update_user_quota(
     conn: S3GWClientDep,
@@ -212,18 +261,93 @@ async def list_user_buckets(
     return res
 
 
+@router.get(
+    "/users/{uid}/usage-stats",
+    response_model=admin_ops_types.UsageStats,
+    responses=s3gw_client_responses(),
+)
+async def get_user_usage_stats(
+    conn: S3GWClientDep, uid: str
+) -> admin_ops_types.UsageStats:
+    res = await admin_ops_users.get_usage_stats(
+        conn.endpoint, conn.access_key, conn.secret_key
+    )
+    return res
+
+
 ##############################################################################
 # Buckets
 ##############################################################################
 @router.get(
-    "/buckets/{bucket_name}",
+    "/buckets/",
+    response_model=List[admin_ops_types.Bucket],
+    responses=s3gw_client_responses(),
+)
+async def list_buckets(
+    conn: S3GWClientDep, uid: Optional[str] = None
+) -> List[admin_ops_types.Bucket]:
+    res = await admin_ops_buckets.list_buckets(
+        conn.endpoint, conn.access_key, conn.secret_key, uid
+    )
+    return res
+
+
+@router.get(
+    "/buckets/{bucket}",
     response_model=admin_ops_types.Bucket,
     responses=s3gw_client_responses(),
 )
-async def bucket_info(
-    conn: S3GWClientDep, bucket_name: str
+async def get_bucket_info(
+    conn: S3GWClientDep, bucket: str
 ) -> admin_ops_types.Bucket:
-    res = await admin_ops_buckets.get_bucket(
-        conn.endpoint, conn.access_key, conn.secret_key, bucket_name=bucket_name
+    res = await admin_ops_buckets.get_bucket_info(
+        conn.endpoint, conn.access_key, conn.secret_key, bucket=bucket
     )
     return res
+
+
+@router.head(
+    "/buckets/{bucket}",
+    responses=s3gw_client_responses(),
+)
+async def bucket_exists(conn: S3GWClientDep, bucket: str) -> Response:
+    await admin_ops_buckets.get_bucket_info(
+        conn.endpoint, conn.access_key, conn.secret_key, bucket=bucket
+    )
+    return Response(content="", status_code=status.HTTP_200_OK)
+
+
+@router.delete(
+    "/buckets/{bucket}",
+    response_model=str,
+    responses=s3gw_client_responses(),
+)
+async def delete_bucket(
+    conn: S3GWClientDep, bucket: str, purge_objects: bool = True
+) -> str:
+    res = await admin_ops_buckets.delete_bucket(
+        conn.endpoint,
+        conn.access_key,
+        conn.secret_key,
+        bucket=bucket,
+        purge_objects=purge_objects,
+    )
+    return res
+
+
+@router.put(
+    "/buckets/{bucket}/link",
+    responses=s3gw_client_responses(),
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def link_bucket(
+    conn: S3GWClientDep, bucket: str, bucket_id: str, uid: str
+) -> None:
+    await admin_ops_buckets.link_bucket(
+        conn.endpoint,
+        conn.access_key,
+        conn.secret_key,
+        bucket=bucket,
+        bucket_id=bucket_id,
+        uid=uid,
+    )

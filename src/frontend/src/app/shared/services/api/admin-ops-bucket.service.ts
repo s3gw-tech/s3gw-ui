@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 import { concat, Observable, of, toArray } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
@@ -7,12 +6,13 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { isEqualOrUndefined } from '~/app/functions.helper';
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { AdminOpsUserService, Key } from '~/app/shared/services/api/admin-ops-user.service';
-import { RgwService } from '~/app/shared/services/api/rgw.service';
 import {
   S3Bucket,
   S3BucketAttributes,
-  S3BucketService
+  S3BucketService,
+  S3TagSet
 } from '~/app/shared/services/api/s3-bucket.service';
+import { S3gwApiService } from '~/app/shared/services/api/s3gw-api.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 
 export type Bucket = BucketExtraAttributes & {
@@ -49,11 +49,11 @@ export type Bucket = BucketExtraAttributes & {
 
 type BucketExtraAttributes = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  tags?: AWS.S3.Types.TagSet;
+  tags?: S3TagSet;
   versioning_enabled?: boolean;
   object_lock_enabled?: boolean;
   retention_enabled?: boolean;
-  retention_mode?: AWS.S3.Types.ObjectLockRetentionMode;
+  retention_mode?: 'GOVERNANCE' | 'COMPLIANCE';
   retention_validity?: number;
   retention_unit?: 'Days' | 'Years';
   /* eslint-enable @typescript-eslint/naming-convention */
@@ -68,34 +68,29 @@ type BucketExtraAttributes = {
 export class AdminOpsBucketService {
   constructor(
     private authSessionService: AuthSessionService,
-    private rgwService: RgwService,
     private s3BucketService: S3BucketService,
-    private userService: AdminOpsUserService
+    private s3gwApiService: S3gwApiService,
+    private adminOpsUserService: AdminOpsUserService
   ) {}
 
-  /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#get-bucket-info
-   */
-  public list(stats: boolean = false, uid: string = ''): Observable<Bucket[]> {
+  public list(uid?: string): Observable<Bucket[]> {
     const credentials: Credentials = this.authSessionService.getCredentials();
-    const params: Record<string, any> = {
-      stats
-    };
-    if (!_.isEmpty(uid)) {
+    const params: Record<string, any> = {};
+    if (_.isString(uid)) {
       _.set(params, 'uid', uid);
     }
-    return this.rgwService.get<Bucket[]>('admin/bucket', { credentials, params });
+    return this.s3gwApiService.get<Bucket[]>('admin/buckets/', { credentials, params });
   }
 
-  public count(uid: string = ''): Observable<number> {
-    return this.list(true, uid).pipe(map((buckets: Bucket[]) => buckets.length));
+  public count(uid?: string): Observable<number> {
+    return this.list(uid).pipe(map((buckets: Bucket[]) => buckets.length));
   }
 
   public create(bucket: Bucket): Observable<S3Bucket> {
     // To create a new bucket the following steps are necessary:
     // 1. Get the credentials of the specified bucket owner.
     // 2. Create the bucket using these credentials.
-    return this.userService.getKey(bucket.owner).pipe(
+    return this.adminOpsUserService.getKey(bucket.owner).pipe(
       switchMap((key: Key) => {
         const credentials: Credentials = Credentials.fromKey(key);
         return this.s3BucketService.create(
@@ -104,6 +99,10 @@ export class AdminOpsBucketService {
             Name: bucket.bucket,
             VersioningEnabled: bucket.versioning_enabled,
             ObjectLockEnabled: bucket.object_lock_enabled,
+            RetentionEnabled: bucket.retention_enabled,
+            RetentionMode: bucket.retention_mode,
+            RetentionValidity: bucket.retention_validity,
+            RetentionUnit: bucket.retention_unit,
             TagSet: bucket.tags
             /* eslint-enable @typescript-eslint/naming-convention */
           },
@@ -113,16 +112,11 @@ export class AdminOpsBucketService {
     );
   }
 
-  /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#remove-bucket
-   */
   public delete(bucket: string, purgeObjects: boolean = true): Observable<string> {
     const credentials: Credentials = this.authSessionService.getCredentials();
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const params: Record<string, any> = { bucket, 'purge-objects': purgeObjects };
-    return this.rgwService
-      .delete<void>('admin/bucket', { credentials, params })
-      .pipe(map(() => bucket));
+    const params: Record<string, any> = { purge_objects: purgeObjects };
+    return this.s3gwApiService.delete<string>(`admin/buckets/${bucket}`, { credentials, params });
   }
 
   public update(bucket: Partial<Bucket>): Observable<Bucket> {
@@ -181,13 +175,9 @@ export class AdminOpsBucketService {
     );
   }
 
-  /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#get-bucket-info
-   */
   public get(bucket: string): Observable<Bucket> {
     const credentials: Credentials = this.authSessionService.getCredentials();
-    const params: Record<string, any> = { bucket };
-    return this.rgwService.get<Bucket>('admin/bucket', { credentials, params }).pipe(
+    return this.s3gwApiService.get<Bucket>(`admin/buckets/${bucket}`, { credentials }).pipe(
       switchMap((resp: Bucket) =>
         this.getAttributes(resp.bucket, resp.owner).pipe(
           map((attr: BucketExtraAttributes) => {
@@ -203,7 +193,8 @@ export class AdminOpsBucketService {
    * Check if the specified bucket exists.
    */
   public exists(bucket: string): Observable<boolean> {
-    return this.get(bucket).pipe(
+    const credentials: Credentials = this.authSessionService.getCredentials();
+    return this.s3gwApiService.head<Bucket>(`admin/buckets/${bucket}`, { credentials }).pipe(
       map(() => true),
       catchError((error) => {
         if (_.isFunction(error.preventDefault)) {
@@ -215,7 +206,7 @@ export class AdminOpsBucketService {
   }
 
   /**
-   * https://docs.ceph.com/en/latest/radosgw/adminops/#link-bucket
+   * Link the bucket to the specified user.
    *
    * @private
    */
@@ -227,7 +218,7 @@ export class AdminOpsBucketService {
       'bucket-id': bucketId,
       uid
     };
-    return this.rgwService.put<void>('admin/bucket', { credentials, params });
+    return this.s3gwApiService.put<void>(`admin/buckets/${bucket}/link`, { credentials, params });
   }
 
   /**
@@ -240,7 +231,7 @@ export class AdminOpsBucketService {
    * @private
    */
   private getAttributes(bucket: string, uid: string): Observable<BucketExtraAttributes> {
-    return this.userService.getKey(uid).pipe(
+    return this.adminOpsUserService.getKey(uid).pipe(
       switchMap((key: Key) => {
         const credentials: Credentials = Credentials.fromKey(key);
         return this.s3BucketService.getAttributes(bucket, credentials).pipe(
@@ -272,7 +263,7 @@ export class AdminOpsBucketService {
    * @private
    */
   private setAttributes(bucket: Partial<Bucket>, uid: string): Observable<S3Bucket> {
-    return this.userService.getKey(uid).pipe(
+    return this.adminOpsUserService.getKey(uid).pipe(
       switchMap((key: Key) => {
         const credentials: Credentials = Credentials.fromKey(key);
         return this.s3BucketService.update(
@@ -283,6 +274,7 @@ export class AdminOpsBucketService {
             VersioningEnabled: bucket.versioning_enabled,
             ObjectLockEnabled: bucket.object_lock_enabled,
             RetentionEnabled: bucket.retention_enabled,
+            // @ts-ignore
             RetentionMode: bucket.retention_mode,
             RetentionValidity: bucket.retention_validity,
             RetentionUnit: bucket.retention_unit

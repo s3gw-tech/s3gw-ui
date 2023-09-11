@@ -26,10 +26,10 @@ describe('AuthService', () => {
     const authStorageService = TestBed.inject(AuthSessionService);
     jest.spyOn(authStorageService, 'set').mockImplementation();
     service.login('foo', 'bar').subscribe();
-    const req = httpTesting.expectOne('/admin/user?access-key=foo');
+    const req = httpTesting.expectOne('/auth/authenticate');
     expect(req.request.method).toBe('GET');
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    req.flush({ user_id: 'baz' });
+    req.flush({ ID: 'baz', IsAdmin: true });
     expect(authStorageService.set).toBeCalledWith('baz', 'foo', 'bar', true);
   });
 

@@ -16,24 +16,24 @@ from json import JSONDecodeError
 from typing import Any, Dict
 
 import httpx
+import pydash
+from fastapi import HTTPException
 
-from backend.s3gw.errors import S3GWError, error_from_code
 
-
-def error_from_response(res: httpx.Response) -> S3GWError:
+def error_from_response(res: httpx.Response) -> HTTPException:
     """Translates an error response from the admin ops API to an exception."""
     assert not res.is_success
 
-    error: Dict[str, Any] | None = None
+    error: Dict[str, Any] = {}
     try:
         error = res.json()
     except JSONDecodeError:
         pass
 
-    code: str = (
-        "Unknown" if error is None or "Code" not in error else error["Code"]
+    return HTTPException(
+        status_code=res.status_code,
+        detail=pydash.human_case(error.get("Code", "UnknownError")),
     )
-    return error_from_code(code)
 
 
 class MissingParameterError(Exception):

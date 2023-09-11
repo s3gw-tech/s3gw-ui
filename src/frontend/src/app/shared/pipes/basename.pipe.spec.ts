@@ -1,20 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 
 import { BasenamePipe } from '~/app/shared/pipes/basename.pipe';
-import { RgwServiceConfigService } from '~/app/shared/services/rgw-service-config.service';
+import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 import { TestingModule } from '~/app/testing.module';
 
 describe('BasenamePipe', () => {
   let pipe: BasenamePipe;
-  let rgwServiceConfigService: RgwServiceConfigService;
+  let s3gwConfigService: S3gwConfigService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [RgwServiceConfigService],
+      providers: [S3gwConfigService],
       imports: [TestingModule]
     });
-    rgwServiceConfigService = TestBed.inject(RgwServiceConfigService);
-    pipe = new BasenamePipe(rgwServiceConfigService);
+    s3gwConfigService = TestBed.inject(S3gwConfigService);
+    pipe = new BasenamePipe(s3gwConfigService);
   });
 
   it('create an instance', () => {

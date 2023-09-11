@@ -2,12 +2,12 @@
 import { Component, forwardRef, HostBinding, HostListener } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
-import * as AWS from 'aws-sdk';
 import * as _ from 'lodash';
 
 import { DeclarativeFormModalComponent } from '~/app/shared/components/declarative-form-modal/declarative-form-modal.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
+import { S3Tag, S3TagSet } from '~/app/shared/services/api/s3-bucket.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
 @Component({
@@ -31,17 +31,17 @@ export class TagsInputComponent implements ControlValueAccessor {
   public icons = Icon;
   public disabled = false;
 
-  private _value: AWS.S3.Types.TagSet = [];
+  private _value: S3TagSet = [];
   private onChange = (_value: any) => {};
   private onTouched = () => {};
 
   constructor(private dialogService: DialogService) {}
 
-  get value(): AWS.S3.Types.TagSet {
+  get value(): S3TagSet {
     // eslint-disable-next-line no-underscore-dangle
     return _.sortBy(this._value, ['Key']);
   }
-  set value(value: AWS.S3.Types.TagSet) {
+  set value(value: S3TagSet) {
     // eslint-disable-next-line no-underscore-dangle
     this._value = value;
   }
@@ -70,9 +70,9 @@ export class TagsInputComponent implements ControlValueAccessor {
     // @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html
     this.dialogService.open(
       DeclarativeFormModalComponent,
-      (result: AWS.S3.Types.Tag | false) => {
+      (result: S3Tag | false) => {
         if (result !== false) {
-          const newValue: AWS.S3.Types.TagSet = _.reject(this.value, ['Key', result.Key]);
+          const newValue: S3TagSet = _.reject(this.value, ['Key', result.Key]);
           newValue.push(result);
           this.value = newValue;
           this.onChange(this.value);
@@ -109,7 +109,7 @@ export class TagsInputComponent implements ControlValueAccessor {
     );
   }
 
-  removeTag(tag: AWS.S3.Types.Tag): void {
+  removeTag(tag: S3Tag): void {
     this.value = _.reject(this.value, { ...tag });
     this.onChange(this.value);
     this.onTouched();

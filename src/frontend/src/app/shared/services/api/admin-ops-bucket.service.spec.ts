@@ -1,9 +1,8 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ToastrModule } from 'ngx-toastr';
-import { of, throwError } from 'rxjs';
 
-import { AdminOpsBucketService, Bucket } from '~/app/shared/services/api/admin-ops-bucket.service';
+import { AdminOpsBucketService } from '~/app/shared/services/api/admin-ops-bucket.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { TestingModule } from '~/app/testing.module';
 
@@ -29,47 +28,51 @@ describe('AdminOpsBucketService', () => {
 
   it('should call list [1]', () => {
     service.list().subscribe();
-    const req = httpTesting.expectOne('/admin/bucket?stats=false');
+    const req = httpTesting.expectOne('/admin/buckets/');
     expect(req.request.method).toBe('GET');
   });
 
   it('should call list [2]', () => {
-    service.list(true).subscribe();
-    const req = httpTesting.expectOne('/admin/bucket?stats=true');
+    service.list().subscribe();
+    const req = httpTesting.expectOne('/admin/buckets/');
     expect(req.request.method).toBe('GET');
   });
 
   it('should call list [3]', () => {
-    service.list(false, 'hugo').subscribe();
-    const req = httpTesting.expectOne('/admin/bucket?stats=false&uid=hugo');
+    service.list('hugo').subscribe();
+    const req = httpTesting.expectOne('/admin/buckets/?uid=hugo');
     expect(req.request.method).toBe('GET');
   });
 
   it('should call exists [1]', (done) => {
-    jest.spyOn(service, 'get').mockReturnValue(throwError(() => new Error()));
-    service.exists('foo').subscribe((exists: boolean) => {
-      expect(exists).toBe(false);
-      done();
-    });
-  });
-
-  it('should call exists [2]', (done) => {
-    jest.spyOn(service, 'get').mockReturnValue(of({ id: '1234', bucket: 'test' } as Bucket));
-    service.exists('foo').subscribe((exists: boolean) => {
+    service.exists('test01').subscribe((exists: boolean) => {
       expect(exists).toBe(true);
       done();
     });
+    const req = httpTesting.expectOne('/admin/buckets/test01');
+    req.flush('', { status: 200, statusText: '' });
+    expect(req.request.method).toBe('HEAD');
+  });
+
+  it('should call exists [2]', (done) => {
+    service.exists('test02').subscribe((exists: boolean) => {
+      expect(exists).toBe(false);
+      done();
+    });
+    const req = httpTesting.expectOne('/admin/buckets/test02');
+    req.flush('', { status: 404, statusText: 'Bucket not found' });
+    expect(req.request.method).toBe('HEAD');
   });
 
   it('should call delete [1]', () => {
     service.delete('bar').subscribe();
-    const req = httpTesting.expectOne('/admin/bucket?bucket=bar&purge-objects=true');
+    const req = httpTesting.expectOne('/admin/buckets/bar?purge_objects=true');
     expect(req.request.method).toBe('DELETE');
   });
 
   it('should call delete [2]', () => {
     service.delete('bar', false).subscribe();
-    const req = httpTesting.expectOne('/admin/bucket?bucket=bar&purge-objects=false');
+    const req = httpTesting.expectOne('/admin/buckets/bar?purge_objects=false');
     expect(req.request.method).toBe('DELETE');
   });
 });
