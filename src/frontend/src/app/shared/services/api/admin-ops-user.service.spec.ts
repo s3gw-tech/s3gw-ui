@@ -28,19 +28,19 @@ describe('AdminOpsUserService', () => {
 
   it('should call listIds', () => {
     service.listIds().subscribe();
-    const req = httpTesting.expectOne('/admin/users/');
+    const req = httpTesting.expectOne('api/admin/users/');
     expect(req.request.method).toBe('GET');
   });
 
   it('should call list (1)', () => {
     service.list().subscribe();
-    const req = httpTesting.expectOne('/admin/users/?details=true&stats=false');
+    const req = httpTesting.expectOne('api/admin/users/?details=true&stats=false');
     expect(req.request.method).toBe('GET');
   });
 
   it('should call list (2)', () => {
     service.list(true).subscribe();
-    const req = httpTesting.expectOne('/admin/users/?details=true&stats=true');
+    const req = httpTesting.expectOne('api/admin/users/?details=true&stats=true');
     expect(req.request.method).toBe('GET');
   });
 
@@ -60,32 +60,32 @@ describe('AdminOpsUserService', () => {
       })
       .subscribe();
     const req = httpTesting.expectOne(
-      '/admin/users/?uid=foo&display_name=foo%20bar&email=foobar@gmail.com&max_buckets=1000&suspended=true&admin=false'
+      'api/admin/users/?uid=foo&display_name=foo%20bar&email=foobar@gmail.com&max_buckets=1000&suspended=true&admin=false'
     );
     expect(req.request.method).toBe('PUT');
   });
 
   it('should call delete', () => {
     service.delete('foo').subscribe();
-    const req = httpTesting.expectOne('/admin/users/foo');
+    const req = httpTesting.expectOne('api/admin/users/foo');
     expect(req.request.method).toBe('DELETE');
   });
 
   it('should call update', () => {
     service.update({ user_id: 'baz', display_name: 'baz bar' }).subscribe();
-    const req = httpTesting.expectOne('/admin/users/baz?display_name=baz%20bar');
+    const req = httpTesting.expectOne('api/admin/users/baz?display_name=baz%20bar');
     expect(req.request.method).toBe('PUT');
   });
 
   it('should call get (1)', () => {
     service.get('foo').subscribe();
-    const req = httpTesting.expectOne('/admin/users/foo?stats=false');
+    const req = httpTesting.expectOne('api/admin/users/foo?stats=false');
     expect(req.request.method).toBe('GET');
   });
 
   it('should call get (2)', () => {
     service.get('foo', true).subscribe();
-    const req = httpTesting.expectOne('/admin/users/foo?stats=true');
+    const req = httpTesting.expectOne('api/admin/users/foo?stats=true');
     expect(req.request.method).toBe('GET');
   });
 
@@ -94,7 +94,7 @@ describe('AdminOpsUserService', () => {
       expect(exists).toBe(true);
       done();
     });
-    const req = httpTesting.expectOne('/admin/users/user01');
+    const req = httpTesting.expectOne('api/admin/users/user01');
     req.flush('', { status: 200, statusText: '' });
     expect(req.request.method).toBe('HEAD');
   });
@@ -104,7 +104,7 @@ describe('AdminOpsUserService', () => {
       expect(exists).toBe(false);
       done();
     });
-    const req = httpTesting.expectOne('/admin/users/user02');
+    const req = httpTesting.expectOne('api/admin/users/user02');
     req.flush('', { status: 404, statusText: 'Bucket not found' });
     expect(req.request.method).toBe('HEAD');
   });
@@ -114,14 +114,14 @@ describe('AdminOpsUserService', () => {
       .updateQuota('foo', { type: 'user', enabled: true, max_size: -1, max_objects: 400 })
       .subscribe();
     const req = httpTesting.expectOne(
-      '/admin/users/foo/quota?quota_type=user&enabled=true&max_size=-1&max_objects=400'
+      'api/admin/users/foo/quota?quota_type=user&enabled=true&max_size=-1&max_objects=400'
     );
     expect(req.request.method).toBe('PUT');
   });
 
   it('should call updateQuota (2)', () => {
     service.updateQuota('bar', { type: 'bucket', enabled: false }).subscribe();
-    const req = httpTesting.expectOne('/admin/users/bar/quota?quota_type=bucket&enabled=false');
+    const req = httpTesting.expectOne('api/admin/users/bar/quota?quota_type=bucket&enabled=false');
     expect(req.request.method).toBe('PUT');
   });
 
@@ -130,7 +130,7 @@ describe('AdminOpsUserService', () => {
       expect(credentials).toStrictEqual({ accessKey: 'a1', secretKey: 's1' });
       done();
     });
-    const req = httpTesting.expectOne('/admin/users/foo?stats=false');
+    const req = httpTesting.expectOne('api/admin/users/foo?stats=false');
     req.flush({
       used_id: 'foo',
       keys: [

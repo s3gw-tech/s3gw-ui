@@ -28,19 +28,19 @@ describe('AdminOpsBucketService', () => {
 
   it('should call list [1]', () => {
     service.list().subscribe();
-    const req = httpTesting.expectOne('/admin/buckets/');
+    const req = httpTesting.expectOne('api/admin/buckets/');
     expect(req.request.method).toBe('GET');
   });
 
   it('should call list [2]', () => {
     service.list().subscribe();
-    const req = httpTesting.expectOne('/admin/buckets/');
+    const req = httpTesting.expectOne('api/admin/buckets/');
     expect(req.request.method).toBe('GET');
   });
 
   it('should call list [3]', () => {
     service.list('hugo').subscribe();
-    const req = httpTesting.expectOne('/admin/buckets/?uid=hugo');
+    const req = httpTesting.expectOne('api/admin/buckets/?uid=hugo');
     expect(req.request.method).toBe('GET');
   });
 
@@ -49,7 +49,7 @@ describe('AdminOpsBucketService', () => {
       expect(exists).toBe(true);
       done();
     });
-    const req = httpTesting.expectOne('/admin/buckets/test01');
+    const req = httpTesting.expectOne('api/admin/buckets/test01');
     req.flush('', { status: 200, statusText: '' });
     expect(req.request.method).toBe('HEAD');
   });
@@ -59,20 +59,20 @@ describe('AdminOpsBucketService', () => {
       expect(exists).toBe(false);
       done();
     });
-    const req = httpTesting.expectOne('/admin/buckets/test02');
+    const req = httpTesting.expectOne('api/admin/buckets/test02');
     req.flush('', { status: 404, statusText: 'Bucket not found' });
     expect(req.request.method).toBe('HEAD');
   });
 
   it('should call delete [1]', () => {
     service.delete('bar').subscribe();
-    const req = httpTesting.expectOne('/admin/buckets/bar?purge_objects=true');
+    const req = httpTesting.expectOne('api/admin/buckets/bar?purge_objects=true');
     expect(req.request.method).toBe('DELETE');
   });
 
   it('should call delete [2]', () => {
     service.delete('bar', false).subscribe();
-    const req = httpTesting.expectOne('/admin/buckets/bar?purge_objects=false');
+    const req = httpTesting.expectOne('api/admin/buckets/bar?purge_objects=false');
     expect(req.request.method).toBe('DELETE');
   });
 });

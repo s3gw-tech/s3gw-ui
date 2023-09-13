@@ -6,10 +6,12 @@ import { Observable } from 'rxjs';
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { S3gwConfig, S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 
+export type HttpHeaders = Record<string, any>;
+
 export type S3gwApiServiceRequestOptions = {
   body?: any | null;
   credentials: Credentials;
-  headers?: Record<string, any>;
+  headers?: HttpHeaders;
   params?: HttpParams | { [param: string]: string | number | boolean };
 };
 
@@ -27,7 +29,7 @@ export class S3gwApiService {
   }
 
   get<T>(url: string, options: S3gwApiServiceRequestOptions): Observable<T> {
-    const headers = this.buildHeaders(options.credentials);
+    const headers: HttpHeaders = this.buildHeaders(options.credentials);
     return this.http.get<T>(this.buildUrl(url), {
       ..._.pick(options, ['headers', 'params']),
       headers
@@ -35,7 +37,7 @@ export class S3gwApiService {
   }
 
   head<T>(url: string, options: S3gwApiServiceRequestOptions): Observable<T> {
-    const headers = this.buildHeaders(options.credentials);
+    const headers: HttpHeaders = this.buildHeaders(options.credentials);
     return this.http.head<T>(this.buildUrl(url), {
       ..._.pick(options, ['headers', 'params']),
       headers
@@ -43,7 +45,7 @@ export class S3gwApiService {
   }
 
   put<T>(url: string, options: S3gwApiServiceRequestOptions): Observable<T> {
-    const headers = this.buildHeaders(options.credentials);
+    const headers: HttpHeaders = this.buildHeaders(options.credentials);
     return this.http.put<T>(this.buildUrl(url), options.body, {
       ..._.pick(options, ['headers', 'params']),
       headers
@@ -51,7 +53,7 @@ export class S3gwApiService {
   }
 
   post<T>(url: string, options: S3gwApiServiceRequestOptions): Observable<T> {
-    const headers = this.buildHeaders(options.credentials);
+    const headers: HttpHeaders = this.buildHeaders(options.credentials);
     return this.http.post<T>(this.buildUrl(url), options.body, {
       ..._.pick(options, ['headers', 'params']),
       headers
@@ -59,7 +61,7 @@ export class S3gwApiService {
   }
 
   delete<T>(url: string, options: S3gwApiServiceRequestOptions): Observable<T> {
-    const headers = this.buildHeaders(options.credentials);
+    const headers: HttpHeaders = this.buildHeaders(options.credentials);
     return this.http.delete<T>(this.buildUrl(url), {
       ..._.pick(options, ['body', 'headers', 'params']),
       headers
@@ -67,7 +69,7 @@ export class S3gwApiService {
   }
 
   download(url: string, options: S3gwApiServiceRequestOptions): Observable<Blob> {
-    const headers = this.buildHeaders(options.credentials);
+    const headers: HttpHeaders = this.buildHeaders(options.credentials);
     return this.http.post(this.buildUrl(url), options.body, {
       headers,
       responseType: 'blob',
@@ -82,7 +84,7 @@ export class S3gwApiService {
     )}`;
   }
 
-  private buildHeaders(credentials: Credentials): Record<string, any> {
+  private buildHeaders(credentials: Credentials): HttpHeaders {
     return {
       /* eslint-disable @typescript-eslint/naming-convention */
       'S3GW-Credentials': `${credentials.accessKey}:${credentials.secretKey}`
