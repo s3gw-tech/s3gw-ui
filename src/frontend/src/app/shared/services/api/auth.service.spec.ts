@@ -26,7 +26,7 @@ describe('AuthService', () => {
     const authStorageService = TestBed.inject(AuthSessionService);
     jest.spyOn(authStorageService, 'set').mockImplementation();
     service.login('foo', 'bar').subscribe();
-    const req = httpTesting.expectOne('/auth/authenticate');
+    const req = httpTesting.expectOne('api/auth/authenticate');
     expect(req.request.method).toBe('GET');
     // eslint-disable-next-line @typescript-eslint/naming-convention
     req.flush({ ID: 'baz', IsAdmin: true });
