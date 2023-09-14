@@ -20,30 +20,6 @@ from backend.api import S3GWClient, decode_client_error, s3gw_client
 
 
 @pytest.mark.anyio
-async def test_s3gw_conn_malformed_url() -> None:
-    creds = "foo:bar"
-    bad_urls = [
-        "something://foo.bar:123",
-        "http:/foo.bar:123",
-        "http//foo.bar:123",
-        "httpp://foo.bar:123",
-        "https://foo+bar:123",
-        "https://foo.bar:123a",
-    ]
-
-    for url in bad_urls:
-        error_found = False
-        try:
-            await s3gw_client(url, creds)
-        except HTTPException as e:
-            assert e.status_code == status.HTTP_400_BAD_REQUEST
-            error_found = True
-        if not error_found:
-            print(f"test failed at '{url}'")
-        assert error_found
-
-
-@pytest.mark.anyio
 async def test_s3gw_conn_malformed_creds() -> None:
     url = "https://foo.bar:123"
     bad_creds = [

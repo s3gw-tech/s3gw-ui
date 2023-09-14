@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import os
+import sys
 from typing import Awaitable, Callable
 
 import uvicorn
@@ -22,13 +23,19 @@ from fastapi import FastAPI
 from fastapi.logger import logger
 from fastapi.staticfiles import StaticFiles
 
-from backend.api import admin, auth, buckets, objects
+from backend.api import admin, auth, buckets, config, objects
+from backend.config import Config
 from backend.logging import setup_logging
 
 
 async def s3gw_startup(s3gw_app: FastAPI, s3gw_api: FastAPI) -> None:
     setup_logging()
     logger.info("Starting s3gw-ui backend")
+    try:
+        s3gw_api.state.config = Config()
+    except Exception:
+        logger.error("unable to init config -- exit!")
+        sys.exit(1)
 
 
 async def s3gw_shutdown(s3gw_app: FastAPI, s3gw_api: FastAPI) -> None:
@@ -47,6 +54,14 @@ def s3gw_factory(
         {
             "name": "bucket",
             "description": "Bucket related operations",
+        },
+        {
+            "name": "admin ops",
+            "description": "Admin operations, non-S3 compliant",
+        },
+        {
+            "name": "config",
+            "description": "Backend config operations",
         },
     ]
 
@@ -70,6 +85,7 @@ def s3gw_factory(
     s3gw_api.include_router(auth.router)
     s3gw_api.include_router(buckets.router)
     s3gw_api.include_router(objects.router)
+    s3gw_api.include_router(config.router)
 
     s3gw_app.mount("/api", s3gw_api, name="api")
     if static_dir is not None:

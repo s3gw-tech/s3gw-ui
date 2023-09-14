@@ -23,9 +23,11 @@ import pydash
 from aiobotocore.session import AioSession
 from botocore.config import Config as S3Config
 from botocore.exceptions import ClientError, EndpointConnectionError, SSLError
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.logger import logger
 from types_aiobotocore_s3.client import S3Client
+
+from backend.config import Config
 
 
 class S3GWClient:
@@ -155,22 +157,20 @@ def decode_client_error(e: ClientError) -> Tuple[int, str]:
     return status_code, pydash.default_to(detail, "Unknown error")
 
 
+def s3gw_endpoint(request: Request) -> str:
+    config: Config = request.app.state.config
+    return config.s3gw_addr
+
+
 async def s3gw_client(
-    s3gw_endpoint: Annotated[str, Header()],
+    endpoint: Annotated[str, Depends(s3gw_endpoint)],
     s3gw_credentials: Annotated[str, Header()],
 ) -> S3GWClient:
     """
     To be used for FastAPI's dependency injection, reads the request's HTTP
-    headers for s3gw's endpoint and user credentials, returning an `S3GWClient`
-    class instance.
+    headers for s3gw's user credentials, returning an `S3GWClient` class
+    instance.
     """
-    m = re.fullmatch(r"https?://[\w.-]+(?:\.[\w]+)?(?::\d+)?/?", s3gw_endpoint)
-    if m is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Malformed S3 endpoint URL",
-        )
-
     # credentials follow the format 'access_key:secret_key'
     m = re.fullmatch(r"^([\w+/=]+):([\w+/=]+)$", s3gw_credentials)
     if m is None:
@@ -182,7 +182,7 @@ async def s3gw_client(
     assert len(m.groups()) == 2
     access, secret = m.group(1), m.group(2)
     assert len(access) > 0 and len(secret) > 0
-    return S3GWClient(s3gw_endpoint, access, secret)
+    return S3GWClient(endpoint, access, secret)
 
 
 def s3gw_client_responses() -> Dict[int | str, Dict[str, Any]]:

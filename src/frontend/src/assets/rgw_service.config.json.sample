@@ -1,4 +1,0 @@
-{
-  "apiUrl": "$S3GW_UI_API_URL",
-  "url": "$RGW_SERVICE_URL"
-}
