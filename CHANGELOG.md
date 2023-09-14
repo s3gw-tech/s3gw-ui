@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.21.0]
 
+### Changed
+
+- Make use of the UI REST API to prevent CORS issues (gh#aquarist-labs/s3gw#680).
+
 ### Fixed
 
 - Prevent switching bucket retention mode from `Compliance` to `Governance` (gh#aquarist-labs/s3gw#553).
