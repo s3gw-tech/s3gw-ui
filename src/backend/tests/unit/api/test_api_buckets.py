@@ -18,7 +18,7 @@ from typing import Any, List
 
 import pydash
 import pytest
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, SSLError
 from fastapi import HTTPException, Response, status
 from pytest_mock import MockerFixture
 
@@ -48,6 +48,41 @@ async def run_before_and_after_tests(s3_client: S3GWClient):
             except (Exception,):
                 pass
         created_buckets.clear()
+
+
+@pytest.mark.anyio
+async def test_api_client_conn_exception_handling_1(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "get_bucket_versioning",
+        side_effect=ClientError(
+            {"Error": {"Code": "404", "Message": "NoSuchBucket"}},
+            "GetBucketVersioning",
+        ),
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await buckets.get_bucket_versioning(s3_client, "xyz")
+    assert e.value.status_code == status.HTTP_404_NOT_FOUND
+    assert e.value.detail == "No such bucket"
+
+
+@pytest.mark.anyio
+async def test_api_client_conn_exception_handling_2(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "get_bucket_lifecycle_configuration",
+        side_effect=SSLError(endpoint_url="foo", error=Exception()),
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await buckets.get_bucket_lifecycle_configuration(s3_client, "xyz")
+    assert e.value.status_code == status.HTTP_501_NOT_IMPLEMENTED
+    assert e.value.detail == "SSL not supported"
 
 
 @pytest.mark.anyio
@@ -236,7 +271,7 @@ async def test_api_versioning_failure(
     s3api_mock = S3ApiMock(s3_client, mocker)
     s3api_mock.patch(
         "put_bucket_versioning",
-        side_effect=ClientError({}, "put_bucket_versioning"),
+        side_effect=ClientError({}, "PutBucketVersioning"),
     )
 
     res = await buckets.set_bucket_versioning(s3_client, "foo", True)
@@ -275,30 +310,69 @@ async def test_api_get_bucket_attributes(s3_client: S3GWClient) -> None:
 
 
 @pytest.mark.anyio
-async def test_api_get_bucket_attributes_failures(
+async def test_api_get_bucket_attributes_failures_1(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
-    patch_funcs = [
-        "backend.api.buckets.get_bucket_versioning",
-        "backend.api.buckets.get_bucket_object_lock_configuration",
-        "backend.api.buckets.get_bucket_tagging",
-    ]
+    p1 = mocker.patch("backend.api.buckets.get_bucket_versioning")
+    p1.side_effect = HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, detail="Invalid access key"
+    )
+    p2 = mocker.patch(
+        "backend.api.buckets.get_bucket_object_lock_configuration"
+    )
+    p2.return_value = async_return(True)
+    p3 = mocker.patch("backend.api.buckets.get_bucket_tagging")
+    p3.return_value = async_return(True)
 
-    for fn in patch_funcs:
-        p = mocker.patch(fn)
-        p.side_effect = Exception()
-        error = False
+    with pytest.raises(HTTPException) as e:
+        await buckets.get_bucket_attributes(s3_client, "bar")
+    assert e.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert e.value.detail == "Unable to obtain versioning: Invalid access key"
 
-        try:
-            await buckets.get_bucket_attributes(s3_client, "foo")
-        except HTTPException as e:
-            assert e.status_code == 500
-            error = True
 
-        assert error
+@pytest.mark.anyio
+async def test_api_get_bucket_attributes_failures_2(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    p1 = mocker.patch("backend.api.buckets.get_bucket_versioning")
+    p1.return_value = async_return(True)
+    p2 = mocker.patch(
+        "backend.api.buckets.get_bucket_object_lock_configuration"
+    )
+    p2.side_effect = HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, detail="No such key"
+    )
+    p3 = mocker.patch("backend.api.buckets.get_bucket_tagging")
+    p3.return_value = async_return(True)
 
-        p.side_effect = None
-        p.return_value = True  # it doesn't matter at this point
+    with pytest.raises(HTTPException) as e:
+        await buckets.get_bucket_attributes(s3_client, "foo")
+    assert e.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert (
+        e.value.detail
+        == "Unable to obtain object lock configuration: No such key"
+    )
+
+
+@pytest.mark.anyio
+async def test_api_get_bucket_attributes_failures_3(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    p1 = mocker.patch("backend.api.buckets.get_bucket_versioning")
+    p1.return_value = async_return(True)
+    p2 = mocker.patch(
+        "backend.api.buckets.get_bucket_object_lock_configuration"
+    )
+    p2.return_value = async_return(True)
+    p3 = mocker.patch("backend.api.buckets.get_bucket_tagging")
+    p3.side_effect = HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, detail="No such bucket"
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await buckets.get_bucket_attributes(s3_client, "baz")
+    assert e.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert e.value.detail == "Unable to obtain tags: No such bucket"
 
 
 @pytest.mark.anyio
@@ -316,7 +390,7 @@ async def test_api_bucket_exists(s3_client: S3GWClient) -> None:
     with pytest.raises(HTTPException) as e:
         await buckets.bucket_exists(s3_client, str(uuid.uuid4()))
     assert e.value.status_code == 404
-    assert e.value.detail == "Not Found"
+    assert e.value.detail == "Not found"
 
 
 @pytest.mark.anyio
@@ -416,7 +490,7 @@ async def test_api_get_bucket_lifecycle_configuration_failure(
         side_effect=(
             ClientError(
                 {"Error": {"Code": "NoSuchKey"}},
-                "get_bucket_lifecycle_configuration",
+                "GetBucketLifecycleConfiguration",
             ),
         ),
     )
@@ -544,7 +618,7 @@ async def test_api_set_bucket_lifecycle_configuration_failure(
     s3api_mock = S3ApiMock(s3_client, mocker)
     s3api_mock.patch(
         "put_bucket_lifecycle_configuration",
-        side_effect=ClientError({}, "put_bucket_lifecycle_configuration"),
+        side_effect=ClientError({}, "PutBucketLifecycleConfiguration"),
     )
 
     res = await buckets.set_bucket_lifecycle_configuration(
@@ -761,3 +835,75 @@ async def test_api_bucket_update_4(s3_client: S3GWClient) -> None:
     assert gba_res.ObjectLockEnabled is False
     assert gba_res.VersioningEnabled == attributes.VersioningEnabled
     assert set(gba_res.TagSet) == set(attributes.TagSet)
+
+
+@pytest.mark.anyio
+async def test_api_get_bucket_tagging_failure_1(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "get_bucket_tagging",
+        side_effect=KeyError(),
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await buckets.get_bucket_tagging(s3_client, "baz")
+    assert e.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert e.value.detail == "Internal Server Error"
+
+
+@pytest.mark.anyio
+async def test_api_get_bucket_tagging_failure_2(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "get_bucket_tagging",
+        side_effect=HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No such user"
+        ),
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await buckets.get_bucket_tagging(s3_client, "foo")
+    assert e.value.status_code == status.HTTP_404_NOT_FOUND
+    assert e.value.detail == "No such user"
+
+
+@pytest.mark.anyio
+async def test_api_get_bucket_tagging_failure_3(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "get_bucket_tagging",
+        side_effect=ClientError(
+            {"Error": {"Code": "403", "Message": "UserSuspended"}},
+            "GetBucketTagging",
+        ),
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await buckets.get_bucket_tagging(s3_client, "foo")
+    assert e.value.status_code == status.HTTP_403_FORBIDDEN
+    assert e.value.detail == "User suspended"
+
+
+@pytest.mark.anyio
+async def test_api_get_bucket_object_lock_configuration_failure_1(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "get_object_lock_configuration",
+        side_effect=ClientError(
+            {"Error": {"Code": "403", "Message": "InvalidAccessKeyId"}},
+            "GetBucketTagging",
+        ),
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await buckets.get_bucket_object_lock_configuration(s3_client, "xyz")
+    assert e.value.status_code == status.HTTP_403_FORBIDDEN
+    assert e.value.detail == "Invalid access key"

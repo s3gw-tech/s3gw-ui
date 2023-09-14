@@ -338,25 +338,20 @@ async def get_bucket_attributes(
 
     gbv_res, gbl_res, gbt_res = reqs_res
 
-    if isinstance(gbv_res, Exception):
-        detail = (
-            f"Unable to obtain versioning from bucket '{bucket}': {gbv_res}"
-        )
+    if isinstance(gbv_res, HTTPException):
+        detail = f"Unable to obtain versioning: {gbv_res.detail}"
         logger.error(detail)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
         )
-    elif isinstance(gbl_res, Exception):
-        detail = (
-            f"Unable to obtain object lock configuration from "
-            f"bucket '{bucket}': {gbl_res}"
-        )
+    elif isinstance(gbl_res, HTTPException):
+        detail = f"Unable to obtain object lock configuration: {gbl_res.detail}"
         logger.error(detail)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
         )
-    elif isinstance(gbt_res, Exception):
-        detail = f"Unable to obtain tags from bucket '{bucket}': {gbt_res}"
+    elif isinstance(gbt_res, HTTPException):
+        detail = f"Unable to obtain tags: {gbt_res.detail}"
         logger.error(detail)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
