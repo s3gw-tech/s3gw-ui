@@ -24,11 +24,11 @@ def get_s3gw_address() -> str:
     url = os.environ.get("S3GW_SERVICE_URL")
     if url is None:
         logger.error("S3GW_SERVICE_URL env variable not set!")
-        raise Exception()
+        raise Exception("S3GW_SERVICE_URL env variable not set")
     m = re.fullmatch(r"https?://[\w.-]+(?:\.[\w]+)?(?::\d+)?/?", url)
     if m is None:
         logger.error(f"Malformed s3gw URL: {url}")
-        raise Exception()
+        raise Exception("Malformed URL")
 
     return url
 
