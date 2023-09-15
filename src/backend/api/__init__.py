@@ -106,11 +106,6 @@ class S3GWClient:
         ) as client:
             try:
                 yield cast(S3Client, client)
-            except client.exceptions.NoSuchBucket:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Bucket not found",
-                )
             except ClientError as e:
                 (status_code, detail) = decode_client_error(e)
                 raise HTTPException(status_code=status_code, detail=detail)
@@ -153,8 +148,10 @@ def decode_client_error(e: ClientError) -> Tuple[int, str]:
             status_code = int(code)
             detail = pydash.get(e.response, "Error.Message")
         else:
-            detail = pydash.human_case(code)
-    return status_code, pydash.default_to(detail, "Unknown error")
+            detail = code
+    return status_code, pydash.human_case(
+        pydash.default_to(detail, "UnknownError")
+    )
 
 
 def s3gw_endpoint(request: Request) -> str:

@@ -120,4 +120,4 @@ def test_decode_client_error_3() -> None:
     )
     (status_code, detail) = decode_client_error(error)
     assert status_code == status.HTTP_403_FORBIDDEN
-    assert detail == "foo bar"
+    assert detail == "Foo bar"
