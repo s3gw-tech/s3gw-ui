@@ -1224,7 +1224,7 @@ async def test_delete_object(
 
 
 @pytest.mark.anyio
-async def test_delete_object_by_prefix(
+async def test_delete_object_by_prefix_1(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
     s3api_mock = S3ApiMock(s3_client, mocker)
@@ -1329,6 +1329,114 @@ async def test_delete_object_by_prefix(
         DeleteObjectByPrefixRequest(Prefix="file", AllVersions=True),
     )
     assert len(res) == 3
+
+
+@pytest.mark.anyio
+async def test_delete_object_by_prefix_2(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "list_object_versions",
+        return_value=async_return(
+            {
+                "IsTruncated": False,
+                "KeyMarker": "",
+                "VersionIdMarker": "",
+                "Versions": [
+                    {
+                        "ETag": '"0d6c947604d695f58a4b844c3c0d4233"',
+                        "Size": 423,
+                        "Key": "file2.txt",
+                        "VersionId": "vXrrVkZNXIbprzSpR4hdGt",
+                        "IsLatest": False,
+                        "LastModified": datetime.datetime(
+                            2023,
+                            8,
+                            7,
+                            12,
+                            49,
+                            30,
+                            506000,
+                        ),
+                        "Owner": {"DisplayName": "M. Tester", "ID": "testid"},
+                    },
+                    {
+                        "ETag": '"d64d9775216d967b6d8d4726d54386ed"',
+                        "Size": 1050,
+                        "Key": "file3.txt",
+                        "VersionId": "HkW2UWxXxASjRRlBhEfEsCL-",
+                        "IsLatest": True,
+                        "LastModified": datetime.datetime(
+                            2022,
+                            4,
+                            6,
+                            2,
+                            12,
+                            34,
+                            643000,
+                        ),
+                        "Owner": {"DisplayName": "M. Tester", "ID": "testid"},
+                    },
+                ],
+                "DeleteMarkers": [
+                    {
+                        "Key": "file2.txt",
+                        "VersionId": "Drdct2tP8dnfNl2E2DYNv",
+                        "IsLatest": True,
+                        "LastModified": datetime.datetime(
+                            2023,
+                            8,
+                            7,
+                            12,
+                            49,
+                            19,
+                            667000,
+                        ),
+                        "Owner": {"DisplayName": "M. Tester", "ID": "testid"},
+                    },
+                ],
+                "Name": "test01",
+                "Prefix": "",
+                "Delimiter": "/",
+                "MaxKeys": 1000,
+            }
+        ),
+    )
+    s3api_mock.patch(
+        "delete_objects",
+        return_value=async_return(
+            {
+                "Errors": [
+                    {
+                        "Key": "file2.txt",
+                        "VersionId": "vXrrVkZNXIbprzSpR4hdGt",
+                        "Code": "AuthorizationHeaderMalformed",
+                        "Message": "The authorization header ...",
+                    },
+                    {
+                        "Key": "file3.txt",
+                        "VersionId": "HkW2UWxXxASjRRlBhEfEsCL-",
+                        "Code": "AccessDenied",
+                        "Message": "AccessDenied",
+                    },
+                ]
+            }
+        ),
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await objects.delete_object_by_prefix(
+            s3_client,
+            "test01",
+            DeleteObjectByPrefixRequest(Prefix="file", AllVersions=True),
+        )
+    assert e.value.status_code == 500
+    assert (
+        e.value.detail == "Could not delete object(s) "
+        "file2.txt (AuthorizationHeaderMalformed), "
+        "file3.txt (AccessDenied)"
+    )
 
 
 @pytest.mark.anyio
