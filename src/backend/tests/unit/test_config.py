@@ -14,6 +14,11 @@
 
 import os
 
+import pytest
+from fastapi import FastAPI, Request
+from starlette.datastructures import State
+
+from backend.api import s3gw_endpoint
 from backend.config import Config, get_s3gw_address
 
 
@@ -26,48 +31,52 @@ def test_s3gw_malformed_address() -> None:
         "https://foo+bar:123",
         "https://foo.bar:123a",
     ]
-
     for url in bad_urls:
         os.environ["S3GW_SERVICE_URL"] = url
-
-        error_found = False
-        try:
+        with pytest.raises(Exception) as e:
             get_s3gw_address()
-        except Exception:
-            error_found = True
-
-        assert error_found
+        assert str(e.value) == "Malformed URL"
 
 
 def test_s3gw_good_address() -> None:
     addr = "http://foo.bar:123"
-
-    error_found = False
     os.environ["S3GW_SERVICE_URL"] = addr
     try:
         ret = get_s3gw_address()
         assert ret == addr
-    except Exception:
-        error_found = True
-
-    assert not error_found
+    except Exception as e:
+        pytest.fail(str(e))
 
 
-def test_config() -> None:
-    bad_addr = "something:foo.bar:123"
-    os.environ["S3GW_SERVICE_URL"] = bad_addr
-    error_found = False
-    try:
+def test_s3gw_missing_address() -> None:
+    os.environ.pop("S3GW_SERVICE_URL")
+    with pytest.raises(Exception) as e:
+        get_s3gw_address()
+    assert str(e.value) == "S3GW_SERVICE_URL env variable not set"
+
+
+def test_config_1() -> None:
+    addr = "something:foo.bar:123"
+    os.environ["S3GW_SERVICE_URL"] = addr
+    with pytest.raises(Exception):
         Config()
-    except Exception:
-        error_found = True
 
-    assert error_found
 
-    good_addr = "http://foo.bar:123"
-    os.environ["S3GW_SERVICE_URL"] = good_addr
+def test_config_2() -> None:
+    addr = "http://foo.bar:123"
+    os.environ["S3GW_SERVICE_URL"] = addr
     try:
         cfg = Config()
-        assert cfg.s3gw_addr == good_addr
-    except Exception:
-        assert False
+        assert cfg.s3gw_addr == addr
+    except Exception as e:
+        pytest.fail(str(e))
+
+
+def test_s3gw_endpoint() -> None:
+    addr = "http://foo.baz:7480"
+    os.environ["S3GW_SERVICE_URL"] = addr
+    app = FastAPI()
+    app.state = State({"config": Config()})
+    req = Request({"type": "http", "app": app})
+    res: str = s3gw_endpoint(req)
+    assert res == addr
