@@ -293,6 +293,7 @@ export class ObjectDatatablePageComponent implements OnInit {
             const values = form.values;
             return _.get(values, 'IsDeleted', false);
           },
+          disabled: (form: DeclarativeForm): boolean => form.pristine,
           click: (event: Event, form: DeclarativeForm): void => {
             const sources: Observable<any>[] = [];
             const values: DeclarativeFormValues = form.values;
@@ -323,7 +324,7 @@ export class ObjectDatatablePageComponent implements OnInit {
                       key: values['Key']
                     })
                   )
-                  .subscribe()
+                  .subscribe(() => form.markAsPristine())
               );
             }
           }
