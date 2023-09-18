@@ -117,7 +117,9 @@ export interface DeclarativeForm {
   get allValues(): DeclarativeFormValues;
   get modifiedValues(): DeclarativeFormValues;
   get allModifiedValues(): DeclarativeFormValues;
+  get pristine(): boolean;
   patchValues(values: DeclarativeFormValues): void;
+  markAsPristine(): void;
 }
 
 export type DeclarativeFormConfig = {

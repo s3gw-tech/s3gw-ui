@@ -116,6 +116,13 @@ export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm,
     return this.formGroup?.valid ?? false;
   }
 
+  /**
+   * The form is pristine if the user has not yet changed any value of the
+   * form fields.
+   *
+   * @return Returns `true` if none of the form fields have been changed
+   *   yet, otherwise `false`.
+   */
   get pristine(): boolean {
     return this.formGroup?.pristine ?? true;
   }
