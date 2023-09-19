@@ -34,6 +34,7 @@ from types_aiobotocore_s3.type_defs import (
     CopySourceTypeDef,
     DeleteMarkerEntryTypeDef,
     DeleteObjectOutputTypeDef,
+    DeleteObjectsOutputTypeDef,
     GetObjectOutputTypeDef,
     HeadObjectOutputTypeDef,
     ListObjectsV2OutputTypeDef,
@@ -621,7 +622,7 @@ async def delete_object_by_prefix(
     (e.g. a/b/file1.txt, a/b/c/d/foo.md) are deleted as well.
 
     See
-    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/delete_object.html
+    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/delete_objects.html
     """
 
     async def collect_objects(prefix: str) -> List[ObjectIdentifierTypeDef]:
@@ -658,10 +659,29 @@ async def delete_object_by_prefix(
     )
 
     async with conn.conn() as s3:
-        s3_res = await s3.delete_objects(
+        s3_res: DeleteObjectsOutputTypeDef = await s3.delete_objects(
             Bucket=bucket, Delete={"Objects": objects}
         )
-    return [DeletedObject.parse_obj(deleted) for deleted in s3_res["Deleted"]]
+
+    # Handle errors.
+    if "Errors" in s3_res and s3_res["Errors"]:
+        reasons = [
+            f"{obj.get('Key', 'n/a')} ({obj.get('Code', 'n/a')})"
+            for obj in s3_res["Errors"]
+        ]
+        detail = f"Could not delete object(s) {', '.join(reasons)}"
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
+        )
+
+    res = []
+
+    if "Deleted" in s3_res and s3_res["Deleted"]:
+        res = [
+            DeletedObject.parse_obj(deleted) for deleted in s3_res["Deleted"]
+        ]
+
+    return res
 
 
 @router.post(
