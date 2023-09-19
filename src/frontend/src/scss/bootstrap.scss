@@ -87,6 +87,7 @@ tbody > tr {
   display: block;
 }
 
+// Apply the same look as when the field is disabled.
 .form-control[readonly] {
   background-color: $input-disabled-bg;
   opacity: 1;
@@ -110,6 +111,12 @@ tbody > tr {
     background-color: var(--bs-danger);
     border-color: var(--bs-danger);
   }
+}
+
+// Make the background of the floating labels transparent to match the
+// Rancher UI style.
+.form-floating > .form-control ~ label::after {
+  background-color: transparent !important;
 }
 
 //////////////////////////////////////////////////////////////////////////////
