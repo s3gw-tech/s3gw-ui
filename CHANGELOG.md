@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.22.0]
 
+### Changed
+
+- Show at least one datatable column (gh#aquarist-labs/s3gw#560).
+
 ### Fixed
 
 - Fix several theming issues (gh#aquarist-labs/s3gw#728).
