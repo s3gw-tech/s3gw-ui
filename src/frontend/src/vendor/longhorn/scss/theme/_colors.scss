@@ -14,18 +14,24 @@ $s3gw-color-error: $s3gw-color-red-salsa;
 $s3gw-color-theme-primary: $s3gw-color-blue-green;
 
 //////////////////////////////////////////////////////////////////////////
+// Simple button
+$s3gw-btn-simple-hover-bg: $s3gw-color-jazz-blue;
+$s3gw-btn-simple-hover-border-color: $s3gw-color-jazz-blue;
+$s3gw-btn-simple-active-bg: $s3gw-color-wave-shadow;
+$s3gw-btn-simple-active-border-color: $s3gw-color-wave-shadow;
+
 // Primary button
 $s3gw-primary-btn-bg: $s3gw-color-medium-electric-blue;
 $s3gw-primary-btn-border-color: $s3gw-color-medium-electric-blue;
 $s3gw-primary-btn-hover-bg: $s3gw-color-jazz-blue;
 $s3gw-primary-btn-hover-border-color: $s3gw-color-jazz-blue;
-$s3gw-primary-btn-active-bg: $s3gw-color-prussian-blue;
-$s3gw-primary-btn-active-border-color: $s3gw-color-prussian-blue;
+$s3gw-primary-btn-active-bg: $s3gw-color-wave-shadow;
+$s3gw-primary-btn-active-border-color: $s3gw-color-wave-shadow;
 
 // Primary outline button
 $s3gw-primary-btn-outline-color: $s3gw-color-medium-electric-blue;
-$s3gw-primary-btn-outline-active-bg: $s3gw-color-prussian-blue;
-$s3gw-primary-btn-outline-active-border-color: $s3gw-color-prussian-blue;
+$s3gw-primary-btn-outline-active-bg: $s3gw-color-wave-shadow;
+$s3gw-primary-btn-outline-active-border-color: $s3gw-color-wave-shadow;
 
 // Table
 $s3gw-color-table-bg: $s3gw-color-blue-green;
