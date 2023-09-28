@@ -11,6 +11,8 @@
   --s3gw-topbar-color: var(--bs-body-color);
   --s3gw-topbar-bg: #{$s3gw-color-cg-blue};
   --s3gw-topbar-action-btn-color: var(--bs-white);
+  --s3gw-topbar-action-btn-hover-bg: #{$s3gw-color-blue-sapphire};
+  --s3gw-topbar-action-btn-hover-border-color: #{$s3gw-color-blue-sapphire};
   --s3gw-topbar-action-btn-icon-font-size: #{$s3gw-mdi-default-font-size};
   --s3gw-topbar-action-btn-icon-top: #{$s3gw-mdi-default-top};
   --s3gw-topbar-toggle-btn-color: var(--bs-body-color);

@@ -41,6 +41,8 @@
     &:focus,
     &:hover {
       color: var(--s3gw-topbar-action-btn-hover-color);
+      background-color: var(--s3gw-topbar-action-btn-hover-bg);
+      border-color: var(--s3gw-topbar-action-btn-hover-border-color);
     }
 
     .mdi::before {
