@@ -16,16 +16,42 @@
 
 import os
 import sys
-from typing import Awaitable, Callable
+from typing import Any, Awaitable, Callable, List
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.logger import logger
 from fastapi.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from backend.api import admin, auth, buckets, config, objects
 from backend.config import Config
 from backend.logging import setup_logging
+
+
+class NoCacheStaticFiles(StaticFiles):
+    """
+    Add HTTP headers to do not cache the specified files.
+    """
+
+    def __init__(self, no_cache_files: List[str], *args: Any, **kwargs: Any):
+        """
+        :param no_cache_files: The list of files that should not be cached.
+        """
+        self.no_cache_files = no_cache_files
+        super().__init__(*args, **kwargs)
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        resp = await super().get_response(path, scope)
+        if scope["path"] in self.no_cache_files:
+            resp.headers.update(
+                {
+                    "Cache-Control": "no-cache, max-age=0, must-revalidate",
+                    "Expires": "0",
+                    "Pragma": "no-cache",
+                }
+            )
+        return resp
 
 
 async def s3gw_startup(s3gw_app: FastAPI, s3gw_api: FastAPI) -> None:
@@ -89,8 +115,16 @@ def s3gw_factory(
 
     s3gw_app.mount("/api", s3gw_api, name="api")
     if static_dir is not None:
+        # Disable caching of `index.html` on purpose so that the browser
+        # is always loading the latest app code, otherwise changes to the
+        # app are not taken into account when the browser is loading the
+        # file from the cache.
         s3gw_app.mount(
-            "/", StaticFiles(directory=static_dir, html=True), name="static"
+            "/",
+            NoCacheStaticFiles(
+                no_cache_files=["/"], directory=static_dir, html=True
+            ),
+            name="static",
         )
 
     return s3gw_app
