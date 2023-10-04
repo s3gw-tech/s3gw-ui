@@ -62,7 +62,7 @@ HTTPMethodType = (
 
 
 async def send_request(req: httpx.Request) -> httpx.Response:
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=False) as client:
         res: httpx.Response = await client.send(req)
         if not res.is_success:
             raise error_from_response(res)
