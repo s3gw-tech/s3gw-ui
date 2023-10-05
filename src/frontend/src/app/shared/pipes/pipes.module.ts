@@ -5,6 +5,7 @@ import { ArrayPipe } from '~/app/shared/pipes/array.pipe';
 import { BasenamePipe } from '~/app/shared/pipes/basename.pipe';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { DecodeUriComponentPipe } from '~/app/shared/pipes/decode-uri-component.pipe';
+import { FilterPipe } from '~/app/shared/pipes/filter.pipe';
 import { FormatPipe } from '~/app/shared/pipes/format.pipe';
 import { LocaleDatePipe } from '~/app/shared/pipes/locale-date.pipe';
 import { MapPipe } from '~/app/shared/pipes/map.pipe';
@@ -27,7 +28,8 @@ import { TruncatePipe } from '~/app/shared/pipes/truncate.pipe';
     MaskPipe,
     BasenamePipe,
     DecodeUriComponentPipe,
-    TruncatePipe
+    TruncatePipe,
+    FilterPipe
   ],
   providers: [
     ArrayPipe,
@@ -41,7 +43,8 @@ import { TruncatePipe } from '~/app/shared/pipes/truncate.pipe';
     MaskPipe,
     BasenamePipe,
     DecodeUriComponentPipe,
-    TruncatePipe
+    TruncatePipe,
+    FilterPipe
   ],
   exports: [
     ArrayPipe,
@@ -55,7 +58,8 @@ import { TruncatePipe } from '~/app/shared/pipes/truncate.pipe';
     MaskPipe,
     BasenamePipe,
     DecodeUriComponentPipe,
-    TruncatePipe
+    TruncatePipe,
+    FilterPipe
   ],
   imports: [CommonModule]
 })

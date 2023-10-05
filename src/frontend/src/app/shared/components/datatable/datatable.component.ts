@@ -378,6 +378,15 @@ export class DatatableComponent implements Datatable, OnInit {
     this.updateSelection();
   }
 
+  isColumnDropDownItemDisabled(column: DatatableColumn): boolean {
+    const namedColumns = _.filter(this.columns, 'name');
+    const shownColumns = _.filter(namedColumns, ['hidden', false]);
+    if (shownColumns.length > 1) {
+      return false;
+    }
+    return !column.hidden;
+  }
+
   onToggleColumn(column: DatatableColumn): void {
     column.hidden = !column.hidden;
     this.saveState();

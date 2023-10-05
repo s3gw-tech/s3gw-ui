@@ -5,7 +5,8 @@
                   select="s3gw-datatable-actions">
       </ng-content>
       <div class="flex-fill"></div>
-      <div ngbDropdown
+      <div #columnDropDown="ngbDropdown"
+           ngbDropdown
            autoClose="outside">
         <button class="btn btn-simple"
                 ngbDropdownToggle
@@ -13,9 +14,10 @@
           <i [class]="icons.table"></i>
         </button>
         <div ngbDropdownMenu>
-          <ng-container *ngFor="let column of columns">
-            <button *ngIf="column.name"
+          <ng-template [ngIf]="columnDropDown.isOpen()">
+            <button *ngFor="let column of columns | filter:'name'"
                     ngbDropdownItem
+                    [disabled]="isColumnDropDownItemDisabled(column)"
                     (click)="onToggleColumn(column)">
               <i *ngIf="column.hidden"
                  [class]="icons.checkboxBlank">
@@ -25,7 +27,7 @@
               </i>
               <span>{{ column.name | transloco }}</span>
             </button>
-          </ng-container>
+          </ng-template>
         </div>
       </div>
       <button type="button"
