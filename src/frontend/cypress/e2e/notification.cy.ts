@@ -32,7 +32,7 @@ describe('Notification tests', () => {
     objectPageHelper.delete(objectName);
     notificationHelper.listNotification();
     notificationHelper.validateNotification('1 object(s) have been successfully uploaded.');
-    notificationHelper.validateNotification(`The object ${objectName} has been deleted.`);
+    notificationHelper.validateNotification(`The object(s) ${objectName} have been deleted.`);
     notificationHelper.deleteNotification();
   });
 });
