@@ -71,7 +71,13 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
         text: TEXT('Download'),
         icon: this.icons.download,
         enabledConstraints: {
-          minSelected: 1
+          minSelected: 1,
+          constraint: [
+            {
+              operator: 'falsy',
+              arg0: { prop: 'IsDeleted' }
+            }
+          ]
         },
         callback: (event: Event, action: DatatableAction, table: Datatable) =>
           this.doDownload(table.selected[0] as S3ObjectVersion)
@@ -81,7 +87,17 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
         text: TEXT('Restore'),
         icon: this.icons.restore,
         enabledConstraints: {
-          minSelected: 1
+          minSelected: 1,
+          constraint: [
+            {
+              operator: 'falsy',
+              arg0: { prop: 'IsDeleted' }
+            },
+            {
+              operator: 'falsy',
+              arg0: { prop: 'IsLatest' }
+            }
+          ]
         },
         callback: (event: Event, action: DatatableAction, table: Datatable) =>
           this.doRestore(table.selected[0] as S3ObjectVersion)

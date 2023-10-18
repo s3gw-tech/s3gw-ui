@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix several theming issues (gh#aquarist-labs/s3gw#728).
+- Disable `Restore` and `Download` action buttons in object version
+  page correctly (gh#aquarist-labs/s3gw#747).
 
 ## [0.21.0]
 
