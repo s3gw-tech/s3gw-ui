@@ -25,3 +25,5 @@ tmp
 proxy.conf.json
 
 .pre-commit-venv
+
+/venv
