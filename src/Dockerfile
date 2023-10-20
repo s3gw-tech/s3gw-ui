@@ -22,6 +22,8 @@ RUN rm -f requirements.txt
 STOPSIGNAL SIGINT
 EXPOSE 8080
 
+ENV S3GW_UI_LOCATION "/s3store"
+
 ENTRYPOINT [ \
     "uvicorn", "--factory", "s3gw_ui_backend:app_factory", \
     "--host", "0.0.0.0", "--port", "8080" \

@@ -75,6 +75,7 @@ def s3gw_factory(
     startup: s3gwAsyncMethod = s3gw_startup,
     shutdown: s3gwAsyncMethod = s3gw_shutdown,
     static_dir: str | None = None,
+    app_location: str | None = None,
 ) -> FastAPI:
     api_tags_meta = [
         {
@@ -113,14 +114,18 @@ def s3gw_factory(
     s3gw_api.include_router(objects.router)
     s3gw_api.include_router(config.router)
 
-    s3gw_app.mount("/api", s3gw_api, name="api")
+    s3gw_app.mount(
+            f"{app_location}/api" if app_location is not None else "/api",
+            s3gw_api,
+            name="api")
+
     if static_dir is not None:
         # Disable caching of `index.html` on purpose so that the browser
         # is always loading the latest app code, otherwise changes to the
         # app are not taken into account when the browser is loading the
         # file from the cache.
         s3gw_app.mount(
-            "/",
+            app_location if app_location is not None else "/",
             NoCacheStaticFiles(
                 no_cache_files=["/"], directory=static_dir, html=True
             ),
@@ -131,10 +136,15 @@ def s3gw_factory(
 
 
 def app_factory():
+    s3gw_ui_location = os.getenv("S3GW_UI_LOCATION")
+
     static_dir = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "frontend/dist/s3gw-ui/"
     )
-    return s3gw_factory(s3gw_startup, s3gw_shutdown, static_dir)
+    return s3gw_factory(s3gw_startup,
+                        s3gw_shutdown,
+                        static_dir,
+                        s3gw_ui_location)
 
 
 def main():
