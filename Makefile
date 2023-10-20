@@ -9,6 +9,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+.PHONY: check-ui-backend-env
+
 ########################################################################
 # Testing cluster
 
@@ -51,9 +53,8 @@ image-build-ui:
 ########################################################################
 # Run UI components
 
-run-ui-backend:
+run-ui-backend: check-ui-backend-env setup-ui-backend build-ui-frontend
 	cd src \
-	&& python3 -m venv venv \
 	&& source venv/bin/activate \
 	&& S3GW_DEBUG=1 python3 ./s3gw_ui_backend.py
 
@@ -95,3 +96,12 @@ test-ui-backend:
 
 test-ui-backend-with-s3gw:
 	@./test-env/run-tests.sh
+
+# Check whether we have a valid S3GW_SERVICE_URL environment variable
+#
+check-ui-backend-env:
+ifndef S3GW_SERVICE_URL
+	$(error S3GW_SERVICE_URL must be set.)
+endif
+
+
