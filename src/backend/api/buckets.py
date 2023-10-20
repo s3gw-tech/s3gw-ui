@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import asyncio
-from typing import Annotated, List
+from typing import Annotated, Any, List
 
 import pydash
 from fastapi import Depends, HTTPException, Response, status
@@ -333,8 +333,12 @@ async def get_bucket_attributes(
         get_bucket_object_lock_configuration(conn=conn, bucket=bucket),
         get_bucket_tagging(conn=conn, bucket=bucket),
     ]
-    reqs_res = await asyncio.gather(*reqs, return_exceptions=True)
+    reqs_res: list[Any] = await asyncio.gather(*reqs, return_exceptions=True)
     assert len(reqs_res) == 3
+
+    # gbv_res: bool | HTTPException = reqs_res[0]
+    # gbl_res: BucketObjectLock | HTTPException = reqs_res[1]
+    # gbt_res: List[Tag] | HTTPException = reqs_res[2]
 
     gbv_res, gbl_res, gbt_res = reqs_res
 
