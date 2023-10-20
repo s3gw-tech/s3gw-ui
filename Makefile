@@ -34,7 +34,7 @@ setup-ui-backend:
 ########################################################################
 # Build UI components
 
-build-ui-fronted:
+build-ui-frontend:
 	cd src/frontend && npm ci && npx ng build
 
 ########################################################################
@@ -42,7 +42,7 @@ build-ui-fronted:
 
 #Kept for convenience until the new backend architecture is not ready.
 #This will be likely removed in the future.
-image-build-ui-fronted:
+image-build-ui-frontend:
 	docker build -t s3gw-frontend:latest -f src/frontend/Dockerfile src/frontend
 
 image-build-ui:
