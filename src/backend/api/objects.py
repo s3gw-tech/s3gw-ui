@@ -13,7 +13,7 @@
 # limitations under the License.
 import asyncio
 from collections import deque
-from typing import Annotated, Deque, List, Optional
+from typing import Annotated, Any, Deque, List, Optional
 
 from fastapi import (
     Depends,
@@ -513,7 +513,7 @@ async def get_object_attributes(
         get_object(conn=conn, bucket=bucket, params=params),
         get_object_tagging(conn=conn, bucket=bucket, params=params),
     ]
-    reqs_res = await asyncio.gather(*reqs, return_exceptions=True)
+    reqs_res: list[Any] = await asyncio.gather(*reqs, return_exceptions=True)
     assert len(reqs_res) == 2
 
     go_res, got_res = reqs_res

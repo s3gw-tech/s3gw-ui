@@ -4,7 +4,7 @@ COPY frontend /srv/frontend
 WORKDIR /srv/frontend
 RUN npm ci && npm run build:prod
 
-FROM python:alpine3.18 as s3gw-ui
+FROM python:3.11-alpine3.18 as s3gw-ui
 ARG QUAY_EXPIRATION=Never
 
 LABEL Name=s3gw-ui
