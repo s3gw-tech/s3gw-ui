@@ -210,7 +210,7 @@ make setup-ui-backend
 It build the ui-frontend.
 
 ```shell
-make build-ui-fronted
+make build-ui-frontend
 ```
 
 ### Run the UI-Backend
