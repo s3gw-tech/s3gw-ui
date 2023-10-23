@@ -18,7 +18,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from s3gw_ui_backend import NoCacheStaticFiles
+from s3gw_ui_backend import NoCacheStaticFiles, app_factory
 
 
 @pytest.fixture
@@ -67,3 +67,12 @@ def test_static_files_2(test_data: PosixPath) -> None:
     assert "cache-control" not in resp.headers
     assert "expires" not in resp.headers
     assert "pragma" not in resp.headers
+
+
+def test_api() -> None:
+    app = app_factory()
+    client = TestClient(app)
+
+    resp = client.get("/api/buckets/")
+    assert resp.status_code == 422
+    assert resp.headers["content-type"] == "application/json"
