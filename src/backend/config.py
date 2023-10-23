@@ -33,17 +33,48 @@ def get_s3gw_address() -> str:
     return url
 
 
+def get_ui_location() -> str:
+    """Obtain the location path under which the UI should be served, e.g. /ui"""
+    loc = os.environ.get("S3GW_UI_LOCATION")
+    if loc is None:
+        return "/"
+    m = re.fullmatch(r"/?[\w.-/]+(?:[\w]+)/?", loc)
+    if m is None:
+        logger.error(f"Malformed path for UI location: {loc}")
+        raise Exception("Malformed UI location")
+    return loc if loc.startswith("/") else f"/{loc}"
+
+
+def get_api_location(ui_location: str) -> str:
+    return f"{ui_location.rstrip('/')}/api"
+
+
 class Config:
     """Keeps config relevant for the backend's operation."""
 
     # Address for the s3gw instance we're servicing.
     _s3gw_addr: str
 
+    _ui_location: str
+    _api_location: str
+
     def __init__(self) -> None:
         self._s3gw_addr = get_s3gw_address()
+        self._ui_location = get_ui_location()
+        self._api_location = get_api_location(self._ui_location)
         logger.info(f"Servicing s3gw at {self._s3gw_addr}")
 
     @property
     def s3gw_addr(self) -> str:
         """Obtain the address for the s3gw instance we are servicing."""
         return self._s3gw_addr
+
+    @property
+    def ui_location(self) -> str:
+        """Obtain UI location path"""
+        return self._ui_location
+
+    @property
+    def api_location(self) -> str:
+        """Obtain API location path"""
+        return self._api_location
