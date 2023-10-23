@@ -100,6 +100,17 @@ jobs:
       - name: Checkout s3gw UI
         uses: actions/checkout@v3
 
+      - name: Set up node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: src/frontend
+        run: npm ci
+
       - name: Install Python 3.10
         uses: actions/setup-python@v4
         with:
@@ -108,6 +119,10 @@ jobs:
 
       - name: Install tox
         run: pip install tox
+
+      - name: Build Frontend
+        working-directory: src/frontend
+        run: npx ng build
 
       - name: Run unit tests
         working-directory: src
