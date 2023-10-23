@@ -115,9 +115,10 @@ def s3gw_factory(
     s3gw_api.include_router(config.router)
 
     s3gw_app.mount(
-            f"{app_location}/api" if app_location is not None else "/api",
-            s3gw_api,
-            name="api")
+        f"{app_location}/api" if app_location is not None else "/api",
+        s3gw_api,
+        name="api",
+    )
 
     if static_dir is not None:
         # Disable caching of `index.html` on purpose so that the browser
@@ -141,10 +142,9 @@ def app_factory():
     static_dir = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "frontend/dist/s3gw-ui/"
     )
-    return s3gw_factory(s3gw_startup,
-                        s3gw_shutdown,
-                        static_dir,
-                        s3gw_ui_location)
+    return s3gw_factory(
+        s3gw_startup, s3gw_shutdown, static_dir, s3gw_ui_location
+    )
 
 
 def main():
