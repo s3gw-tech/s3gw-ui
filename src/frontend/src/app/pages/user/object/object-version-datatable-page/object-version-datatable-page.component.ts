@@ -101,6 +101,17 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
         },
         callback: (event: Event, action: DatatableAction, table: Datatable) =>
           this.doRestore(table.selected[0] as S3ObjectVersion)
+      },
+      {
+        type: 'button',
+        text: TEXT('Delete'),
+        icon: this.icons.delete,
+        enabledConstraints: {
+          minSelected: 1,
+          maxSelected: 1
+        },
+        callback: (event: Event, action: DatatableAction, table: Datatable) =>
+          this.doDelete(table.selected[0] as S3ObjectVersion)
       }
     ];
     this.datatableColumns = [
@@ -186,6 +197,14 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
         icon: this.icons.restore,
         disabled: object.IsDeleted || object.IsLatest,
         callback: () => this.doRestore(object)
+      },
+      {
+        type: 'divider'
+      },
+      {
+        title: TEXT('Delete'),
+        icon: this.icons.delete,
+        callback: () => this.doDelete(object)
       }
     ];
     return result;
@@ -201,7 +220,7 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
     this.modalDialogService.yesNo(
       format(
         TEXT(
-          'Are you sure you want to restore the following object?<br>Key: <strong>{{ key | reverse | truncate(45) | reverse }}</strong><br>Version ID: <strong>{{ versionId }}</strong>'
+          'Are you sure you want to restore this object version?<br>Key: <strong>{{ key | reverse | truncate(45) | reverse }}</strong><br>Version ID: <strong>{{ versionId }}</strong>'
         ),
         {
           key: object.Key,
@@ -212,10 +231,36 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
         if (!restore) {
           return;
         }
-        this.blockUiService.start(TEXT('Please wait, restoring object...'));
+        this.blockUiService.start(TEXT('Please wait, restoring object version...'));
         this.subscriptions.add(
           this.s3BucketService
             .restoreObject(this.bid, object.Key!, object.VersionId!)
+            .pipe(finalize(() => this.blockUiService.stop()))
+            .subscribe(() => this.loadData())
+        );
+      }
+    );
+  }
+
+  private doDelete(object: S3ObjectVersion): void {
+    this.modalDialogService.yesNo(
+      format(
+        TEXT(
+          'Do you really want to delete this object version?<br>Key: <strong>{{ key | reverse | truncate(45) | reverse }}</strong><br>Version ID: <strong>{{ versionId }}</strong>'
+        ),
+        {
+          key: object.Key,
+          versionId: object.VersionId
+        }
+      ),
+      (restore: boolean) => {
+        if (!restore) {
+          return;
+        }
+        this.blockUiService.start(TEXT('Please wait, deleting object version...'));
+        this.subscriptions.add(
+          this.s3BucketService
+            .deleteObject(this.bid, object.Key!, object.VersionId!)
             .pipe(finalize(() => this.blockUiService.stop()))
             .subscribe(() => this.loadData())
         );
