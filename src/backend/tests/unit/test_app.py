@@ -72,7 +72,7 @@ def test_static_files_2(test_data: PosixPath) -> None:
 
 def test_config_init() -> None:
     os.environ["S3GW_SERVICE_URL"] = "http://s3gw.example.com"
-    os.environ["S3GW_UI_LOCATION"] = "/s3gwui"
+    os.environ["S3GW_UI_PATH"] = "/s3gwui"
     app = app_factory()
     with TestClient(app) as client:
         ui_resp = client.get("/s3gwui")

@@ -101,7 +101,7 @@ def s3gw_factory(static_dir: str | None = None) -> FastAPI:
     s3gw_api.include_router(objects.router)
     s3gw_api.include_router(config.router)
 
-    s3gw_app.mount(s3gw_api.state.config.api_location, s3gw_api, name="api")
+    s3gw_app.mount(s3gw_api.state.config.api_path, s3gw_api, name="api")
 
     if static_dir is not None:
         # Disable caching of `index.html` on purpose so that the browser
@@ -109,7 +109,7 @@ def s3gw_factory(static_dir: str | None = None) -> FastAPI:
         # app are not taken into account when the browser is loading the
         # file from the cache.
         s3gw_app.mount(
-            s3gw_api.state.config.ui_location,
+            s3gw_api.state.config.ui_path,
             NoCacheStaticFiles(
                 no_cache_files=["/"], directory=static_dir, html=True
             ),
