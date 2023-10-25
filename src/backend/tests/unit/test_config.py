@@ -19,7 +19,7 @@ from fastapi import FastAPI, Request
 from starlette.datastructures import State
 
 from backend.api import s3gw_endpoint
-from backend.config import Config, get_s3gw_address
+from backend.config import Config, get_s3gw_address, get_ui_path
 
 
 def test_s3gw_malformed_address() -> None:
@@ -80,3 +80,54 @@ def test_s3gw_endpoint() -> None:
     req = Request({"type": "http", "app": app})
     res: str = s3gw_endpoint(req)
     assert res == addr
+
+
+def test_malformed_ui_path() -> None:
+    bad_paths = [
+        "",
+        "foo:bar",
+    ]
+    for loc in bad_paths:
+        os.environ["S3GW_UI_PATH"] = loc
+        with pytest.raises(Exception) as e:
+            get_ui_path()
+        assert str(e.value) == "Malformed UI path"
+
+
+def test_good_ui_path() -> None:
+    path = "/s3store"
+    os.environ["S3GW_UI_PATH"] = path
+    try:
+        cfg = Config()
+        assert cfg.ui_path == path
+    except Exception as e:
+        pytest.fail(str(e))
+
+
+def test_no_ui_path() -> None:
+    os.environ.pop("S3GW_UI_PATH")
+    try:
+        cfg = Config()
+        assert cfg.ui_path == "/"
+    except Exception as e:
+        pytest.fail(str(e))
+
+
+def test_good_ui_api_path() -> None:
+    path = "/s3store"
+    os.environ["S3GW_UI_PATH"] = path
+    try:
+        cfg = Config()
+        assert cfg.api_path == "/s3store/api"
+    except Exception as e:
+        pytest.fail(str(e))
+
+
+def test_api_path_with_trailing_slash() -> None:
+    path = "/s3store/"
+    os.environ["S3GW_UI_PATH"] = path
+    try:
+        cfg = Config()
+        assert cfg.api_path == "/s3store/api"
+    except Exception as e:
+        pytest.fail(str(e))

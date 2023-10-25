@@ -33,17 +33,53 @@ def get_s3gw_address() -> str:
     return url
 
 
+def get_ui_path() -> str:
+    """Obtain the path under which the UI should be served, e.g. /ui"""
+    path = os.environ.get("S3GW_UI_PATH")
+    if path is None:
+        return "/"
+    match = re.fullmatch(r"/?[\w.-/]+(?:[\w]+)/?", path)
+    if match is None:
+        logger.error(f"Malformed path for UI: {path}")
+        raise Exception("Malformed UI path")
+    return path if path.startswith("/") else f"/{path}"
+
+
+def get_api_path(ui_path: str) -> str:
+    """
+    Obtain the path under which the API for the UI should be served from the
+    path of the UI itself. E.g. when the UI path is `/ui`, this will be
+    `/ui/api`
+    """
+    return f"{ui_path.rstrip('/')}/api"
+
+
 class Config:
     """Keeps config relevant for the backend's operation."""
 
     # Address for the s3gw instance we're servicing.
     _s3gw_addr: str
 
+    _ui_path: str
+    _api_path: str
+
     def __init__(self) -> None:
         self._s3gw_addr = get_s3gw_address()
+        self._ui_path = get_ui_path()
+        self._api_path = get_api_path(self._ui_path)
         logger.info(f"Servicing s3gw at {self._s3gw_addr}")
 
     @property
     def s3gw_addr(self) -> str:
         """Obtain the address for the s3gw instance we are servicing."""
         return self._s3gw_addr
+
+    @property
+    def ui_path(self) -> str:
+        """Obtain UI path"""
+        return self._ui_path
+
+    @property
+    def api_path(self) -> str:
+        """Obtain API path"""
+        return self._api_path

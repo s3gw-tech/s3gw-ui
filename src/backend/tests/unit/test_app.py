@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from pathlib import Path, PosixPath
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from s3gw_ui_backend import NoCacheStaticFiles
+from s3gw_ui_backend import NoCacheStaticFiles, app_factory
 
 
 @pytest.fixture
@@ -67,3 +68,14 @@ def test_static_files_2(test_data: PosixPath) -> None:
     assert "cache-control" not in resp.headers
     assert "expires" not in resp.headers
     assert "pragma" not in resp.headers
+
+
+def test_config_init() -> None:
+    os.environ["S3GW_SERVICE_URL"] = "http://s3gw.example.com"
+    os.environ["S3GW_UI_PATH"] = "/s3gwui"
+    app = app_factory()
+    with TestClient(app) as client:
+        ui_resp = client.get("/s3gwui")
+        assert ui_resp.status_code == 200
+        api_resp = client.get("/s3gwui/api/buckets/")
+        assert api_resp.status_code == 422

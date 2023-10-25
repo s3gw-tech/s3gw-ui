@@ -16,7 +16,8 @@
 
 import os
 import sys
-from typing import Any, Awaitable, Callable, List
+from contextlib import asynccontextmanager
+from typing import Any, AsyncGenerator, List
 
 import uvicorn
 from fastapi import FastAPI, Response
@@ -54,28 +55,15 @@ class NoCacheStaticFiles(StaticFiles):
         return resp
 
 
-async def s3gw_startup(s3gw_app: FastAPI, s3gw_api: FastAPI) -> None:
+@asynccontextmanager
+async def lifespan(api: FastAPI) -> AsyncGenerator[None, Any]:
     setup_logging()
     logger.info("Starting s3gw-ui backend")
-    try:
-        s3gw_api.state.config = Config()
-    except Exception:
-        logger.error("unable to init config -- exit!")
-        sys.exit(1)
-
-
-async def s3gw_shutdown(s3gw_app: FastAPI, s3gw_api: FastAPI) -> None:
+    yield
     logger.info("Shutting down s3gw-ui backend")
 
 
-s3gwAsyncMethod = Callable[[FastAPI, FastAPI], Awaitable[None]]
-
-
-def s3gw_factory(
-    startup: s3gwAsyncMethod = s3gw_startup,
-    shutdown: s3gwAsyncMethod = s3gw_shutdown,
-    static_dir: str | None = None,
-) -> FastAPI:
+def s3gw_factory(static_dir: str | None = None) -> FastAPI:
     api_tags_meta = [
         {
             "name": "bucket",
@@ -97,15 +85,15 @@ def s3gw_factory(
         description="<s3gw description>",
         version="1.0.0",
         openapi_tags=api_tags_meta,
+        lifespan=lifespan,
     )
 
-    @s3gw_app.on_event("startup")
-    async def on_startup():  # type: ignore
-        await startup(s3gw_app, s3gw_api)
-
-    @s3gw_app.on_event("shutdown")
-    async def on_shutdown():  # type: ignore
-        await shutdown(s3gw_app, s3gw_api)
+    try:
+        s3gw_api.state.config = Config()
+    except Exception as exception:
+        logger.error(str(exception))
+        logger.error("unable to init config -- exit!")
+        sys.exit(1)
 
     s3gw_api.include_router(admin.router)
     s3gw_api.include_router(auth.router)
@@ -113,14 +101,15 @@ def s3gw_factory(
     s3gw_api.include_router(objects.router)
     s3gw_api.include_router(config.router)
 
-    s3gw_app.mount("/api", s3gw_api, name="api")
+    s3gw_app.mount(s3gw_api.state.config.api_path, s3gw_api, name="api")
+
     if static_dir is not None:
         # Disable caching of `index.html` on purpose so that the browser
         # is always loading the latest app code, otherwise changes to the
         # app are not taken into account when the browser is loading the
         # file from the cache.
         s3gw_app.mount(
-            "/",
+            s3gw_api.state.config.ui_path,
             NoCacheStaticFiles(
                 no_cache_files=["/"], directory=static_dir, html=True
             ),
@@ -134,7 +123,7 @@ def app_factory():
     static_dir = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "frontend/dist/s3gw-ui/"
     )
-    return s3gw_factory(s3gw_startup, s3gw_shutdown, static_dir)
+    return s3gw_factory(static_dir)
 
 
 def main():
