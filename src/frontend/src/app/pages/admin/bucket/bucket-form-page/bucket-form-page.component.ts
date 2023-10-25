@@ -248,7 +248,9 @@ export class BucketFormPageComponent implements OnInit, IsDirty {
           type: 'checkbox',
           name: 'retention_enabled',
           label: TEXT('Retention'),
-          hint: TEXT('Prevent object deletion for a period of time.'),
+          hint: TEXT(
+            'Prevent object deletion for a period of time. The settings are applied to any object for which no explicit retention mode is specified.'
+          ),
           value: false,
           modifiers: [
             {
