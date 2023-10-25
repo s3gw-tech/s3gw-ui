@@ -32,7 +32,7 @@ make setup-ui-backend
 ### Build the UI-Frontend
 
 ```shell
-make build-ui-fronted
+make build-ui-frontend
 ```
 
 ### Run the UI-Backend
