@@ -98,7 +98,7 @@ def test_decode_client_error_1() -> None:
     )
     (status_code, detail) = decode_client_error(error)
     assert status_code == status.HTTP_401_UNAUTHORIZED
-    assert detail == "Invalid access key"
+    assert detail == "Foo bar"
 
 
 def test_decode_client_error_2() -> None:
@@ -121,3 +121,18 @@ def test_decode_client_error_3() -> None:
     (status_code, detail) = decode_client_error(error)
     assert status_code == status.HTTP_403_FORBIDDEN
     assert detail == "Foo bar"
+
+
+def test_decode_client_error_4() -> None:
+    error = ClientError(
+        error_response={
+            "Error": {"Code": "InvalidAccessKeyId"},
+            "ResponseMetadata": {  # pyright: ignore [reportGeneralTypeIssues]
+                "HTTPStatusCode": 403
+            },
+        },
+        operation_name="TestOperation",
+    )
+    (status_code, detail) = decode_client_error(error)
+    assert status_code == status.HTTP_403_FORBIDDEN
+    assert detail == "Invalid access key"

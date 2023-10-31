@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.23.0]
 
+### Fixed
+
+- Prevent user from logging out when deleting a locked object version (gh#aquarist-labs/s3gw#789).
+
 ### Added
 
-Allow the deletion of specific object versions (gh#aquarist-labs/s3gw#764).
+- Allow the deletion of specific object versions (gh#aquarist-labs/s3gw#764).
 
 ## [0.22.0]
 
