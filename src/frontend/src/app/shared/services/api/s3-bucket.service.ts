@@ -12,7 +12,7 @@ import { NotificationService } from '~/app/shared/services/notification.service'
 import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
-function CatchErrorsByStatus(errors: number[]) {
+function CatchErrors(errors: number[]) {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalFn = descriptor.value;
     // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
@@ -30,57 +30,6 @@ function CatchErrorsByStatus(errors: number[]) {
           } else {
             return throwError(err);
           }
-        })
-      );
-    };
-    return descriptor;
-  };
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
-function CatchErrors(errors: string[]) {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-    const originalFn = descriptor.value;
-    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-    descriptor.value = function (...args: any[]) {
-      // @ts-ignore
-      const result: Observable<any> = originalFn.apply(this, args);
-      return result.pipe(
-        catchError((err) => {
-          if (errors.includes(err.code)) {
-            // @ts-ignore
-            this.notificationService.showError(_.capitalize(_.trimEnd(err.message), '.') + '.');
-          }
-          return throwError(err);
-        })
-      );
-    };
-    return descriptor;
-  };
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
-function CatchInvalidRequest() {
-  return CatchErrors(['InvalidRequest']);
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
-function CatchAuthErrors() {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-    const originalFn = descriptor.value;
-    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-    descriptor.value = function (...args: any[]) {
-      // @ts-ignore
-      const result: Observable<any> = originalFn.apply(this, args);
-      return result.pipe(
-        catchError((err) => {
-          if (
-            ['CredentialsError', 'InvalidAccessKeyId', 'SignatureDoesNotMatch'].includes(err.code)
-          ) {
-            // @ts-ignore
-            this.authSessionService.logout();
-          }
-          return throwError(err);
         })
       );
     };
@@ -328,7 +277,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public list(credentials?: Credentials): Observable<S3Buckets> {
     credentials = credentials ?? this.authSessionService.getCredentials();
     return this.s3gwApiService.get<BucketListResponse>('buckets/', { credentials }).pipe(
@@ -348,7 +297,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public count(credentials?: Credentials): Observable<number> {
     return this.list(credentials).pipe(map((resp: S3Buckets) => resp.length));
   }
@@ -360,7 +309,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public get(bucket: S3BucketName, credentials?: Credentials): Observable<S3Bucket> {
     credentials = credentials ?? this.authSessionService.getCredentials();
     return this.s3gwApiService.get<BucketResponse>(`buckets/${bucket}`, { credentials }).pipe(
@@ -380,7 +329,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public getAttributes(
     bucket: S3BucketName,
     credentials?: Credentials
@@ -424,7 +373,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public create(bucketAttrs: S3BucketAttributes, credentials?: Credentials): Observable<S3Bucket> {
     credentials = credentials ?? this.authSessionService.getCredentials();
     const params = {
@@ -473,7 +422,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public delete(bucket: S3BucketName, credentials?: Credentials): Observable<string> {
     credentials = credentials ?? this.authSessionService.getCredentials();
     return this.s3gwApiService.delete(`buckets/${bucket}`, { credentials }).pipe(map(() => bucket));
@@ -486,7 +435,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public getVersioning(bucket: S3BucketName, credentials?: Credentials): Observable<boolean> {
     credentials = credentials ?? this.authSessionService.getCredentials();
     return this.s3gwApiService.get<boolean>(`buckets/${bucket}/versioning`, { credentials });
@@ -500,7 +449,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public getLifecycleConfiguration(
     bucket: S3BucketName,
     credentials?: Credentials
@@ -522,8 +471,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchInvalidRequest()
-  @CatchAuthErrors()
+  @CatchErrors([400, 403])
   public setLifecycleConfiguration(
     bucket: S3BucketName,
     rules: S3LifecycleRules,
@@ -549,7 +497,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with.
    *   Defaults to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public listObjects(
     bucket: S3BucketName,
     prefix?: S3Prefix,
@@ -582,7 +530,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectVersions-property
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public listObjectVersions(
     bucket: S3BucketName,
     prefix?: S3Prefix,
@@ -613,7 +561,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchErrorsByStatus([403])
+  @CatchErrors([403])
   public deleteObject(
     bucket: S3BucketName,
     key: S3ObjectKey,
@@ -645,7 +593,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with.
    *   Defaults to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public deleteObjectByPrefix(
     bucket: S3BucketName,
     prefix: S3Prefix,
@@ -675,7 +623,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public uploadObject(
     bucket: S3BucketName,
     file: File,
@@ -759,7 +707,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchAuthErrors()
+  @CatchErrors([403])
   public getObjectAttributes(
     bucket: S3BucketName,
     key: S3ObjectKey,
@@ -826,8 +774,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchInvalidRequest()
-  @CatchAuthErrors()
+  @CatchErrors([400, 403])
   public setObjectTagging(
     bucket: S3BucketName,
     key: S3ObjectKey,
@@ -858,8 +805,7 @@ export class S3BucketService {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObjectLegalHold-property
    */
-  @CatchInvalidRequest()
-  @CatchAuthErrors()
+  @CatchErrors([400, 403])
   public setObjectLegalHold(
     bucket: S3BucketName,
     key: S3ObjectKey,
@@ -889,8 +835,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchErrors(['NoSuchKey', 'InvalidRequest'])
-  @CatchAuthErrors()
+  @CatchErrors([400, 403, 404])
   public restoreObject(
     bucket: S3BucketName,
     key: S3ObjectKey,
