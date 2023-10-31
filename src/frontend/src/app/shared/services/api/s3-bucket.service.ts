@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { saveAs } from 'file-saver';
 import * as _ from 'lodash';
-import { merge, Observable, of, throwError } from 'rxjs';
+import { EMPTY, merge, Observable, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
@@ -10,6 +10,32 @@ import { S3gwApiService } from '~/app/shared/services/api/s3gw-api.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
+
+// eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
+function CatchErrorsByStatus(errors: number[]) {
+  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    const originalFn = descriptor.value;
+    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+    descriptor.value = function (...args: any[]) {
+      // @ts-ignore
+      const result: Observable<any> = originalFn.apply(this, args);
+      return result.pipe(
+        catchError((err) => {
+          if (errors.includes(err.status)) {
+            const message = _.get(err, 'error.detail', err.message);
+            // @ts-ignore
+            this.notificationService.showError(_.capitalize(_.trimEnd(message), '.') + '.');
+            err.preventDefault?.();
+            return EMPTY;
+          } else {
+            return throwError(err);
+          }
+        })
+      );
+    };
+    return descriptor;
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
 function CatchErrors(errors: string[]) {
@@ -587,8 +613,7 @@ export class S3BucketService {
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
-  @CatchErrors(['AccessDenied', 'InvalidRequest'])
-  @CatchAuthErrors()
+  @CatchErrorsByStatus([403])
   public deleteObject(
     bucket: S3BucketName,
     key: S3ObjectKey,
