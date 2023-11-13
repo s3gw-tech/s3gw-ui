@@ -116,7 +116,7 @@ class Object(BaseModel):
 class DeletedObject(BaseModel):
     Key: str
     VersionId: Optional[str] = None
-    DeleteMarker: bool
+    DeleteMarker: Optional[bool] = None
     DeleteMarkerVersionId: Optional[str] = None
 
 
