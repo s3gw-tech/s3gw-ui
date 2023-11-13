@@ -20,6 +20,7 @@ from pytest_mock import MockerFixture
 from pytest_mock.plugin import MockType
 
 from backend.api import S3GWClient
+from backend.config import Config, S3AddressingStyle
 
 
 def async_return(result: Any):
@@ -51,3 +52,11 @@ class S3ApiMock:
                     patch_args["attribute"]
                 ] = self._mocker.patch.object(s3, **patch_args)
             yield s3
+
+
+class ConfigMock(Config):
+    def __init__(
+        self, s3gw_addr: str, s3_addressing_style: S3AddressingStyle = "auto"
+    ) -> None:  # noqa
+        self._s3gw_addr = s3gw_addr
+        self._s3_addressing_style = s3_addressing_style

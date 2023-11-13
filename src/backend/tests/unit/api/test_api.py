@@ -17,6 +17,7 @@ from botocore.exceptions import ClientError
 from fastapi import HTTPException, status
 
 from backend.api import S3GWClient, decode_client_error, s3gw_client
+from backend.tests.unit.helpers import ConfigMock
 
 
 @pytest.mark.anyio
@@ -37,7 +38,7 @@ async def test_s3gw_conn_malformed_creds() -> None:
     for creds in bad_creds:
         error_found = False
         try:
-            await s3gw_client(url, creds)
+            await s3gw_client(ConfigMock(url), creds)
         except HTTPException as e:
             assert e.status_code == status.HTTP_401_UNAUTHORIZED
             error_found = True
@@ -51,28 +52,31 @@ async def test_s3gw_conn_success() -> None:
     url = "https://foo.bar:123"
     creds = "foo:bar"
 
-    client = await s3gw_client(url, creds)
+    client = await s3gw_client(ConfigMock(url), creds)
     assert client is not None
 
 
 @pytest.mark.anyio
 async def test_s3gw_client_bad_endpoint() -> None:
-    s3gw_client = S3GWClient("http://foo.bar", "asd", "qwe")
+    s3gw_client = S3GWClient(ConfigMock("http://foo.bar"), "asd", "qwe")
 
-    raised = False
-    try:
+    with pytest.raises(HTTPException) as e:
         async with s3gw_client.conn() as client:
             await client.list_buckets()
-    except HTTPException as e:
-        assert e.status_code == status.HTTP_502_BAD_GATEWAY
-        raised = True
+    assert e.value.status_code == status.HTTP_502_BAD_GATEWAY
 
-    assert raised
+
+@pytest.mark.anyio
+async def test_s3gw_client_addressing_style() -> None:
+    s3gw_client = S3GWClient(
+        ConfigMock("https://abc.xyz", "path"), "foo", "bar"
+    )
+    assert "path" == s3gw_client.addressing_style
 
 
 @pytest.mark.anyio
 async def test_s3server(s3_server: str) -> None:
-    s3gw_client = S3GWClient(s3_server, "foo", "bar")
+    s3gw_client = S3GWClient(ConfigMock(s3_server), "foo", "bar")
     async with s3gw_client.conn() as client:
         lst = await client.list_buckets()
         assert "Buckets" in lst

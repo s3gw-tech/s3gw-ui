@@ -14,8 +14,11 @@
 
 import os
 import re
+from typing import Literal
 
 from fastapi.logger import logger
+
+S3AddressingStyle = Literal["auto", "virtual", "path"]
 
 
 def get_s3gw_address() -> str:
@@ -54,17 +57,31 @@ def get_api_path(ui_path: str) -> str:
     return f"{ui_path.rstrip('/')}/api"
 
 
+def get_s3_addressing_style() -> S3AddressingStyle:
+    """
+    Obtain the S3 addressing style. Defaults to `auto`.
+    """
+    addressing_style: str | None = os.environ.get("S3GW_S3_ADDRESSING_STYLE")
+    if addressing_style is not None:
+        addressing_style = addressing_style.lower()
+    if addressing_style not in ["auto", "virtual", "path"]:
+        addressing_style = "auto"
+    logger.info(f"Using '{addressing_style}' S3 addressing style")
+    return addressing_style  # noqa # pyright: ignore [reportGeneralTypeIssues]
+
+
 class Config:
     """Keeps config relevant for the backend's operation."""
 
     # Address for the s3gw instance we're servicing.
     _s3gw_addr: str
-
+    _s3_addressing_style: S3AddressingStyle
     _ui_path: str
     _api_path: str
 
     def __init__(self) -> None:
         self._s3gw_addr = get_s3gw_address()
+        self._s3_addressing_style = get_s3_addressing_style()
         self._ui_path = get_ui_path()
         self._api_path = get_api_path(self._ui_path)
         logger.info(f"Servicing s3gw at {self._s3gw_addr}")
@@ -83,3 +100,10 @@ class Config:
     def api_path(self) -> str:
         """Obtain API path"""
         return self._api_path
+
+    @property
+    def s3_addressing_style(self) -> S3AddressingStyle:
+        """
+        Obtain the S3 addressing style.
+        """
+        return self._s3_addressing_style

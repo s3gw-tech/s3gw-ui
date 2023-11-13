@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Allow the deletion of specific object versions (gh#aquarist-labs/s3gw#764).
+- Add `S3GW_S3_ADDRESSING_STYLE` environment variable to configure the S3 addressing style (gh#aquarist-labs/s3gw#770). 
 
 ## [0.22.0]
 
