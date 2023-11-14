@@ -21,6 +21,7 @@ from starlette.datastructures import State
 from backend.api import s3gw_config
 from backend.config import (
     Config,
+    S3AddressingStyle,
     get_s3_addressing_style,
     get_s3gw_address,
     get_ui_path,
@@ -140,14 +141,14 @@ def test_api_path_with_trailing_slash() -> None:
 
 def test_get_s3_addressing_style_1() -> None:
     os.environ["S3GW_S3_ADDRESSING_STYLE"] = "foo"
-    assert "auto" == get_s3_addressing_style()
+    assert S3AddressingStyle.AUTO == get_s3_addressing_style()
 
 
 def test_get_s3_addressing_style_2() -> None:
     os.environ["S3GW_S3_ADDRESSING_STYLE"] = "VIRTUAL"
-    assert "virtual" == get_s3_addressing_style()
+    assert S3AddressingStyle.VIRTUAL == get_s3_addressing_style()
 
 
 def test_get_s3_addressing_style_3() -> None:
     os.environ.pop("S3GW_S3_ADDRESSING_STYLE", None)
-    assert "auto" == get_s3_addressing_style()
+    assert S3AddressingStyle.AUTO == get_s3_addressing_style()

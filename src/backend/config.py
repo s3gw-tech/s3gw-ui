@@ -14,11 +14,21 @@
 
 import os
 import re
-from typing import Literal
+from enum import Enum, EnumMeta
+from typing import Any
 
 from fastapi.logger import logger
 
-S3AddressingStyle = Literal["auto", "virtual", "path"]
+
+class S3AddressingStyleEnumMeta(EnumMeta):
+    def __contains__(self, item: Any):
+        return item in self._value2member_map_
+
+
+class S3AddressingStyle(Enum, metaclass=S3AddressingStyleEnumMeta):
+    AUTO = "auto"
+    VIRTUAL = "virtual"
+    PATH = "path"
 
 
 def get_s3gw_address() -> str:
@@ -61,13 +71,13 @@ def get_s3_addressing_style() -> S3AddressingStyle:
     """
     Obtain the S3 addressing style. Defaults to `auto`.
     """
-    addressing_style: str | None = os.environ.get("S3GW_S3_ADDRESSING_STYLE")
-    if addressing_style is not None:
-        addressing_style = addressing_style.lower()
-    if addressing_style not in ["auto", "virtual", "path"]:
-        addressing_style = "auto"
+    addressing_style: str = os.environ.get(
+        "S3GW_S3_ADDRESSING_STYLE", "auto"
+    ).lower()
+    if addressing_style not in S3AddressingStyle:
+        addressing_style = S3AddressingStyle.AUTO.value
     logger.info(f"Using '{addressing_style}' S3 addressing style")
-    return addressing_style  # noqa # pyright: ignore [reportGeneralTypeIssues]
+    return S3AddressingStyle(addressing_style)
 
 
 class Config:

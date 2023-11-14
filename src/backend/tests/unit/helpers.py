@@ -56,7 +56,9 @@ class S3ApiMock:
 
 class ConfigMock(Config):
     def __init__(
-        self, s3gw_addr: str, s3_addressing_style: S3AddressingStyle = "auto"
+        self,
+        s3gw_addr: str,
+        s3_addressing_style: S3AddressingStyle = S3AddressingStyle.AUTO,
     ) -> None:  # noqa
         self._s3gw_addr = s3gw_addr
         self._s3_addressing_style = s3_addressing_style

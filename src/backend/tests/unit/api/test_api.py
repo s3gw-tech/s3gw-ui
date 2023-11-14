@@ -17,6 +17,7 @@ from botocore.exceptions import ClientError
 from fastapi import HTTPException, status
 
 from backend.api import S3GWClient, decode_client_error, s3gw_client
+from backend.config import S3AddressingStyle
 from backend.tests.unit.helpers import ConfigMock
 
 
@@ -69,9 +70,9 @@ async def test_s3gw_client_bad_endpoint() -> None:
 @pytest.mark.anyio
 async def test_s3gw_client_addressing_style() -> None:
     s3gw_client = S3GWClient(
-        ConfigMock("https://abc.xyz", "path"), "foo", "bar"
+        ConfigMock("https://abc.xyz", S3AddressingStyle.PATH), "foo", "bar"
     )
-    assert "path" == s3gw_client.addressing_style
+    assert S3AddressingStyle.PATH.value == s3gw_client.addressing_style
 
 
 @pytest.mark.anyio

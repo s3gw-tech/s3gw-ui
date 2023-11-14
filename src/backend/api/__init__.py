@@ -16,7 +16,7 @@
 
 import contextlib
 import re
-from typing import Annotated, Any, AsyncGenerator, Dict, Tuple, cast
+from typing import Annotated, Any, AsyncGenerator, Dict, Literal, Tuple, cast
 
 import boto3.utils
 import pydash
@@ -27,7 +27,7 @@ from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.logger import logger
 from types_aiobotocore_s3.client import S3Client
 
-from backend.config import Config, S3AddressingStyle
+from backend.config import Config
 
 
 class S3GWClient:
@@ -71,8 +71,8 @@ class S3GWClient:
         return self._secret_key
 
     @property
-    def addressing_style(self) -> S3AddressingStyle:
-        return self._config.s3_addressing_style
+    def addressing_style(self) -> Literal["auto", "virtual", "path"]:
+        return self._config.s3_addressing_style.value
 
     @contextlib.asynccontextmanager
     async def conn(self, attempts: int = 1) -> AsyncGenerator[S3Client, None]:
