@@ -14,8 +14,21 @@
 
 import os
 import re
+from enum import Enum, EnumMeta
+from typing import Any
 
 from fastapi.logger import logger
+
+
+class S3AddressingStyleEnumMeta(EnumMeta):
+    def __contains__(self, item: Any):
+        return item in self._value2member_map_
+
+
+class S3AddressingStyle(Enum, metaclass=S3AddressingStyleEnumMeta):
+    AUTO = "auto"
+    VIRTUAL = "virtual"
+    PATH = "path"
 
 
 def get_s3gw_address() -> str:
@@ -54,17 +67,31 @@ def get_api_path(ui_path: str) -> str:
     return f"{ui_path.rstrip('/')}/api"
 
 
+def get_s3_addressing_style() -> S3AddressingStyle:
+    """
+    Obtain the S3 addressing style. Defaults to `auto`.
+    """
+    addressing_style: str = os.environ.get(
+        "S3GW_S3_ADDRESSING_STYLE", "auto"
+    ).lower()
+    if addressing_style not in S3AddressingStyle:
+        addressing_style = S3AddressingStyle.AUTO.value
+    logger.info(f"Using '{addressing_style}' S3 addressing style")
+    return S3AddressingStyle(addressing_style)
+
+
 class Config:
     """Keeps config relevant for the backend's operation."""
 
     # Address for the s3gw instance we're servicing.
     _s3gw_addr: str
-
+    _s3_addressing_style: S3AddressingStyle
     _ui_path: str
     _api_path: str
 
     def __init__(self) -> None:
         self._s3gw_addr = get_s3gw_address()
+        self._s3_addressing_style = get_s3_addressing_style()
         self._ui_path = get_ui_path()
         self._api_path = get_api_path(self._ui_path)
         logger.info(f"Servicing s3gw at {self._s3gw_addr}")
@@ -83,3 +110,10 @@ class Config:
     def api_path(self) -> str:
         """Obtain API path"""
         return self._api_path
+
+    @property
+    def s3_addressing_style(self) -> S3AddressingStyle:
+        """
+        Obtain the S3 addressing style.
+        """
+        return self._s3_addressing_style

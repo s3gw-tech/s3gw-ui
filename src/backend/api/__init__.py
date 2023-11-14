@@ -16,7 +16,7 @@
 
 import contextlib
 import re
-from typing import Annotated, Any, AsyncGenerator, Dict, Tuple, cast
+from typing import Annotated, Any, AsyncGenerator, Dict, Literal, Tuple, cast
 
 import boto3.utils
 import pydash
@@ -43,7 +43,9 @@ class S3GWClient:
     _access_key: str
     _secret_key: str
 
-    def __init__(self, endpoint: str, access_key: str, secret_key: str) -> None:
+    def __init__(
+        self, config: Config, access_key: str, secret_key: str
+    ) -> None:
         """
         Creates a new `S3GWClient` instance.
 
@@ -52,13 +54,13 @@ class S3GWClient:
         * `access_key`: the user's `access key`.
         * `secret_key`: the user's `secret access key`.
         """
-        self._endpoint = endpoint
+        self._config = config
         self._access_key = access_key
         self._secret_key = secret_key
 
     @property
     def endpoint(self) -> str:
-        return self._endpoint
+        return self._config.s3gw_addr
 
     @property
     def access_key(self) -> str:
@@ -67,6 +69,10 @@ class S3GWClient:
     @property
     def secret_key(self) -> str:
         return self._secret_key
+
+    @property
+    def addressing_style(self) -> Literal["auto", "virtual", "path"]:
+        return self._config.s3_addressing_style.value
 
     @contextlib.asynccontextmanager
     async def conn(self, attempts: int = 1) -> AsyncGenerator[S3Client, None]:
@@ -101,7 +107,10 @@ class S3GWClient:
                 retries={
                     "max_attempts": attempts,
                     "mode": "standard",
-                }
+                },
+                s3={
+                    "addressing_style": self.addressing_style,
+                },
             ),
         ) as client:
             try:
@@ -109,10 +118,10 @@ class S3GWClient:
             except ClientError as e:
                 (status_code, detail) = decode_client_error(e)
                 raise HTTPException(status_code=status_code, detail=detail)
-            except EndpointConnectionError:
+            except EndpointConnectionError as e:
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="Endpoint not found",
+                    detail=str(e),
                 )
             except SSLError:
                 raise HTTPException(
@@ -154,13 +163,13 @@ def decode_client_error(e: ClientError) -> Tuple[int, str]:
     )
 
 
-def s3gw_endpoint(request: Request) -> str:
+def s3gw_config(request: Request) -> Config:
     config: Config = request.app.state.config
-    return config.s3gw_addr
+    return config
 
 
 async def s3gw_client(
-    endpoint: Annotated[str, Depends(s3gw_endpoint)],
+    config: Annotated[Config, Depends(s3gw_config)],
     s3gw_credentials: Annotated[str, Header()],
 ) -> S3GWClient:
     """
@@ -179,7 +188,7 @@ async def s3gw_client(
     assert len(m.groups()) == 2
     access, secret = m.group(1), m.group(2)
     assert len(access) > 0 and len(secret) > 0
-    return S3GWClient(endpoint, access, secret)
+    return S3GWClient(config, access, secret)
 
 
 def s3gw_client_responses() -> Dict[int | str, Dict[str, Any]]:

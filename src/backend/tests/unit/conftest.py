@@ -20,6 +20,7 @@ import pytest
 from fastapi import Response
 
 from backend.api import S3GWClient
+from backend.tests.unit.helpers import ConfigMock
 from backend.tests.unit.moto_server import MotoService
 
 if os.environ.get("S3GW_TEST_DEBUG") is not None:
@@ -64,7 +65,7 @@ async def s3_client(s3_server: str) -> AsyncGenerator[S3GWClient, None]:
     assert srv.startswith("http")
     assert access is not None and len(access) > 0
     assert secret is not None and len(secret) > 0
-    yield S3GWClient(srv, access, secret)
+    yield S3GWClient(ConfigMock(srv), access, secret)
 
 
 @pytest.fixture
