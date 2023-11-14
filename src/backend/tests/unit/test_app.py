@@ -12,14 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 from pathlib import Path, PosixPath
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from pytest_mock import MockerFixture
 
-from s3gw_ui_backend import NoCacheStaticFiles, app_factory
+from s3gw_ui_backend import (
+    NoCacheStaticFiles,
+    app_factory,
+    lifespan,
+    s3gw_factory,
+)
 
 
 @pytest.fixture
@@ -79,3 +86,29 @@ def test_config_init() -> None:
         assert ui_resp.status_code == 200
         api_resp = client.get("/s3gwui/api/buckets/")
         assert api_resp.status_code == 422
+
+
+def test_config_init_failure(caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level(logging.ERROR)
+    os.environ.pop("S3GW_SERVICE_URL", None)
+    with pytest.raises(SystemExit) as e:
+        s3gw_factory("/foo")
+    assert e.type == SystemExit
+    assert e.value.code == 1
+    assert (
+        "The environment variable S3GW_SERVICE_URL is not set"
+        in caplog.messages[0]
+    )
+    assert "Unable to init config -- exit!" in caplog.messages[-1]
+
+
+@pytest.mark.anyio
+async def test_lifespan(
+    caplog: pytest.LogCaptureFixture, mocker: MockerFixture
+) -> None:
+    caplog.set_level(logging.INFO)
+    app = FastAPI()
+    async with lifespan(app):
+        pass
+    assert "Starting s3gw-ui backend" in caplog.messages[0]
+    assert "Shutting down s3gw-ui backend" in caplog.messages[-1]

@@ -7,9 +7,9 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
 import { S3gwApiService } from '~/app/shared/services/api/s3gw-api.service';
+import { AppMainConfigService } from '~/app/shared/services/app-main-config.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
-import { S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention,prefer-arrow/prefer-arrow-functions
 function CatchErrors(errors: number[]) {
@@ -213,12 +213,12 @@ export class S3BucketService {
   constructor(
     private authSessionService: AuthSessionService,
     private notificationService: NotificationService,
-    private s3gwConfigService: S3gwConfigService,
+    private appMainConfigService: AppMainConfigService,
     private s3gwApiService: S3gwApiService
   ) {}
 
   get delimiter(): string {
-    return this.s3gwConfigService.config.delimiter;
+    return this.appMainConfigService.config.Delimiter;
   }
 
   /**

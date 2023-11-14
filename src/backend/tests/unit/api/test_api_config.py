@@ -38,4 +38,4 @@ async def test_get_config(mocker: MockerFixture) -> None:
     req.app.state.config = test_config
     res = await api_config.get_config(req)
     assert isinstance(res, api_config.ConfigResponse)
-    assert res.endpoint == "http://foo.bar:123"
+    assert res.Endpoint == "http://foo.bar:123"

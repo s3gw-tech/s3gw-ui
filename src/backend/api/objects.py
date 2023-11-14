@@ -93,7 +93,9 @@ class ObjectBodyStreamingResponse(StreamingResponse):
     Helper class to stream the object body.
     """
 
-    def __init__(self, conn: S3GWClientDep, bucket: str, params: ObjectRequest):
+    def __init__(
+        self, conn: S3GWClientDep, bucket: str, params: ObjectRequest
+    ):  # noqa
         # Note, do not call the parent class constructor which does some
         # initializations that we don't want at the moment. These are
         # done at a later stage, e.g. in the `stream_response` method.

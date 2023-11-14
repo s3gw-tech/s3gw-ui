@@ -7,6 +7,7 @@ import { ViewMode } from '~/app/shared/enum/view-mode.enum';
 import { NavigationConfig } from '~/app/shared/models/navigation-config.type';
 import { AuthService } from '~/app/shared/services/api/auth.service';
 import { AppConfigService } from '~/app/shared/services/app-config.service';
+import { AppMainConfigService } from '~/app/shared/services/app-main-config.service';
 import { AuthSessionService } from '~/app/shared/services/auth-session.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
 import { NavigationConfigService } from '~/app/shared/services/navigation-config.service';
@@ -33,6 +34,7 @@ export class TopBarComponent implements OnDestroy {
 
   constructor(
     public appConfigService: AppConfigService,
+    public appMainConfigService: AppMainConfigService,
     private authService: AuthService,
     private authSessionService: AuthSessionService,
     private modalDialogService: ModalDialogService,

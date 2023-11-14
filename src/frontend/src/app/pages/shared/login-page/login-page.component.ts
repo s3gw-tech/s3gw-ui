@@ -9,9 +9,9 @@ import { DeclarativeFormComponent } from '~/app/shared/components/declarative-fo
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { AuthResponse, AuthService } from '~/app/shared/services/api/auth.service';
 import { AppConfigService } from '~/app/shared/services/app-config.service';
+import { AppMainConfigService } from '~/app/shared/services/app-main-config.service';
 import { BlockUiService } from '~/app/shared/services/block-ui.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
-import { NotificationService } from '~/app/shared/services/notification.service';
 
 @Component({
   selector: 's3gw-login-page',
@@ -57,19 +57,31 @@ export class LoginPageComponent implements OnInit {
 
   constructor(
     private appConfigService: AppConfigService,
+    private appMainConfigService: AppMainConfigService,
     private authService: AuthService,
     private blockUiService: BlockUiService,
     private dialogService: DialogService,
-    private notificationService: NotificationService,
     private router: Router
   ) {
-    this.welcomeMessage = translate(TEXT('Welcome to {{ name }}'), this.appConfigService.config);
+    this.welcomeMessage = translate(TEXT('Welcome to {{ title }}'), this.appConfigService.config);
   }
 
   ngOnInit(): void {
     this.blockUiService.resetGlobal();
     // Ensure all open modal dialogs are closed.
     this.dialogService.dismissAll();
+    // Add the additional `Instance` field to the form if the
+    // `instanceId` is available.
+    if (this.appMainConfigService.config.InstanceId) {
+      this.config.fields.unshift({
+        name: 'instanceId',
+        type: 'text',
+        label: TEXT('Instance'),
+        value: this.appMainConfigService.config.InstanceId,
+        readonly: true,
+        submitValue: false
+      });
+    }
   }
 
   onLogin(): void {
