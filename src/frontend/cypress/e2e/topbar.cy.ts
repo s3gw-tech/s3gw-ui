@@ -16,6 +16,12 @@ describe('Topbar', () => {
     cy.get('button[title="Notifications"]').click();
   });
 
+  it('Profile button', () => {
+    cy.get('button[title="Profile"]').click();
+    cy.contains('Log out').should('be.visible');
+    cy.logout();
+  });
+
   it('Help button', () => {
     //Click on Help button
     cy.get('button[title="Help"]').click();
@@ -33,11 +39,5 @@ describe('Topbar', () => {
       .find('a[href="https://s3gw.io/"][target="_blank"]')
       .should('have.text', 'Website')
       .should('have.attr', 'href', 'https://s3gw.io/');
-  });
-
-  it('Profile button', () => {
-    cy.get('button[title="Profile"]').click();
-    cy.contains('Log out').should('be.visible');
-    cy.logout();
   });
 });
