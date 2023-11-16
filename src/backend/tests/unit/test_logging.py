@@ -113,3 +113,16 @@ def test_set_logging_config(mocker: MockerFixture) -> None:
     os.environ["S3GW_LOG_FILE"] = "foo"
     backend.logging.setup_logging()
     assert called_set_file_cfg
+
+
+def test_get_uvicorn_logging_config_1() -> None:
+    os.environ["S3GW_DEBUG"] = "yes"
+    config: Dict[str, Any] = backend.logging.get_uvicorn_logging_config()
+    clean_env()
+    assert "DEBUG" == config["handlers"]["default"]["level"]
+
+
+def test_get_uvicorn_logging_config_2() -> None:
+    os.environ.pop("S3GW_DEBUG", None)
+    config: Dict[str, Any] = backend.logging.get_uvicorn_logging_config()
+    assert "INFO" == config["handlers"]["default"]["level"]

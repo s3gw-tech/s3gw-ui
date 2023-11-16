@@ -18,13 +18,13 @@ from typing import Any, Dict, List
 
 
 def setup_logging() -> None:
-    lvl = "INFO" if not os.getenv("S3GW_DEBUG") else "DEBUG"
-    logfile = os.getenv("S3GW_LOG_FILE")
-    _setup_logging(lvl, logfile)
+    level: str = "INFO" if not os.getenv("S3GW_DEBUG") else "DEBUG"
+    log_file: str | None = os.getenv("S3GW_LOG_FILE")
+    _setup_logging(level, log_file)
 
 
 def _setup_logging(
-    console_level: str,
+    level: str,
     log_file: str | None,
 ) -> None:
     file_handler: Dict[str, Any] | None = None
@@ -59,7 +59,7 @@ def _setup_logging(
         },
         "handlers": {
             "console": {
-                "level": console_level,
+                "level": level,
                 "class": "logging.StreamHandler",
                 "formatter": "colorized",
             },
@@ -72,16 +72,55 @@ def _setup_logging(
         cfg["handlers"]["log_file"] = file_handler
         handlers.append("log_file")
 
-    cfg["loggers"] = {
-        "uvicorn": {
-            "level": "DEBUG",
-            "handlers": handlers,
-            "propagate": "no",
-        }
-    }
     cfg["root"] = {
         "level": "DEBUG",
         "handlers": handlers,
     }
 
     logging.config.dictConfig(cfg)
+
+
+def get_uvicorn_logging_config() -> Dict[str, Any]:
+    level: str = "INFO" if not os.getenv("S3GW_DEBUG") else "DEBUG"
+    return {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "()": "uvicorn.logging.DefaultFormatter",
+                "fmt": "%(levelprefix)s %(asctime)s -- %(message)s",
+                "use_colors": None,
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+            "access": {
+                "()": "uvicorn.logging.AccessFormatter",
+                "fmt": '%(levelprefix)s %(asctime)s -- %(client_addr)s -- "%(request_line)s" %(status_code)s',  # noqa: E501
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+        },
+        "handlers": {
+            "default": {
+                "level": level,
+                "formatter": "default",
+                "class": "logging.StreamHandler",
+            },
+            "access": {
+                "level": level,
+                "formatter": "access",
+                "class": "logging.StreamHandler",
+            },
+        },
+        "loggers": {
+            "uvicorn": {
+                "handlers": ["default"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "uvicorn.error": {"level": "INFO"},
+            "uvicorn.access": {
+                "handlers": ["access"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+    }

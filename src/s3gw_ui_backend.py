@@ -27,7 +27,7 @@ from starlette.types import Scope
 
 from backend.api import admin, auth, buckets, config, objects
 from backend.config import Config
-from backend.logging import setup_logging
+from backend.logging import get_uvicorn_logging_config, setup_logging
 
 
 class NoCacheStaticFiles(StaticFiles):
@@ -147,7 +147,11 @@ def main():
     # use this for development; production systems should be running with
     # uvicorn directly.
     uvicorn.run(  # type: ignore
-        "s3gw_ui_backend:app_factory", host="0.0.0.0", port=8080, factory=True
+        "s3gw_ui_backend:app_factory",
+        host="0.0.0.0",
+        port=8080,
+        factory=True,
+        log_config=get_uvicorn_logging_config(),
     )
 
 
