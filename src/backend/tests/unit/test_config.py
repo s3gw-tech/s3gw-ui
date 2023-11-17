@@ -22,7 +22,8 @@ from backend.api import s3gw_config
 from backend.config import (
     Config,
     S3AddressingStyle,
-    get_s3_addressing_style,
+    get_environ_enum,
+    get_environ_str,
     get_s3gw_address,
     get_ui_path,
 )
@@ -41,7 +42,10 @@ def test_s3gw_malformed_address() -> None:
         os.environ["S3GW_SERVICE_URL"] = url
         with pytest.raises(Exception) as e:
             get_s3gw_address()
-        assert str(e.value) == "Malformed URL"
+        assert (
+            str(e.value)
+            == "The value of the environment variable S3GW_SERVICE_URL is malformed"  # noqa: E501
+        )
 
 
 def test_s3gw_good_address() -> None:
@@ -58,7 +62,9 @@ def test_s3gw_missing_address() -> None:
     os.environ.pop("S3GW_SERVICE_URL")
     with pytest.raises(Exception) as e:
         get_s3gw_address()
-    assert str(e.value) == "S3GW_SERVICE_URL env variable not set"
+    assert (
+        str(e.value) == "The environment variable S3GW_SERVICE_URL is not set"
+    )
 
 
 def test_config_1() -> None:
@@ -97,7 +103,10 @@ def test_malformed_ui_path() -> None:
         os.environ["S3GW_UI_PATH"] = loc
         with pytest.raises(Exception) as e:
             get_ui_path()
-        assert str(e.value) == "Malformed UI path"
+        assert (
+            str(e.value)
+            == "The value of the environment variable S3GW_UI_PATH is malformed"
+        )
 
 
 def test_good_ui_path() -> None:
@@ -139,16 +148,37 @@ def test_api_path_with_trailing_slash() -> None:
         pytest.fail(str(e))
 
 
-def test_get_s3_addressing_style_1() -> None:
+def test_get_environ_enum_1() -> None:
     os.environ["S3GW_S3_ADDRESSING_STYLE"] = "foo"
-    assert S3AddressingStyle.AUTO == get_s3_addressing_style()
+    assert S3AddressingStyle.AUTO == get_environ_enum(
+        S3AddressingStyle, "S3GW_S3_ADDRESSING_STYLE", "auto"
+    )
 
 
-def test_get_s3_addressing_style_2() -> None:
+def test_get_environ_enum_2() -> None:
     os.environ["S3GW_S3_ADDRESSING_STYLE"] = "VIRTUAL"
-    assert S3AddressingStyle.VIRTUAL == get_s3_addressing_style()
+    assert S3AddressingStyle.AUTO == get_environ_enum(
+        S3AddressingStyle, "S3GW_S3_ADDRESSING_STYLE", "auto"
+    )
 
 
-def test_get_s3_addressing_style_3() -> None:
+def test_get_environ_enum_3() -> None:
     os.environ.pop("S3GW_S3_ADDRESSING_STYLE", None)
-    assert S3AddressingStyle.AUTO == get_s3_addressing_style()
+    assert S3AddressingStyle.AUTO == get_environ_enum(
+        S3AddressingStyle, "S3GW_S3_ADDRESSING_STYLE", "auto"
+    )
+
+
+def test_get_environ_str_1() -> None:
+    os.environ["S3GW_S3_PREFIX_DELIMITER"] = "|"
+    assert "|" == get_environ_str("S3GW_S3_PREFIX_DELIMITER")
+
+
+def test_get_environ_str_2() -> None:
+    os.environ.pop("S3GW_S3_PREFIX_DELIMITER", None)
+    assert "&" == get_environ_str("S3GW_S3_PREFIX_DELIMITER", "&")
+
+
+def test_get_environ_str_3() -> None:
+    os.environ.pop("S3GW_INSTANCE_ID", None)
+    assert "" == get_environ_str("S3GW_INSTANCE_ID")

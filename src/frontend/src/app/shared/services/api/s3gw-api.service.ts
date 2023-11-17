@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import { Observable } from 'rxjs';
 
 import { Credentials } from '~/app/shared/models/credentials.type';
-import { S3gwConfig, S3gwConfigService } from '~/app/shared/services/s3gw-config.service';
+import { AppMainConfig, AppMainConfigService } from '~/app/shared/services/app-main-config.service';
 
 export type HttpHeaders = Record<string, any>;
 
@@ -22,10 +22,10 @@ export type S3gwApiServiceRequestOptions = {
   providedIn: 'root'
 })
 export class S3gwApiService {
-  config: S3gwConfig;
+  config: AppMainConfig;
 
-  constructor(private http: HttpClient, private s3gwConfigService: S3gwConfigService) {
-    this.config = this.s3gwConfigService.config;
+  constructor(private http: HttpClient, private appCustomConfigService: AppMainConfigService) {
+    this.config = this.appCustomConfigService.config;
   }
 
   get<T>(url: string, options: S3gwApiServiceRequestOptions): Observable<T> {
@@ -78,9 +78,9 @@ export class S3gwApiService {
   }
 
   private buildUrl(url: string): string {
-    return `${_.trimEnd(this.config.apiUrl, this.config.delimiter)}/${_.trimStart(
+    return `${_.trimEnd(this.config.ApiPath, this.config.Delimiter)}/${_.trimStart(
       url,
-      this.config.delimiter
+      this.config.Delimiter
     )}`;
   }
 

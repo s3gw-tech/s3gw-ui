@@ -27,7 +27,7 @@ from starlette.types import Scope
 
 from backend.api import admin, auth, buckets, config, objects
 from backend.config import Config
-from backend.logging import setup_logging
+from backend.logging import get_uvicorn_logging_config, setup_logging
 
 
 class NoCacheStaticFiles(StaticFiles):
@@ -57,10 +57,21 @@ class NoCacheStaticFiles(StaticFiles):
 
 @asynccontextmanager
 async def lifespan(api: FastAPI) -> AsyncGenerator[None, Any]:
-    setup_logging()
     logger.info("Starting s3gw-ui backend")
     yield
     logger.info("Shutting down s3gw-ui backend")
+
+
+def get_angular_app_data_path() -> str:
+    """
+    Get the path to the Angular app data.
+    """
+    return os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "frontend",
+        "dist",
+        "s3gw-ui",
+    )
 
 
 def s3gw_factory(static_dir: str | None = None) -> FastAPI:
@@ -92,8 +103,16 @@ def s3gw_factory(static_dir: str | None = None) -> FastAPI:
         s3gw_api.state.config = Config()
     except Exception as exception:
         logger.error(str(exception))
-        logger.error("unable to init config -- exit!")
+        logger.error("Unable to init config -- exit!")
         sys.exit(1)
+
+    # Write the configuration so that it can be loaded by the
+    # Angular application during bootstrapping.
+    main_config_path: str = os.path.join(
+        get_angular_app_data_path(), "assets", "app-main.config.json"
+    )
+    with open(main_config_path, "w") as fh:
+        fh.write(s3gw_api.state.config.to_json())
 
     s3gw_api.include_router(admin.router)
     s3gw_api.include_router(auth.router)
@@ -120,17 +139,19 @@ def s3gw_factory(static_dir: str | None = None) -> FastAPI:
 
 
 def app_factory():
-    static_dir = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), "frontend/dist/s3gw-ui/"
-    )
-    return s3gw_factory(static_dir)
+    return s3gw_factory(get_angular_app_data_path())
 
 
 def main():
+    setup_logging()
     # use this for development; production systems should be running with
     # uvicorn directly.
     uvicorn.run(  # type: ignore
-        "s3gw_ui_backend:app_factory", host="0.0.0.0", port=8080, factory=True
+        "s3gw_ui_backend:app_factory",
+        host="0.0.0.0",
+        port=8080,
+        factory=True,
+        log_config=get_uvicorn_logging_config(),
     )
 
 

@@ -20,7 +20,10 @@ from backend.config import Config
 
 
 class ConfigResponse(BaseModel):
-    endpoint: str
+    Endpoint: str
+    InstanceId: str
+    Delimiter: str
+    ApiPath: str
 
 
 router = APIRouter(prefix="/config", tags=["config"])
@@ -31,5 +34,5 @@ router = APIRouter(prefix="/config", tags=["config"])
     response_model=ConfigResponse,
 )
 async def get_config(req: Request) -> ConfigResponse:
-    cfg: Config = req.app.state.config
-    return ConfigResponse(endpoint=cfg.s3gw_addr)
+    config: Config = req.app.state.config
+    return ConfigResponse.parse_obj(config.to_dict())

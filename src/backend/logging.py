@@ -16,15 +16,20 @@ import logging.config
 import os
 from typing import Any, Dict, List
 
+import pydash
+import uvicorn.config
+
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
 
 def setup_logging() -> None:
-    lvl = "INFO" if not os.getenv("S3GW_DEBUG") else "DEBUG"
-    logfile = os.getenv("S3GW_LOG_FILE")
-    _setup_logging(lvl, logfile)
+    level: str = "INFO" if not os.getenv("S3GW_DEBUG") else "DEBUG"
+    log_file: str | None = os.getenv("S3GW_LOG_FILE")
+    _setup_logging(level, log_file)
 
 
 def _setup_logging(
-    console_level: str,
+    level: str,
     log_file: str | None,
 ) -> None:
     file_handler: Dict[str, Any] | None = None
@@ -43,23 +48,17 @@ def _setup_logging(
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "simple": {
-                "format": (
-                    "[%(levelname)-5s] %(asctime)s -- %(module)s -- %(message)s"
-                ),
-                "datefmt": "%Y-%m-%dT%H:%M:%S",
-            },
             "colorized": {
                 "()": "uvicorn.logging.ColourizedFormatter",
                 "format": (
                     "%(levelprefix)s %(asctime)s -- %(module)s -- %(message)s"
                 ),
-                "datefmt": "%Y-%m-%d %H:%M:%S",
+                "datefmt": DATE_FORMAT,
             },
         },
         "handlers": {
             "console": {
-                "level": console_level,
+                "level": level,
                 "class": "logging.StreamHandler",
                 "formatter": "colorized",
             },
@@ -72,16 +71,36 @@ def _setup_logging(
         cfg["handlers"]["log_file"] = file_handler
         handlers.append("log_file")
 
-    cfg["loggers"] = {
-        "uvicorn": {
-            "level": "DEBUG",
-            "handlers": handlers,
-            "propagate": "no",
-        }
-    }
     cfg["root"] = {
         "level": "DEBUG",
         "handlers": handlers,
     }
 
     logging.config.dictConfig(cfg)
+
+
+def get_uvicorn_logging_config() -> Dict[str, Any]:
+    level: str = "INFO" if not os.getenv("S3GW_DEBUG") else "DEBUG"
+    return pydash.merge(
+        uvicorn.config.LOGGING_CONFIG,
+        {
+            "formatters": {
+                "default": {
+                    "fmt": "%(levelprefix)s %(asctime)s -- %(message)s",
+                    "datefmt": DATE_FORMAT,
+                },
+                "access": {
+                    "fmt": '%(levelprefix)s %(asctime)s -- %(client_addr)s -- "%(request_line)s" %(status_code)s',  # noqa: E501
+                    "datefmt": DATE_FORMAT,
+                },
+            },
+            "handlers": {
+                "default": {
+                    "level": level,
+                },
+                "access": {
+                    "level": level,
+                },
+            },
+        },
+    )
