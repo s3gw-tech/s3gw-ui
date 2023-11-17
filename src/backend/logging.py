@@ -16,6 +16,11 @@ import logging.config
 import os
 from typing import Any, Dict, List
 
+import pydash
+import uvicorn.config
+
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
 
 def setup_logging() -> None:
     level: str = "INFO" if not os.getenv("S3GW_DEBUG") else "DEBUG"
@@ -43,18 +48,12 @@ def _setup_logging(
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "simple": {
-                "format": (
-                    "[%(levelname)-5s] %(asctime)s -- %(module)s -- %(message)s"
-                ),
-                "datefmt": "%Y-%m-%dT%H:%M:%S",
-            },
             "colorized": {
                 "()": "uvicorn.logging.ColourizedFormatter",
                 "format": (
                     "%(levelprefix)s %(asctime)s -- %(module)s -- %(message)s"
                 ),
-                "datefmt": "%Y-%m-%d %H:%M:%S",
+                "datefmt": DATE_FORMAT,
             },
         },
         "handlers": {
@@ -82,45 +81,26 @@ def _setup_logging(
 
 def get_uvicorn_logging_config() -> Dict[str, Any]:
     level: str = "INFO" if not os.getenv("S3GW_DEBUG") else "DEBUG"
-    return {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "default": {
-                "()": "uvicorn.logging.DefaultFormatter",
-                "fmt": "%(levelprefix)s %(asctime)s -- %(message)s",
-                "use_colors": None,
-                "datefmt": "%Y-%m-%d %H:%M:%S",
+    return pydash.merge(
+        uvicorn.config.LOGGING_CONFIG,
+        {
+            "formatters": {
+                "default": {
+                    "fmt": "%(levelprefix)s %(asctime)s -- %(message)s",
+                    "datefmt": DATE_FORMAT,
+                },
+                "access": {
+                    "fmt": '%(levelprefix)s %(asctime)s -- %(client_addr)s -- "%(request_line)s" %(status_code)s',  # noqa: E501
+                    "datefmt": DATE_FORMAT,
+                },
             },
-            "access": {
-                "()": "uvicorn.logging.AccessFormatter",
-                "fmt": '%(levelprefix)s %(asctime)s -- %(client_addr)s -- "%(request_line)s" %(status_code)s',  # noqa: E501
-                "datefmt": "%Y-%m-%d %H:%M:%S",
-            },
-        },
-        "handlers": {
-            "default": {
-                "level": level,
-                "formatter": "default",
-                "class": "logging.StreamHandler",
-            },
-            "access": {
-                "level": level,
-                "formatter": "access",
-                "class": "logging.StreamHandler",
+            "handlers": {
+                "default": {
+                    "level": level,
+                },
+                "access": {
+                    "level": level,
+                },
             },
         },
-        "loggers": {
-            "uvicorn": {
-                "handlers": ["default"],
-                "level": "INFO",
-                "propagate": False,
-            },
-            "uvicorn.error": {"level": "INFO"},
-            "uvicorn.access": {
-                "handlers": ["access"],
-                "level": "INFO",
-                "propagate": False,
-            },
-        },
-    }
+    )

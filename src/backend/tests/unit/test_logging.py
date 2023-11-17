@@ -116,13 +116,43 @@ def test_set_logging_config(mocker: MockerFixture) -> None:
 
 
 def test_get_uvicorn_logging_config_1() -> None:
+    """
+    Make sure that the imported Uvicorn configuration has not been
+    changed, otherwise our user-defined configuration would no longer
+    be correct.
+    """
+    config: Dict[str, Any] = backend.logging.get_uvicorn_logging_config()
+    assert 1 == config["version"]
+    assert (
+        "%(levelprefix)s %(asctime)s -- %(message)s"
+        == config["formatters"]["default"]["fmt"]
+    )
+    assert (
+        backend.logging.DATE_FORMAT
+        == config["formatters"]["default"]["datefmt"]
+    )
+    assert (
+        '%(levelprefix)s %(asctime)s -- %(client_addr)s -- "%(request_line)s" %(status_code)s'  # noqa: E501
+        == config["formatters"]["access"]["fmt"]
+    )
+    assert (
+        backend.logging.DATE_FORMAT == config["formatters"]["access"]["datefmt"]
+    )
+    assert "default" in config["handlers"]
+    assert "access" in config["handlers"]
+    assert "uvicorn" in config["loggers"]
+    assert "uvicorn.error" in config["loggers"]
+    assert "uvicorn.access" in config["loggers"]
+
+
+def test_get_uvicorn_logging_config_2() -> None:
     os.environ["S3GW_DEBUG"] = "yes"
     config: Dict[str, Any] = backend.logging.get_uvicorn_logging_config()
     clean_env()
     assert "DEBUG" == config["handlers"]["default"]["level"]
 
 
-def test_get_uvicorn_logging_config_2() -> None:
+def test_get_uvicorn_logging_config_3() -> None:
     os.environ.pop("S3GW_DEBUG", None)
     config: Dict[str, Any] = backend.logging.get_uvicorn_logging_config()
     assert "INFO" == config["handlers"]["default"]["level"]
