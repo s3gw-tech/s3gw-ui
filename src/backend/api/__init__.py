@@ -157,7 +157,9 @@ def decode_client_error(e: ClientError) -> Tuple[int, str]:
             status_code = int(code)
             detail = pydash.get(e.response, "Error.Message")
         else:
-            detail = pydash.get(e.response, "Error.Message", code)
+            detail = pydash.default_to(
+                pydash.get(e.response, "Error.Message", code), code
+            )
     return status_code, pydash.human_case(
         pydash.default_to(detail, "UnknownError")
     )
