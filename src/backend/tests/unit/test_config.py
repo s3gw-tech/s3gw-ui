@@ -21,6 +21,7 @@ from starlette.datastructures import State
 from backend.api import s3gw_config
 from backend.config import (
     Config,
+    EnvironMalformedError,
     S3AddressingStyle,
     get_environ_enum,
     get_environ_str,
@@ -109,14 +110,25 @@ def test_malformed_ui_path() -> None:
         )
 
 
-def test_good_ui_path() -> None:
-    path = "/s3store"
-    os.environ["S3GW_UI_PATH"] = path
-    try:
-        cfg = Config()
-        assert cfg.ui_path == path
-    except Exception as e:
-        pytest.fail(str(e))
+def test_malformed_ui_path_2() -> None:
+    os.environ["S3GW_UI_PATH"] = "/foo-bar/baz?aaa"
+    with pytest.raises(EnvironMalformedError):
+        get_ui_path()
+
+
+def test_good_ui_path_1() -> None:
+    os.environ["S3GW_UI_PATH"] = "/s3store"
+    assert "/s3store" == get_ui_path()
+
+
+def test_good_ui_path_2() -> None:
+    os.environ["S3GW_UI_PATH"] = "/"
+    assert "/" == get_ui_path()
+
+
+def test_good_ui_path_3() -> None:
+    os.environ["S3GW_UI_PATH"] = "/foo-bar/baz/"
+    assert "/foo-bar/baz/" == get_ui_path()
 
 
 def test_no_ui_path() -> None:
