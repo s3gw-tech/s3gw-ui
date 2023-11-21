@@ -611,12 +611,14 @@ export class ObjectDatatablePageComponent implements OnInit {
         total: fileList.length
       })
     );
+    let loaded = 0;
     this.subscriptions.add(
       this.s3BucketService
         .uploadObjects(this.bid, fileList, this.s3BucketService.buildPrefix(this.prefixParts))
         .pipe(finalize(() => this.blockUiService.stop()))
         .subscribe({
           next: (progress: S3UploadProgress) => {
+            loaded = progress.loaded;
             this.blockUiService.update(
               translate(
                 TEXT(
@@ -631,8 +633,13 @@ export class ObjectDatatablePageComponent implements OnInit {
             );
           },
           complete: () => {
+            const message: string =
+              loaded === fileList.length
+                ? TEXT('{{ total }} object(s) have been successfully uploaded.')
+                : TEXT('{{ loaded }} of {{ total }} object(s) have been successfully uploaded.');
             this.notificationService.showSuccess(
-              translate(TEXT('{{ total }} object(s) have been successfully uploaded.'), {
+              translate(message, {
+                loaded,
                 total: fileList.length
               })
             );
