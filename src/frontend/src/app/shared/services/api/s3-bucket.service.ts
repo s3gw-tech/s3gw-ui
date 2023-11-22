@@ -557,7 +557,10 @@ export class S3BucketService {
    * @param bucket The name of the bucket.
    * @param key The object key.
    * @param versionId The version ID used to reference a specific version
-   *   of the object.
+   *   of the object to be deleted. If not specified, a delete marker is
+   *   created instead.
+   * @param allVersions If `true`, all versions will be deleted, otherwise
+   *   only the specified one. Defaults to `false`.
    * @param credentials The AWS credentials to sign requests with. Defaults
    *   to the credentials of the currently logged-in user.
    */
@@ -566,16 +569,18 @@ export class S3BucketService {
     bucket: S3BucketName,
     key: S3ObjectKey,
     versionId?: S3ObjectVersionId,
+    allVersions?: boolean,
     credentials?: Credentials
-  ): Observable<S3DeletedObject> {
+  ): Observable<S3DeletedObject[]> {
     credentials = credentials ?? this.authSessionService.getCredentials();
     const body: Record<string, any> = {
       /* eslint-disable @typescript-eslint/naming-convention */
       Key: key,
-      VersionId: versionId
+      VersionId: versionId,
+      AllVersions: allVersions
       /* eslint-enable @typescript-eslint/naming-convention */
     };
-    return this.s3gwApiService.delete<S3DeletedObject>(`objects/${bucket}/delete`, {
+    return this.s3gwApiService.delete<S3DeletedObject[]>(`objects/${bucket}/delete`, {
       body,
       credentials
     });
@@ -587,7 +592,7 @@ export class S3BucketService {
    * @param bucket The name of the bucket.
    * @param prefix The prefix of the objects to delete. Note, a prefix
    *   like `a/b/` will delete all objects starting with that prefix,
-   *   whereas `a/b` will only delete this specific object.
+   *   whereas `a/b` will delete objects like `a/b`, `a/b1`, `a/baz`.
    * @param allVersions If `true`, all versions will be deleted, otherwise
    *   only the latest one. Defaults to `false`.
    * @param credentials The AWS credentials to sign requests with.
