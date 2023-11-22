@@ -164,7 +164,11 @@ class RestoreObjectRequest(ObjectIdentifier):
 
 
 class DeleteObjectRequest(ObjectIdentifier):
-    pass
+    AllVersions: bool = Field(
+        False,
+        description="If `True`, all versions will be deleted, otherwise "
+        "only the specified one.",
+    )
 
 
 class DeleteObjectByPrefixRequest(BaseModel):
