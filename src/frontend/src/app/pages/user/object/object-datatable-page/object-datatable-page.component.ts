@@ -679,7 +679,7 @@ export class ObjectDatatablePageComponent implements OnInit {
             break;
           case 'OBJECT':
             sources.push(
-              this.s3BucketService.deleteObjectByPrefix(this.bid, item.Key!, allVersions)
+              this.s3BucketService.deleteObject(this.bid, item.Key!, undefined, allVersions)
             );
             break;
         }

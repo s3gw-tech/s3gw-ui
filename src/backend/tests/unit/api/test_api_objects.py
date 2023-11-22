@@ -1199,28 +1199,120 @@ async def test_restore_object_failure(
 
 
 @pytest.mark.anyio
-async def test_delete_object(
+async def test_delete_object_1(
     s3_client: S3GWClient, mocker: MockerFixture
 ) -> None:
     s3api_mock = S3ApiMock(s3_client, mocker)
     s3api_mock.patch(
-        "delete_object",
+        "delete_objects",
         return_value=async_return(
             {
-                "VersionId": "gNRRPXBPWNkRP7U3D-swsXuWvMC2kwA",
-                "DeleteMarker": True,
+                "Deleted": [
+                    {
+                        "Key": "x/y/file1.md",
+                        "VersionId": "gNRRPXBPWNkRP7U3D-swsXuWvMC2kwA",
+                        "DeleteMarker": True,
+                    }
+                ]
             }
         ),
     )
 
-    res: DeletedObject = await objects.delete_object(
+    res: List[DeletedObject] = await objects.delete_object(
         s3_client,
         "test01",
-        DeleteObjectRequest(Key="x/y/file1.md"),
+        DeleteObjectRequest(Key="x/y/file1.md", AllVersions=False),
     )
-    assert res.Key == "x/y/file1.md"
-    assert res.VersionId == "gNRRPXBPWNkRP7U3D-swsXuWvMC2kwA"
-    assert res.DeleteMarker is True
+    assert res[0].Key == "x/y/file1.md"
+    assert res[0].VersionId == "gNRRPXBPWNkRP7U3D-swsXuWvMC2kwA"
+    assert res[0].DeleteMarker is True
+
+
+@pytest.mark.anyio
+async def test_delete_object_2(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "list_object_versions",
+        return_value=async_return(
+            {
+                "IsTruncated": False,
+                "KeyMarker": "",
+                "VersionIdMarker": "",
+                "Versions": [
+                    {
+                        "ETag": '"8d1c84a7fbe1dbc559c6b5c63fa184fc-1"',
+                        "Size": 26,
+                        "StorageClass": "STANDARD",
+                        "Key": "a/b/test",
+                        "VersionId": "ueWoMAuiaqtPl0KrdF92Q0qHHVK8lqO",
+                        "IsLatest": True,
+                        "LastModified": datetime.datetime(
+                            2023, 11, 22, 15, 44, 44, 244000
+                        ),
+                        "Owner": {"DisplayName": "M. Tester", "ID": "testid"},
+                    },
+                    {
+                        "ETag": '"4805e085427dee36f8d1dd78c354e6eb-1"',
+                        "Size": 79,
+                        "StorageClass": "STANDARD",
+                        "Key": "a/b/test",
+                        "VersionId": "uqoQZvzUnxzTVwfQmItCkmYdLJrrKKr",
+                        "IsLatest": False,
+                        "LastModified": datetime.datetime(
+                            2023, 11, 22, 15, 44, 3, 178000
+                        ),
+                        "Owner": {"DisplayName": "M. Tester", "ID": "testid"},
+                    },
+                    {
+                        "ETag": '"327314f477e56f612a636181fecc40f5-1"',
+                        "Size": 45,
+                        "StorageClass": "STANDARD",
+                        "Key": "a/b/test1",
+                        "VersionId": "6Hc5vzd3PJGnBRfJ8F4Z2LYdE2tKtEY",
+                        "IsLatest": True,
+                        "LastModified": datetime.datetime(
+                            2023, 11, 22, 15, 40, 19, 418000
+                        ),
+                        "Owner": {"DisplayName": "M. Tester", "ID": "testid"},
+                    },
+                ],
+                "Name": "test02",
+                "Prefix": "a/b/test",
+                "MaxKeys": 1000,
+                "EncodingType": "url",
+            }
+        ),
+    )
+    s3api_mock.patch(
+        "delete_objects",
+        return_value=async_return(
+            {
+                "Deleted": [
+                    {
+                        "Key": "a/b/test",
+                        "VersionId": "ueWoMAuiaqtPl0KrdF92Q0qHHVK8lqO",
+                        "DeleteMarker": True,
+                        "DeleteMarkerVersionId": "ueWoMAuiaqtPl0KrdF92Q0qHHVK8lqO",  # noqa: E501
+                    },
+                    {
+                        "Key": "a/b/test",
+                        "VersionId": "uqoQZvzUnxzTVwfQmItCkmYdLJrrKKr",
+                        "DeleteMarker": True,
+                        "DeleteMarkerVersionId": "uqoQZvzUnxzTVwfQmItCkmYdLJrrKKr",  # noqa: E501
+                    },
+                ],
+            }
+        ),
+    )
+
+    res: List[DeletedObject] = await objects.delete_object(
+        s3_client,
+        "test01",
+        DeleteObjectRequest(Key="a/b/test", AllVersions=True),
+    )
+    assert len(res) == 2
 
 
 @pytest.mark.anyio
@@ -1436,6 +1528,99 @@ async def test_delete_object_by_prefix_2(
         e.value.detail == "Could not delete object(s) "
         "file2.txt (AuthorizationHeaderMalformed), "
         "file3.txt (AccessDenied)"
+    )
+
+
+@pytest.mark.anyio
+async def test_delete_object_by_prefix_3(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "list_object_versions",
+        return_value=async_return(
+            {
+                "IsTruncated": False,
+                "KeyMarker": "",
+                "VersionIdMarker": "",
+                "Versions": [
+                    {
+                        "ETag": '"0d6c947604d695f58a4b844c3c0d4233"',
+                        "Size": 423,
+                        "Key": "file2.txt",
+                        "VersionId": "vXrrVkZNXIbprzSpR4hdGt",
+                        "IsLatest": False,
+                        "LastModified": datetime.datetime(
+                            2023,
+                            8,
+                            7,
+                            12,
+                            49,
+                            30,
+                            506000,
+                        ),
+                        "Owner": {"DisplayName": "M. Tester", "ID": "testid"},
+                    },
+                    {
+                        "ETag": '"d64d9775216d967b6d8d4726d54386ed"',
+                        "Size": 1050,
+                        "Key": "file3.txt",
+                        "VersionId": "HkW2UWxXxASjRRlBhEfEsCL-",
+                        "IsLatest": True,
+                        "LastModified": datetime.datetime(
+                            2022,
+                            4,
+                            6,
+                            2,
+                            12,
+                            34,
+                            643000,
+                        ),
+                        "Owner": {"DisplayName": "M. Tester", "ID": "testid"},
+                    },
+                ],
+                "DeleteMarkers": [
+                    {
+                        "Key": "file2.txt",
+                        "VersionId": "Drdct2tP8dnfNl2E2DYNv",
+                        "IsLatest": True,
+                        "LastModified": datetime.datetime(
+                            2023,
+                            8,
+                            7,
+                            12,
+                            49,
+                            19,
+                            667000,
+                        ),
+                        "Owner": {"DisplayName": "M. Tester", "ID": "testid"},
+                    },
+                ],
+                "Name": "test01",
+                "Prefix": "",
+                "Delimiter": "/",
+                "MaxKeys": 1000,
+            }
+        ),
+    )
+    s3api_mock.patch(
+        "delete_objects",
+        return_value=async_return(
+            {"Deleted": [{"Key": "file3.txt", "VersionId": ""}]}
+        ),
+    )
+
+    res: List[DeletedObject] = await objects.delete_object_by_prefix(
+        s3_client,
+        "test01",
+        DeleteObjectByPrefixRequest(Prefix="file", AllVersions=False),
+    )
+    assert len(res) == 1
+    assert res[0].Key == "file3.txt"
+    assert res[0].VersionId == ""
+    s3api_mock.mocked_fn["delete_objects"].assert_called_once_with(
+        Bucket="test01",
+        Delete={"Objects": [{"Key": "file3.txt", "VersionId": ""}]},
     )
 
 
