@@ -10,6 +10,7 @@
 # limitations under the License.
 
 .PHONY: check-ui-backend-env
+.DEFAULT_GOAL:=image-build-ui
 
 ########################################################################
 # Testing cluster
@@ -103,5 +104,3 @@ check-ui-backend-env:
 ifndef S3GW_SERVICE_URL
 	$(error S3GW_SERVICE_URL must be set.)
 endif
-
-
