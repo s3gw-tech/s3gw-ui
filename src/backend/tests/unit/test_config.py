@@ -131,6 +131,11 @@ def test_good_ui_path_3() -> None:
     assert "/foo-bar/baz/" == get_ui_path()
 
 
+def test_good_ui_path_4() -> None:
+    os.environ["S3GW_UI_PATH"] = "/foo-bar/foo-bar/"
+    assert "/foo-bar/foo-bar/" == get_ui_path()
+
+
 def test_no_ui_path() -> None:
     os.environ.pop("S3GW_UI_PATH")
     try:

@@ -120,7 +120,7 @@ def get_ui_path() -> str:
     def post_process(key: str, value: str | None) -> str:
         if value is None or value == "/":
             return "/"
-        match = re.fullmatch(r"/?[\w./-]+(?:[\w]+)/?", value)
+        match = re.fullmatch(r"[\w/-]+[\w/]+", value)
         if match is None:
             logger.error(
                 f"The value of the environment variable {key} is malformed: {value}"  # noqa: E501
