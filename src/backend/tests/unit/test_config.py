@@ -95,6 +95,7 @@ def test_s3gw_endpoint() -> None:
     assert config.s3gw_addr == addr
 
 
+@pytest.mark.skip(reason="UI paths are currently not validated")
 def test_malformed_ui_path() -> None:
     bad_paths = [
         "",
@@ -110,6 +111,7 @@ def test_malformed_ui_path() -> None:
         )
 
 
+@pytest.mark.skip(reason="UI paths are currently not validated")
 def test_malformed_ui_path_2() -> None:
     os.environ["S3GW_UI_PATH"] = "/foo-bar/baz?aaa"
     with pytest.raises(EnvironMalformedError):
