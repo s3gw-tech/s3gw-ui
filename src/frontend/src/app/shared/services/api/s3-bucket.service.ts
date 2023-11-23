@@ -525,6 +525,8 @@ export class S3BucketService {
    * @param bucket The name of the bucket.
    * @param prefix Limits the response to objects with keys that begin
    *   with the specified prefix.
+   * @param strict if `true`, then only the objects whose key corresponds
+   *   to the specified prefix are returned. Defaults to `false`.
    * @param credentials The AWS credentials to sign requests with.
    *   Defaults to the credentials of the currently logged-in user.
    *
@@ -534,12 +536,14 @@ export class S3BucketService {
   public listObjectVersions(
     bucket: S3BucketName,
     prefix?: S3Prefix,
+    strict?: boolean,
     credentials?: Credentials
   ): Observable<S3ObjectVersionList> {
     credentials = credentials ?? this.authSessionService.getCredentials();
     const body: Record<string, any> = {
       /* eslint-disable @typescript-eslint/naming-convention */
-      Delimiter: this.delimiter
+      Delimiter: this.delimiter,
+      Strict: strict
       /* eslint-enable @typescript-eslint/naming-convention */
     };
     if (_.isString(prefix)) {
