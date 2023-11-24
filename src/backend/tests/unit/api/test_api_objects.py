@@ -260,8 +260,13 @@ async def test_get_object_list_truncated(
 async def test_get_object_list_failure(
     s3_client: S3GWClient,
 ) -> None:
-    res = await objects.list_objects(s3_client, bucket="not-exists")
-    assert res is None
+    with pytest.raises(HTTPException) as e:
+        await objects.list_objects(s3_client, bucket="not-exists")
+    assert e.value.status_code == 404
+    assert e.value.detail in [
+        "No such bucket",
+        "The specified bucket does not exist",
+    ]
 
 
 @pytest.mark.anyio
