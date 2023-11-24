@@ -135,7 +135,11 @@ class ListObjectsRequest(BaseModel):
 
 
 class ListObjectVersionsRequest(ListObjectsRequest):
-    pass
+    Strict: bool = Field(
+        default=False,
+        description="If `True`, then only the objects whose key "
+        "exactly match the specified prefix are returned.",
+    )
 
 
 class ObjectVersion(Object):
@@ -165,7 +169,7 @@ class RestoreObjectRequest(ObjectIdentifier):
 
 class DeleteObjectRequest(ObjectIdentifier):
     AllVersions: bool = Field(
-        False,
+        default=False,
         description="If `True`, all versions will be deleted, otherwise "
         "only the specified one.",
     )
@@ -180,7 +184,7 @@ class DeleteObjectByPrefixRequest(BaseModel):
     )
     Delimiter: str = "/"
     AllVersions: bool = Field(
-        False,
+        default=False,
         description="If `True`, all versions will be deleted, otherwise "
         "the latest one.",
     )

@@ -20,9 +20,9 @@ import { PageAction } from '~/app/shared/models/page-action.type';
 import {
   S3BucketName,
   S3BucketService,
+  S3ObjectKey,
   S3ObjectVersion,
-  S3ObjectVersionList,
-  S3Prefix
+  S3ObjectVersionList
 } from '~/app/shared/services/api/s3-bucket.service';
 import { BlockUiService } from '~/app/shared/services/block-ui.service';
 import { ModalDialogService } from '~/app/shared/services/modal-dialog.service';
@@ -40,7 +40,7 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
   private subscriptions: Subscription = new Subscription();
 
   public bid: S3BucketName = '';
-  public prefix: S3Prefix = '';
+  public key: S3ObjectKey = '';
   public objects: S3ObjectVersionList = [];
   public datatableActions: DatatableAction[] = [];
   public datatableColumns: DatatableColumn[] = [];
@@ -62,7 +62,7 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
         return;
       }
       this.bid = decodeURIComponent(value['bid']);
-      this.prefix = decodeURIComponent(value['prefix']);
+      this.key = decodeURIComponent(value['key']);
       this.loadData();
     });
     this.datatableActions = [
@@ -169,7 +169,7 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
     this.objects = [];
     this.pageStatus = PageStatus.loading;
     this.subscriptions.add(
-      this.s3BucketService.listObjectVersions(this.bid, this.prefix).subscribe({
+      this.s3BucketService.listObjectVersions(this.bid, this.key, true).subscribe({
         next: (objects: S3ObjectVersionList) => {
           this.objects = [...this.objects, ...objects];
         },
