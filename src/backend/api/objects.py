@@ -273,6 +273,12 @@ async def list_object_versions(
                 key_marker = s3_res["NextKeyMarker"]
         except s3.exceptions.ClientError:
             return None
+
+    if params.Strict:
+        # Return only that object versions that exactly match the given
+        # prefix.
+        res = [obj for obj in res if obj.Key == params.Prefix]
+
     return res
 
 
@@ -551,22 +557,22 @@ async def restore_object(
     https://repost.aws/knowledge-center/s3-undelete-configuration
     https://www.middlewareinventory.com/blog/recover-s3/
     """
+    # Remove existing deletion markers.
+    api_res: Optional[List[ObjectVersion]] = await list_object_versions(
+        conn,
+        bucket,
+        ListObjectVersionsRequest(Prefix=params.Key, Strict=True),
+    )
+    del_objects: List[ObjectIdentifierTypeDef] = [
+        parse_obj_as(ObjectIdentifierTypeDef, obj)
+        for obj in api_res or []
+        if obj.IsDeleted
+    ]
+    if del_objects:
+        await delete_objects(conn, bucket, del_objects)
+
+    # Make a copy of the object to restore.
     async with conn.conn() as s3:
-        # Remove existing deletion markers.
-        s3_res = await s3.list_object_versions(Bucket=bucket, Prefix=params.Key)
-        del_objects: List[ObjectIdentifierTypeDef] = []
-        dm = DeleteMarkerEntryTypeDef
-        for dm in s3_res.get("DeleteMarkers", []):
-            if dm["IsLatest"]:
-                del_objects.append(
-                    {"Key": dm["Key"], "VersionId": dm["VersionId"]}
-                )
-        if del_objects:
-            await s3.delete_objects(
-                Bucket=bucket,
-                Delete={"Objects": del_objects, "Quiet": True},
-            )
-        # Make a copy of the object to restore.
         copy_source: CopySourceTypeDef = {
             "Bucket": bucket,
             "Key": params.Key,
@@ -600,18 +606,13 @@ async def delete_object(
         api_res: Optional[List[ObjectVersion]] = await list_object_versions(
             conn,
             bucket,
-            ListObjectVersionsRequest(Prefix=params.Key, Delimiter=""),
+            ListObjectVersionsRequest(Prefix=params.Key, Strict=True),
         )
-        obj: ObjectVersion
-        res_objects: List[ObjectIdentifierTypeDef] = []
-        for obj in api_res or []:
-            # Skip "virtual folders" and objects that do not match
-            # the given key.
-            if obj.Type != "OBJECT" or obj.Key != params.Key:
-                continue
-            version_id: str = obj.VersionId if obj.VersionId else ""
-            res_objects.append({"Key": obj.Key, "VersionId": version_id})
-        return res_objects
+        return [
+            parse_obj_as(ObjectIdentifierTypeDef, obj)
+            for obj in api_res or []
+            if obj.Type == "OBJECT"
+        ]
 
     objects: List[ObjectIdentifierTypeDef]
     if params.AllVersions:
@@ -678,6 +679,9 @@ async def delete_object_by_prefix(
 async def delete_objects(
     conn: S3GWClientDep, bucket: str, objects: List[ObjectIdentifierTypeDef]
 ) -> List[DeletedObject]:
+    """
+    Helper function to delete the specified objects.
+    """
     async with conn.conn() as s3:
         s3_res: DeleteObjectsOutputTypeDef = await s3.delete_objects(
             Bucket=bucket, Delete={"Objects": objects}
