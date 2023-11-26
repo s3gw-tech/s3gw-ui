@@ -20,6 +20,7 @@ import pytest
 from botocore.exceptions import ClientError
 from fastapi import HTTPException, Response, UploadFile, status
 from pytest_mock import MockerFixture
+from types_aiobotocore_s3.type_defs import ObjectIdentifierTypeDef
 
 from backend.api import S3GWClient, objects
 from backend.api.objects import ObjectBodyStreamingResponse
@@ -259,8 +260,13 @@ async def test_get_object_list_truncated(
 async def test_get_object_list_failure(
     s3_client: S3GWClient,
 ) -> None:
-    res = await objects.list_objects(s3_client, bucket="not-exists")
-    assert res is None
+    with pytest.raises(HTTPException) as e:
+        await objects.list_objects(s3_client, bucket="not-exists")
+    assert e.value.status_code == 404
+    assert e.value.detail in [
+        "No such bucket",
+        "The specified bucket does not exist",
+    ]
 
 
 @pytest.mark.anyio
@@ -1124,7 +1130,19 @@ async def test_restore_object(
             }
         ),
     )
-    s3api_mock.patch("delete_objects", return_value=async_return(None))
+    s3api_mock.patch(
+        "delete_objects",
+        return_value=async_return(
+            {
+                "Deleted": [
+                    {
+                        "Key": "a/b/file2.txt",
+                        "VersionId": "453bhjb6553hb34j53j5bj34jhjh",
+                    }
+                ]
+            }
+        ),
+    )
     s3api_mock.patch(
         "copy_object",
         return_value=async_return(
@@ -1151,19 +1169,6 @@ async def test_restore_object(
         RestoreObjectRequest(
             Key="a/b/file2.txt", VersionId="F2b5Z0ezvNExjWH3lolr1BUfOn17Zw6"
         ),
-    )
-    s3api_mock.mocked_fn["list_object_versions"].assert_called()
-    s3api_mock.mocked_fn["delete_objects"].assert_called_with(
-        Bucket="test01",
-        Delete={
-            "Objects": [
-                {
-                    "Key": "a/b/file2.txt",
-                    "VersionId": "453bhjb6553hb34j53j5bj34jhjh",
-                }
-            ],
-            "Quiet": True,
-        },
     )
     s3api_mock.mocked_fn["copy_object"].assert_called()
 
@@ -1678,3 +1683,83 @@ async def test_upload_object(
         UploadFile(file=io.BytesIO(), filename="file2.txt"),
     )
     s3api_mock.mocked_fn["upload_fileobj"].assert_called()
+
+
+@pytest.mark.anyio
+async def test_delete_objects_1(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    objs = [
+        {
+            "Key": "a/b/file2.txt",
+            "VersionId": "453bhjb6553hb34j53j5bj34jhjh",
+        }
+    ]
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "delete_objects",
+        return_value=async_return({"Deleted": objs}),
+    )
+
+    res: List[DeletedObject] = await objects.delete_objects(
+        s3_client, "test01", [ObjectIdentifierTypeDef(**obj) for obj in objs]
+    )
+
+    s3api_mock.mocked_fn["delete_objects"].assert_called_once_with(
+        Bucket="test01", Delete={"Objects": objs}
+    )
+    assert len(res) == 1
+    assert res[0].Key == "a/b/file2.txt"
+    assert res[0].VersionId == "453bhjb6553hb34j53j5bj34jhjh"
+
+
+@pytest.mark.anyio
+async def test_delete_objects_2(
+    s3_client: S3GWClient, mocker: MockerFixture
+) -> None:
+    objs = [
+        {
+            "Key": "a/b/file2.txt",
+            "VersionId": "vXrrVkZNXIbprzSpR4hdGt",
+        },
+        {
+            "Key": "a/b/file3.txt",
+            "VersionId": "HkW2UWxXxASjRRlBhEfEsCL",
+        },
+    ]
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "delete_objects",
+        return_value=async_return(
+            {
+                "Errors": [
+                    {
+                        "Key": "a/b/file2.txt",
+                        "VersionId": "vXrrVkZNXIbprzSpR4hdGt",
+                        "Code": "AuthorizationHeaderMalformed",
+                        "Message": "The authorization header ...",
+                    },
+                    {
+                        "Key": "a/b/file3.txt",
+                        "VersionId": "HkW2UWxXxASjRRlBhEfEsCL-",
+                        "Code": "AccessDenied",
+                        "Message": "AccessDenied",
+                    },
+                ]
+            }
+        ),
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await objects.delete_objects(
+            s3_client,
+            "test01",
+            [ObjectIdentifierTypeDef(**obj) for obj in objs],
+        )
+
+    assert e.value.status_code == 500
+    assert (
+        e.value.detail == "Could not delete object(s) "
+        "a/b/file2.txt (AuthorizationHeaderMalformed), "
+        "a/b/file3.txt (AccessDenied)"
+    )

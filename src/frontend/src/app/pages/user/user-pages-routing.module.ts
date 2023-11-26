@@ -54,9 +54,9 @@ const routes: Routes = [
         component: ObjectDatatablePageComponent
       },
       {
-        path: 'versions/:prefix',
+        path: 'versions/:key',
         data: {
-          subTitle: '{{ bid }}/{{ prefix | decodeUriComponent }} - Versions',
+          subTitle: '{{ bid }}/{{ key | decodeUriComponent }} - Versions',
           title: TEXT('Object:'),
           url: '../..'
         },

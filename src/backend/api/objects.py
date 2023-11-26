@@ -138,14 +138,14 @@ class ObjectBodyStreamingResponse(StreamingResponse):
 
 @router.post(
     "/{bucket}",
-    response_model=Optional[List[Object]],
+    response_model=List[Object],
     responses=s3gw_client_responses(),
 )
 async def list_objects(
     conn: S3GWClientDep,
     bucket: str,
     params: ListObjectsRequest = ListObjectsRequest(),
-) -> Optional[List[Object]]:
+) -> List[Object]:
     """
     Note that this is a POST request instead of a usual GET request
     because the parameters specified in `ListObjectsRequest` need to
@@ -160,55 +160,52 @@ async def list_objects(
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/list_objects_v2.html
     """
     async with conn.conn() as s3:
-        try:
-            res: List[Object] = []
-            continuation_token: str = ""
-            while True:
-                s3_res: ListObjectsV2OutputTypeDef = await s3.list_objects_v2(
-                    Bucket=bucket,
-                    Prefix=params.Prefix,
-                    Delimiter=params.Delimiter,
-                    ContinuationToken=continuation_token,
+        res: List[Object] = []
+        continuation_token: str = ""
+        while True:
+            s3_res: ListObjectsV2OutputTypeDef = await s3.list_objects_v2(
+                Bucket=bucket,
+                Prefix=params.Prefix,
+                Delimiter=params.Delimiter,
+                ContinuationToken=continuation_token,
+            )
+            content: ObjectTypeDef
+            for content in s3_res.get("Contents", []):
+                res.append(
+                    parse_obj_as(
+                        Object,
+                        {
+                            "Name": split_key(content["Key"]).pop(),
+                            "Type": "OBJECT",
+                            **content,
+                        },
+                    )
                 )
-                content: ObjectTypeDef
-                for content in s3_res.get("Contents", []):
-                    res.append(
-                        parse_obj_as(
-                            Object,
-                            {
-                                "Name": split_key(content["Key"]).pop(),
-                                "Type": "OBJECT",
-                                **content,
-                            },
-                        )
+            cp: CommonPrefixTypeDef
+            for cp in s3_res.get("CommonPrefixes", []):
+                res.append(
+                    Object(
+                        Key=build_key(cp["Prefix"]),
+                        Name=split_key(cp["Prefix"]).pop(),
+                        Type="FOLDER",
                     )
-                cp: CommonPrefixTypeDef
-                for cp in s3_res.get("CommonPrefixes", []):
-                    res.append(
-                        Object(
-                            Key=build_key(cp["Prefix"]),
-                            Name=split_key(cp["Prefix"]).pop(),
-                            Type="FOLDER",
-                        )
-                    )
-                if not s3_res.get("IsTruncated", False):
-                    break
-                continuation_token = s3_res["NextContinuationToken"]
-        except s3.exceptions.ClientError:
-            return None
+                )
+            if not s3_res.get("IsTruncated", False):
+                break
+            continuation_token = s3_res["NextContinuationToken"]
     return res
 
 
 @router.post(
     "/{bucket}/versions",
-    response_model=Optional[List[ObjectVersion]],
+    response_model=List[ObjectVersion],
     responses=s3gw_client_responses(),
 )
 async def list_object_versions(
     conn: S3GWClientDep,
     bucket: str,
     params: ListObjectVersionsRequest = ListObjectVersionsRequest(),
-) -> Optional[List[ObjectVersion]]:
+) -> List[ObjectVersion]:
     """
     Note that this is a POST request instead of a usual GET request
     because the parameters specified in `ListObjectVersionsRequest`
@@ -219,60 +216,63 @@ async def list_object_versions(
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/list_object_versions.html
     """
     async with conn.conn() as s3:
-        try:
-            res: List[ObjectVersion] = []
-            key_marker: str = ""
-            while True:
-                s3_res: ListObjectVersionsOutputTypeDef = (
-                    await s3.list_object_versions(
-                        Bucket=bucket,
-                        Prefix=params.Prefix,
-                        Delimiter=params.Delimiter,
-                        KeyMarker=key_marker,
+        res: List[ObjectVersion] = []
+        key_marker: str = ""
+        while True:
+            s3_res: ListObjectVersionsOutputTypeDef = (
+                await s3.list_object_versions(
+                    Bucket=bucket,
+                    Prefix=params.Prefix,
+                    Delimiter=params.Delimiter,
+                    KeyMarker=key_marker,
+                )
+            )
+            version: ObjectVersionTypeDef
+            for version in s3_res.get("Versions", []):
+                res.append(
+                    parse_obj_as(
+                        ObjectVersion,
+                        {
+                            "Name": split_key(version["Key"]).pop(),
+                            "Type": "OBJECT",
+                            "IsDeleted": False,
+                            **version,
+                        },
                     )
                 )
-                version: ObjectVersionTypeDef
-                for version in s3_res.get("Versions", []):
-                    res.append(
-                        parse_obj_as(
-                            ObjectVersion,
-                            {
-                                "Name": split_key(version["Key"]).pop(),
-                                "Type": "OBJECT",
-                                "IsDeleted": False,
-                                **version,
-                            },
-                        )
+            cp: CommonPrefixTypeDef
+            for cp in s3_res.get("CommonPrefixes", []):
+                res.append(
+                    ObjectVersion(
+                        Key=build_key(cp["Prefix"]),
+                        Name=split_key(cp["Prefix"]).pop(),
+                        Type="FOLDER",
+                        IsDeleted=False,
+                        IsLatest=True,
                     )
-                cp: CommonPrefixTypeDef
-                for cp in s3_res.get("CommonPrefixes", []):
-                    res.append(
-                        ObjectVersion(
-                            Key=build_key(cp["Prefix"]),
-                            Name=split_key(cp["Prefix"]).pop(),
-                            Type="FOLDER",
-                            IsDeleted=False,
-                            IsLatest=True,
-                        )
+                )
+                dm: DeleteMarkerEntryTypeDef
+            for dm in s3_res.get("DeleteMarkers", []):
+                res.append(
+                    ObjectVersion.parse_obj(
+                        {
+                            "Name": split_key(dm["Key"]).pop(),
+                            "Type": "OBJECT",
+                            "Size": 0,
+                            "IsDeleted": True,
+                            **dm,
+                        }
                     )
-                    dm: DeleteMarkerEntryTypeDef
-                for dm in s3_res.get("DeleteMarkers", []):
-                    res.append(
-                        ObjectVersion.parse_obj(
-                            {
-                                "Name": split_key(dm["Key"]).pop(),
-                                "Type": "OBJECT",
-                                "Size": 0,
-                                "IsDeleted": True,
-                                **dm,
-                            }
-                        )
-                    )
-                if not s3_res.get("IsTruncated", False):
-                    break
-                key_marker = s3_res["NextKeyMarker"]
-        except s3.exceptions.ClientError:
-            return None
+                )
+            if not s3_res.get("IsTruncated", False):
+                break
+            key_marker = s3_res["NextKeyMarker"]
+
+    if params.Strict:
+        # Return only that object versions that exactly match the given
+        # prefix.
+        res = [obj for obj in res if obj.Key == params.Prefix]
+
     return res
 
 
@@ -551,22 +551,22 @@ async def restore_object(
     https://repost.aws/knowledge-center/s3-undelete-configuration
     https://www.middlewareinventory.com/blog/recover-s3/
     """
+    # Remove existing deletion markers.
+    api_res: List[ObjectVersion] = await list_object_versions(
+        conn,
+        bucket,
+        ListObjectVersionsRequest(Prefix=params.Key, Strict=True),
+    )
+    del_objects: List[ObjectIdentifierTypeDef] = [
+        parse_obj_as(ObjectIdentifierTypeDef, obj)
+        for obj in api_res
+        if obj.IsDeleted
+    ]
+    if del_objects:
+        await delete_objects(conn, bucket, del_objects)
+
+    # Make a copy of the object to restore.
     async with conn.conn() as s3:
-        # Remove existing deletion markers.
-        s3_res = await s3.list_object_versions(Bucket=bucket, Prefix=params.Key)
-        del_objects: List[ObjectIdentifierTypeDef] = []
-        dm = DeleteMarkerEntryTypeDef
-        for dm in s3_res.get("DeleteMarkers", []):
-            if dm["IsLatest"]:
-                del_objects.append(
-                    {"Key": dm["Key"], "VersionId": dm["VersionId"]}
-                )
-        if del_objects:
-            await s3.delete_objects(
-                Bucket=bucket,
-                Delete={"Objects": del_objects, "Quiet": True},
-            )
-        # Make a copy of the object to restore.
         copy_source: CopySourceTypeDef = {
             "Bucket": bucket,
             "Key": params.Key,
@@ -597,21 +597,16 @@ async def delete_object(
     """
 
     async def collect_objects() -> List[ObjectIdentifierTypeDef]:
-        api_res: Optional[List[ObjectVersion]] = await list_object_versions(
+        api_res: List[ObjectVersion] = await list_object_versions(
             conn,
             bucket,
-            ListObjectVersionsRequest(Prefix=params.Key, Delimiter=""),
+            ListObjectVersionsRequest(Prefix=params.Key, Strict=True),
         )
-        obj: ObjectVersion
-        res_objects: List[ObjectIdentifierTypeDef] = []
-        for obj in api_res or []:
-            # Skip "virtual folders" and objects that do not match
-            # the given key.
-            if obj.Type != "OBJECT" or obj.Key != params.Key:
-                continue
-            version_id: str = obj.VersionId if obj.VersionId else ""
-            res_objects.append({"Key": obj.Key, "VersionId": version_id})
-        return res_objects
+        return [
+            parse_obj_as(ObjectIdentifierTypeDef, obj)
+            for obj in api_res
+            if obj.Type == "OBJECT"
+        ]
 
     objects: List[ObjectIdentifierTypeDef]
     if params.AllVersions:
@@ -640,7 +635,7 @@ async def delete_object_by_prefix(
     """
 
     async def collect_objects(prefix: str) -> List[ObjectIdentifierTypeDef]:
-        api_res: Optional[List[ObjectVersion]] = await list_object_versions(
+        api_res: List[ObjectVersion] = await list_object_versions(
             conn,
             bucket,
             ListObjectVersionsRequest(
@@ -649,7 +644,7 @@ async def delete_object_by_prefix(
         )
         obj: ObjectVersion
         res_objects: List[ObjectIdentifierTypeDef] = []
-        for obj in api_res or []:
+        for obj in api_res:
             if not (params.AllVersions or (obj.IsLatest and not obj.IsDeleted)):
                 continue
             if obj.Type == "OBJECT":
@@ -678,6 +673,9 @@ async def delete_object_by_prefix(
 async def delete_objects(
     conn: S3GWClientDep, bucket: str, objects: List[ObjectIdentifierTypeDef]
 ) -> List[DeletedObject]:
+    """
+    Helper function to delete the specified objects.
+    """
     async with conn.conn() as s3:
         s3_res: DeleteObjectsOutputTypeDef = await s3.delete_objects(
             Bucket=bucket, Delete={"Objects": objects}
