@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
-import { format } from '~/app/functions.helper';
+import { decodeURIComponents, format } from '~/app/functions.helper';
 import { Unsubscribe } from '~/app/functions.helper';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { Icon } from '~/app/shared/enum/icon.enum';
@@ -61,8 +61,9 @@ export class ObjectVersionDatatablePageComponent implements OnInit {
         this.pageStatus = PageStatus.ready;
         return;
       }
-      this.bid = decodeURIComponent(value['bid']);
-      this.key = decodeURIComponent(value['key']);
+      value = decodeURIComponents(value, ['bid', 'key']);
+      this.bid = value['bid'];
+      this.key = value['key'];
       this.loadData();
     });
     this.datatableActions = [

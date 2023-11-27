@@ -56,7 +56,7 @@ const routes: Routes = [
       {
         path: 'versions/:key',
         data: {
-          subTitle: '{{ bid }}/{{ key | decodeUriComponent }} - Versions',
+          subTitle: '{{ bid }}/{{ key | safe }} - Versions',
           title: TEXT('Object:'),
           url: '../..'
         },

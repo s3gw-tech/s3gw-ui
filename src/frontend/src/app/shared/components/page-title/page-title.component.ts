@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Params } from '@angular/router';
 
-import { format } from '~/app/functions.helper';
+import { decodeURIComponents, format } from '~/app/functions.helper';
 import { AppConfigService } from '~/app/shared/services/app-config.service';
 
 @Component({
@@ -20,15 +20,16 @@ export class PageTitleComponent {
     private appConfigService: AppConfigService,
     private titleService: Title
   ) {
-    this.activatedRoute.params.subscribe((params: Params) => {
+    this.activatedRoute.params.subscribe((value: Params) => {
+      value = decodeURIComponents(value);
       this.subTitle = this.activatedRoute.snapshot.data?.['subTitle']
-        ? format(this.activatedRoute.snapshot.data['subTitle'], params)
+        ? format(this.activatedRoute.snapshot.data['subTitle'], value)
         : undefined;
       this.title = this.activatedRoute.snapshot.data?.['title']
-        ? format(this.activatedRoute.snapshot.data['title'], params)
+        ? format(this.activatedRoute.snapshot.data['title'], value)
         : undefined;
       this.url = this.activatedRoute.snapshot.data?.['url']
-        ? format(this.activatedRoute.snapshot.data['url'], params)
+        ? format(this.activatedRoute.snapshot.data['url'], value)
         : undefined;
       if (this.title) {
         let newTitle = `${this.appConfigService.config?.title} - ${this.title}`;

@@ -49,6 +49,8 @@ export const bytesToSize = (value: undefined | null | number | string): string =
  * mustache style for that seems to be the better approach than using
  * the ES string interpolate style.
  *
+ * Note, output with dangerous characters is escaped automatically.
+ *
  * Example:
  * format('Hello {{ username }}', {username: 'foo'})
  *
@@ -173,6 +175,35 @@ export const isObjectVersionID = (value: any, excludeNull = false): boolean => {
     invalidValues.push('null');
   }
   return _.isString(value) && !invalidValues.includes(value);
+};
+
+/**
+ * Decode all specified Uniform Resource Identifier (URI) components
+ * previously created by encodeURIComponent() or by a similar routine
+ * in the specified object.
+ *
+ * @param data The object containing the encoded components to be
+ *   processed.
+ * @param encodedURIComponents An optional list of encoded components of
+ *   Uniform Resource Identifiers. If not set, the all keys of the given
+ *   data are used.
+ * @return Returns a new object containing the decoded versions of the
+ *   given encoded Uniform Resource Identifier (URI) components.
+ */
+export const decodeURIComponents = (
+  data: Record<string, any>,
+  encodedURIComponents?: string[]
+): Record<string, any> => {
+  const newData: Record<string, any> = _.cloneDeep(data);
+  if (!_.isArray(encodedURIComponents)) {
+    encodedURIComponents = _.keys(data);
+  }
+  _.forEach(encodedURIComponents, (encodedURIComponent: string) => {
+    if (encodedURIComponent in newData && _.isString(newData[encodedURIComponent])) {
+      newData[encodedURIComponent] = decodeURIComponent(newData[encodedURIComponent]);
+    }
+  });
+  return newData;
 };
 
 /**
