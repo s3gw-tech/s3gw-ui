@@ -1,6 +1,7 @@
 import {
   basename,
   bytesToSize,
+  decodeURIComponents,
   extractErrorCode,
   extractErrorDescription,
   extractErrorMessage,
@@ -63,6 +64,22 @@ describe('functions.helper', () => {
     expect(format('foo {{ x.y.z }} {{ a }}', { a: 'baz', x: { y: { z: 'bar' } } })).toBe(
       'foo bar baz'
     );
+  });
+
+  it('should format a string [3]', () => {
+    expect(format('{{ foo | basename }}', { foo: 'foo/bar/baz' })).toBe('baz');
+  });
+
+  it('should format a string [4]', () => {
+    expect(format('{{ foo | decodeUriComponent }}', { foo: encodeURIComponent('foo & baz') })).toBe(
+      'foo &amp; baz'
+    );
+  });
+
+  it('should format a string [5]', () => {
+    expect(
+      format('{{ foo | decodeUriComponent | safe }}', { foo: encodeURIComponent('foo & baz') })
+    ).toBe('foo & baz');
   });
 
   it('should isEqualOrUndefined [1]', () => {
@@ -204,5 +221,33 @@ describe('functions.helper', () => {
 
   it('should check object version ID [5]', () => {
     expect(isObjectVersionID(1234)).toBeFalsy();
+  });
+
+  it('should decode URI components [1]', () => {
+    let data: Record<string, any> = {
+      foo: encodeURIComponent('foo & foo'),
+      bar: encodeURIComponent('a=10'),
+      baz: 10,
+      xyz: encodeURIComponent('xyz & xyz')
+    };
+    data = decodeURIComponents(data);
+    expect(data['foo']).toBe('foo & foo');
+    expect(data['bar']).toBe('a=10');
+    expect(data['baz']).toBe(10);
+    expect(data['xyz']).toBe('xyz & xyz');
+  });
+
+  it('should decode URI components [2]', () => {
+    let data: Record<string, any> = {
+      foo: encodeURIComponent('foo & foo'),
+      bar: encodeURIComponent('a=10'),
+      baz: 10,
+      xyz: encodeURIComponent('xyz & xyz')
+    };
+    data = decodeURIComponents(data, ['foo', 'bar', 'baz']);
+    expect(data['foo']).toBe('foo & foo');
+    expect(data['bar']).toBe('a=10');
+    expect(data['baz']).toBe(10);
+    expect(data['xyz']).toBe(encodeURIComponent('xyz & xyz'));
   });
 });

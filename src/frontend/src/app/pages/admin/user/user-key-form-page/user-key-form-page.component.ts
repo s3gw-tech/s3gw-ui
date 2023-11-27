@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { marker as TEXT } from '@ngneat/transloco-keys-manager/marker';
 
+import { decodeURIComponents } from '~/app/functions.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { PageStatus } from '~/app/shared/components/page-wrapper/page-wrapper.component';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
@@ -33,9 +34,10 @@ export class UserKeyFormPageComponent implements OnInit, IsDirty {
 
   ngOnInit(): void {
     this.route.params.subscribe((value: Params) => {
+      value = decodeURIComponents(value);
       this.pageStatus = PageStatus.ready;
-      this.uid = decodeURIComponent(value['uid']);
-      this.user = decodeURIComponent(value['user']);
+      this.uid = value['uid'];
+      this.user = value['user'];
       this.createForm();
     });
   }
