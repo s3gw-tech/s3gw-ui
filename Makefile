@@ -43,12 +43,7 @@ build-ui-frontend:
 ########################################################################
 # Build UI Image
 
-#Kept for convenience until the new backend architecture is not ready.
-#This will be likely removed in the future.
-image-build-ui-frontend:
-	docker build -t s3gw-frontend:latest -f src/frontend/Dockerfile src/frontend
-
-image-build-ui:
+image-build-ui: build-ui-frontend
 	docker build -t s3gw-ui:latest -f src/Dockerfile src
 
 ########################################################################
