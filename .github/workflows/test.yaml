@@ -53,6 +53,47 @@ jobs:
         working-directory: src/frontend
         run: npm run test:ci
 
+  frontend-test-e2e:    
+    runs-on: ubuntu-latest
+
+    services:
+      s3gw:
+        image: quay.io/s3gw/s3gw:latest
+        ports:
+          - 7480:7480
+
+    steps:
+      - name: Checkout s3gw UI
+        uses: actions/checkout@v3
+
+      - name: Setup and run UI Backend
+        run: |
+              cd src \
+              && python3 -m venv venv \
+              && . venv/bin/activate \
+              && pip install -r requirements.txt -r requirements-dev.txt \
+              && . venv/bin/activate \
+              && mkdir -p frontend/dist/s3gw-ui/assets \
+              && touch frontend/dist/s3gw-ui/assets/app-main.config.json \
+              && S3GW_DEBUG=1 S3GW_SERVICE_URL=http://127.0.0.1:7480 python3 ./s3gw_ui_backend.py &
+
+      - name: Set up node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: src/frontend
+        run: |
+              cp proxy.conf.json.sample proxy.conf.json
+              npm ci
+
+      - name: Run E2E Tests
+        working-directory: src/frontend
+        run: npm run e2e:ci
+
   backend-lint:
     runs-on: ubuntu-latest
 
