@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import pytest
-from fastapi import HTTPException
+from botocore.exceptions import EndpointConnectionError
+from fastapi import HTTPException, status
+from httpx import ConnectError
 from pytest_httpx import HTTPXMock
 from pytest_mock import MockerFixture
 
@@ -105,4 +107,25 @@ async def test_authenticate_3(
 
     with pytest.raises(HTTPException) as e:
         await auth.authenticate(s3_client)
-    assert e.value.status_code == 403
+    assert e.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+@pytest.mark.anyio
+async def test_authenticate_4(
+    s3_client: S3GWClient, mocker: MockerFixture, httpx_mock: HTTPXMock
+) -> None:
+    httpx_mock.add_exception(
+        exception=ConnectError(message="All connection attempts failed")
+    )
+
+    s3api_mock = S3ApiMock(s3_client, mocker)
+    s3api_mock.patch(
+        "list_buckets",
+        side_effect=EndpointConnectionError(
+            endpoint_url="http://127.0.0.1:7481/"
+        ),
+    )
+
+    with pytest.raises(HTTPException) as e:
+        await auth.authenticate(s3_client)
+    assert e.value.status_code == status.HTTP_502_BAD_GATEWAY

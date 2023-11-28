@@ -18,6 +18,8 @@ import httpx
 from botocore.auth import HmacV1Auth
 from botocore.awsrequest import AWSRequest
 from botocore.credentials import Credentials
+from fastapi import HTTPException, status
+from fastapi.logger import logger
 
 from backend.admin_ops.errors import error_from_response
 
@@ -63,10 +65,22 @@ HTTPMethodType = (
 
 async def send_request(req: httpx.Request) -> httpx.Response:
     async with httpx.AsyncClient(verify=False) as client:
-        res: httpx.Response = await client.send(req)
-        if not res.is_success:
-            raise error_from_response(res)
-        return res
+        try:
+            res: httpx.Response = await client.send(req)
+            if not res.is_success:
+                raise error_from_response(res)
+            return res
+        except httpx.ConnectError as e:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=str(e),
+            )
+        except Exception as e:
+            detail: str | None = str(e) or None
+            logger.error(f"Unknown exception ({type(e)}): {detail}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
+            )
 
 
 async def do_request(
