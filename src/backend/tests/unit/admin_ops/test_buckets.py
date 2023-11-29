@@ -16,7 +16,7 @@ from typing import Any, Dict, List
 
 import httpx
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from pytest_httpx import HTTPXMock
 
 import backend.admin_ops.buckets as buckets
@@ -105,7 +105,7 @@ async def test_bucket_list(httpx_mock: HTTPXMock) -> None:
 @pytest.mark.anyio
 async def test_bucket_list_failure(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(  # pyright: ignore [reportUnknownMemberType]
-        status_code=404  # any error, really
+        status_code=status.HTTP_404_NOT_FOUND  # any error, really
     )
 
     with pytest.raises(HTTPException) as e:
@@ -115,7 +115,7 @@ async def test_bucket_list_failure(httpx_mock: HTTPXMock) -> None:
             secret_key="qwe",
             uid=None,
         )
-    assert e.value.status_code == 404
+    assert e.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 @pytest.mark.anyio
@@ -126,7 +126,9 @@ async def test_bucket_list_with_uid(httpx_mock: HTTPXMock) -> None:
         nonlocal called_cb
         called_cb = True
         assert str(req.url.query).find("uid=asdasd") >= 0
-        return httpx.Response(status_code=200, json=bucket_list_response)
+        return httpx.Response(
+            status_code=status.HTTP_200_OK, json=bucket_list_response
+        )
 
     httpx_mock.add_callback(  # pyright: ignore [reportUnknownMemberType]
         check_uid

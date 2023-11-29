@@ -133,10 +133,11 @@ class S3GWClient:
                 # propagate it.
                 raise e
             except Exception as e:
-                logger.error(f"Unknown error: {e}")
-                logger.error(f"  exception: {type(e)}")
+                detail: str | None = str(e) or None
+                logger.error(f"Unknown exception ({type(e)}): {detail}")
                 raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=detail,
                 )
 
 

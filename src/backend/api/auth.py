@@ -14,7 +14,7 @@
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.routing import APIRouter
 from types_aiobotocore_s3.type_defs import ListBucketsOutputTypeDef
 
@@ -36,8 +36,8 @@ S3GWClientDep = Annotated[S3GWClient, Depends(s3gw_client)]
 async def authenticate(conn: S3GWClientDep) -> AuthUser:
     # Try to access a RGW Admin Ops endpoint first. If that works, the
     # given credentials have `admin` privileges. If it fails, try to
-    # access a RGW endpoint. If that works, the given credentials can
-    # be used to sign in as `regular` user.
+    # access a RGW endpoint via AWS S3 API. If that works, the given
+    # credentials can be used to sign in as `regular` user.
     try:
         admin_ops_res: admin_ops_types.UserInfo = (
             await admin_ops_users.get_user_info(
@@ -53,14 +53,16 @@ async def authenticate(conn: S3GWClientDep) -> AuthUser:
             IsAdmin=admin_ops_res.admin,
         )
     except HTTPException:
-        try:
-            async with conn.conn() as s3:
-                s3_res: ListBucketsOutputTypeDef = await s3.list_buckets()
-                res = AuthUser(
-                    ID=s3_res["Owner"]["ID"],
-                    DisplayName=s3_res["Owner"]["DisplayName"],
-                    IsAdmin=False,
-                )
-        except HTTPException:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+        # Handle ALL HTTP related exceptions here, e.g. connection errors.
+        # The `httpx` library used for calling the Admin Ops API does not
+        # provide meaningful error messages, whereas `botocore` provides
+        # connection error messages that might be more helpful when they
+        # are displayed in the UI.
+        async with conn.conn() as s3:
+            s3_res: ListBucketsOutputTypeDef = await s3.list_buckets()
+            res = AuthUser(
+                ID=s3_res["Owner"]["ID"],
+                DisplayName=s3_res["Owner"]["DisplayName"],
+                IsAdmin=False,
+            )
     return res

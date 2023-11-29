@@ -18,7 +18,7 @@ from typing import Any, Dict, List
 
 import httpx
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from pytest_httpx import HTTPXMock
 from pytest_mock import MockerFixture
 
@@ -128,14 +128,14 @@ async def test_get_user_info_3(httpx_mock: HTTPXMock) -> None:
 @pytest.mark.anyio
 async def test_get_user_info_failure(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(  # pyright: ignore [reportUnknownMemberType]
-        status_code=404,  # any error, really
+        status_code=status.HTTP_404_NOT_FOUND,  # any error, really
     )
 
     with pytest.raises(HTTPException) as e:
         await get_user_info(
             url="http://foo.bar:123", access_key="asd", secret_key="qwe"
         )
-    assert e.value.status_code == 404
+    assert e.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 @pytest.mark.anyio
