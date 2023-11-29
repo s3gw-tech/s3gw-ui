@@ -43,12 +43,12 @@ export const supportedLanguages: Record<string, string> = {
 
 /**
  * Get the current configured language. If not set in local storage,
- * then try to get the default browser language. Finally fall back
+ * then try to get the default browser language. Finally, fall back
  * to the specified default language. Defaults to 'en_US'.
  */
 export const getCurrentLanguage = (defaultValue = defaultLanguage): string => {
   // Get the stored language from local storage.
-  let lang = localStorage.getItem('language');
+  let lang: string | null = localStorage.getItem('language');
   // If not set, try to detect the browser language.
   if (_.isNull(lang)) {
     if (_.isArray(navigator.languages)) {
@@ -60,7 +60,8 @@ export const getCurrentLanguage = (defaultValue = defaultLanguage): string => {
         .value();
     }
   }
-  return _.defaultTo(lang, defaultValue);
+  // Remove unwanted characters, e.g. `"en_US"` => `en_US`.
+  return _.trim(_.defaultTo(lang, defaultValue), '"');
 };
 
 export const setCurrentLanguage = (lang: string): void => {

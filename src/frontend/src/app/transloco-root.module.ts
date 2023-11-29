@@ -11,7 +11,8 @@ import {
   TranslocoModule
 } from '@ngneat/transloco';
 import * as _ from 'lodash';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { supportedLanguages } from '~/app/i18n.helper';
 import { environment } from '~/environments/environment';
@@ -21,7 +22,13 @@ class CustomLoader implements TranslocoLoader {
   constructor(private http: HttpClient) {}
 
   public getTranslation(lang: string): Observable<Translation> {
-    return this.http.get<Translation>(`assets/i18n/${lang}.json`);
+    return this.http.get<Translation>(`assets/i18n/${lang}.json`).pipe(
+      catchError((err) => {
+        // Return an empty translation list. In this way, Transloco will
+        // not translate anything, but it will not fail either.
+        return of({});
+      })
+    );
   }
 }
 
