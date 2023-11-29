@@ -85,7 +85,7 @@ def test_config_init() -> None:
         ui_resp = client.get("/s3gwui")
         assert ui_resp.status_code == 200
         api_resp = client.get("/s3gwui/api/buckets/")
-        assert api_resp.status_code == 422
+        assert api_resp.status_code == 404
 
 
 def test_config_init_failure(caplog: pytest.LogCaptureFixture) -> None:

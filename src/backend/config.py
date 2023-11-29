@@ -112,14 +112,14 @@ def get_s3gw_address() -> str:
     return url
 
 
-def get_ui_path() -> str:
+def get_ui_path(default: str = "/") -> str:
     """
     Obtain the path under which the UI should be served, e.g. `/ui`.
     """
 
     def post_process(key: str, value: str | None) -> str:
         if value is None or value == "/":
-            return "/"
+            return default
         # TODO: The path should be validated here
         match = re.fullmatch(r".*", value)
         if match is None:
@@ -127,19 +127,18 @@ def get_ui_path() -> str:
                 f"The value of the environment variable {key} is malformed: {value}"  # noqa: E501
             )
             raise EnvironMalformedError(key)
-        return value if value.startswith("/") else f"/{value}"
+        return f"/{value.strip('/')}"
 
-    path = get_environ_str("S3GW_UI_PATH", cb=post_process)
-    return path
+    return get_environ_str("S3GW_UI_PATH", cb=post_process)
 
 
-def get_api_path(ui_path: str) -> str:
-    """
-    Obtain the path under which the API for the UI should be served from the
-    path of the UI itself. E.g. when the UI path is `/ui`, this will be
-    `/ui/api`
-    """
-    return f"{ui_path.rstrip('/')}/api"
+def get_api_path(default: str = "/api") -> str:
+    def post_process(_: str, value: str | None) -> str:
+        if value is None or value == "":
+            value = default
+        return f"/{value.strip('/')}"
+
+    return get_environ_str("S3GW_API_PATH", cb=post_process)
 
 
 class Config:
@@ -164,7 +163,7 @@ class Config:
             "S3GW_S3_PREFIX_DELIMITER", "/"
         )
         self._ui_path = get_ui_path()
-        self._api_path = get_api_path(self._ui_path)
+        self._api_path = get_api_path()
         self._instance_id = get_environ_str("S3GW_INSTANCE_ID")
 
     @property

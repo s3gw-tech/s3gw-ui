@@ -18,6 +18,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, List
+from urllib.parse import urljoin
 
 import uvicorn
 from fastapi import FastAPI, Response
@@ -120,7 +121,11 @@ def s3gw_factory(static_dir: str | None = None) -> FastAPI:
     s3gw_api.include_router(objects.router)
     s3gw_api.include_router(config.router)
 
-    s3gw_app.mount(s3gw_api.state.config.api_path, s3gw_api, name="api")
+    s3gw_app.mount(
+        urljoin(s3gw_api.state.config.ui_path, s3gw_api.state.config.api_path),
+        s3gw_api,
+        name="api",
+    )
 
     if static_dir is not None:
         # Disable caching of `index.html` on purpose so that the browser

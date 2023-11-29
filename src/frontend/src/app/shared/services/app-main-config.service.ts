@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import * as _ from 'lodash';
 import { EMPTY, Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
@@ -18,7 +19,7 @@ export type AppMainConfig = {
 export class AppMainConfigService {
   private _config: AppMainConfig = {
     /* eslint-disable @typescript-eslint/naming-convention */
-    ApiPath: 'api/',
+    ApiPath: 'api',
     Delimiter: '/',
     Endpoint: '',
     InstanceId: ''
@@ -49,6 +50,9 @@ export class AppMainConfigService {
           return EMPTY;
         }),
         tap((config: AppMainConfig) => {
+          // Make sure the `ApiPath` is in a valid form, so it can be
+          // used without worries and adjustments.
+          config.ApiPath = _.trim(config.ApiPath, '/');
           // eslint-disable-next-line no-underscore-dangle
           this._config = config;
         })

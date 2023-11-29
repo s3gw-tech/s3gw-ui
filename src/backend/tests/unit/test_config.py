@@ -23,6 +23,7 @@ from backend.config import (
     Config,
     EnvironMalformedError,
     S3AddressingStyle,
+    get_api_path,
     get_environ_enum,
     get_environ_str,
     get_s3gw_address,
@@ -130,12 +131,12 @@ def test_good_ui_path_2() -> None:
 
 def test_good_ui_path_3() -> None:
     os.environ["S3GW_UI_PATH"] = "/foo-bar/baz/"
-    assert "/foo-bar/baz/" == get_ui_path()
+    assert "/foo-bar/baz" == get_ui_path()
 
 
 def test_good_ui_path_4() -> None:
-    os.environ["S3GW_UI_PATH"] = "/foo-bar/foo-bar/"
-    assert "/foo-bar/foo-bar/" == get_ui_path()
+    os.environ["S3GW_UI_PATH"] = "foo-bar/foo-bar"
+    assert "/foo-bar/foo-bar" == get_ui_path()
 
 
 def test_no_ui_path() -> None:
@@ -152,17 +153,7 @@ def test_good_ui_api_path() -> None:
     os.environ["S3GW_UI_PATH"] = path
     try:
         cfg = Config()
-        assert cfg.api_path == "/s3store/api"
-    except Exception as e:
-        pytest.fail(str(e))
-
-
-def test_api_path_with_trailing_slash() -> None:
-    path = "/s3store/"
-    os.environ["S3GW_UI_PATH"] = path
-    try:
-        cfg = Config()
-        assert cfg.api_path == "/s3store/api"
+        assert cfg.api_path == "/api"
     except Exception as e:
         pytest.fail(str(e))
 
@@ -201,3 +192,23 @@ def test_get_environ_str_2() -> None:
 def test_get_environ_str_3() -> None:
     os.environ.pop("S3GW_INSTANCE_ID", None)
     assert "" == get_environ_str("S3GW_INSTANCE_ID")
+
+
+def test_api_path_1() -> None:
+    os.environ["S3GW_API_PATH"] = "/bar"
+    assert "/bar" == get_api_path()
+
+
+def test_api_path_2() -> None:
+    os.environ["S3GW_API_PATH"] = "foo/bar/"
+    assert "/foo/bar" == get_api_path()
+
+
+def test_api_path_3() -> None:
+    os.environ.pop("S3GW_API_PATH", None)
+    assert "/api" == get_api_path()
+
+
+def test_api_path_4() -> None:
+    os.environ["S3GW_API_PATH"] = ""
+    assert "/api" == get_api_path()

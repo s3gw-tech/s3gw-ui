@@ -27,6 +27,18 @@ describe('S3gwApiService', () => {
     expect(service.buildUrl('/foo/bar/')).toBe('http://localhost:8080/api/foo/bar/');
   });
 
+  it('should build valid URL [2]', () => {
+    service.config.ApiPath = 'api';
+    // @ts-ignore
+    expect(service.buildUrl('/foo/bar/')).toBe('api/foo/bar/');
+  });
+
+  it('should build valid URL [3]', () => {
+    service.config.ApiPath = 'aaa/api';
+    // @ts-ignore
+    expect(service.buildUrl('xyz')).toBe('aaa/api/xyz');
+  });
+
   it('should call bucket list', () => {
     service.config.ApiPath = 'https://localhost:8080/api';
     service.get('buckets/', { credentials: { accessKey: 'foo', secretKey: 'bar' } }).subscribe();
