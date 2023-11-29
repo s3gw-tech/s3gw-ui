@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Do not escape object key in page title (aquarist-labs/s3gw#839).
+- Make sure a missing translation file does not crash the app (aquarist-labs/s3gw#846).
 
 ## [0.23.0]
 
