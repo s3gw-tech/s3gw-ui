@@ -78,10 +78,7 @@ export class S3gwApiService {
   }
 
   private buildUrl(url: string): string {
-    return `${_.trimEnd(this.config.ApiPath, this.config.Delimiter)}/${_.trimStart(
-      url,
-      this.config.Delimiter
-    )}`;
+    return `${this.config.ApiPath}/${_.trimStart(url, '/')}`;
   }
 
   private buildHeaders(credentials: Credentials): HttpHeaders {
